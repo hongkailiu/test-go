@@ -1,5 +1,5 @@
-hash: 74c1e78aea4503280c776a53e6ccc178ed5b5ced3f82c036a4e116a9fcebb478
-updated: 2017-12-22T10:44:07.269658798-05:00
+hash: af1fe470538919f73bd8f6dac69da98d9ae4cfbbb8b265a7ef75bba37308433e
+updated: 2017-12-22T14:43:00.365651393-05:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -58,6 +58,15 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/openshift/api
+  version: 8af7eb601905edfe64e764c92d495c985863da18
+  subpackages:
+  - build/v1
+- name: github.com/openshift/client-go
+  version: 67d69e208a14eaa14fd782e198acfdd48441c604
+  subpackages:
+  - build/clientset/versioned/scheme
+  - build/clientset/versioned/typed/build/v1
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
 - name: github.com/PuerkitoBio/purell
@@ -73,12 +82,13 @@ imports:
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
-  - context
-  - context/ctxhttp
+  - html
+  - html/atom
   - http2
   - http2/hpack
   - idna
   - lex/httplex
+  - websocket
 - name: golang.org/x/sys
   version: 95c6576299259db960f6c5b9b69ea52422860fce
   subpackages:
@@ -225,4 +235,5 @@ imports:
   version: 39a7bf85c140f972372c2a0d1ee40adbf0c8bfe1
   subpackages:
   - pkg/common
+  - pkg/util/proto
 testImports: []
