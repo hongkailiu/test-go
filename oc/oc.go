@@ -1,8 +1,10 @@
 package main
 
 import (
-    v1 "github.com/openshift/api/build/v1"
+    "k8s.io/client-go/kubernetes"
+    "github.com/openshift/api/build/v1"
     "k8s.io/apimachinery/pkg/api/errors"
+    "k8s.io/apimachinery/pkg/util/wait"
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
     buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
     "path/filepath"
@@ -10,6 +12,9 @@ import (
     "k8s.io/client-go/tools/clientcmd"
     "os"
     "fmt"
+    "strconv"
+    "io/ioutil"
+    "time"
 )
 
 func main() {
@@ -32,7 +37,8 @@ func main() {
         panic(err.Error())
     }
 
-    buildConfigs, err := buildV1Client.BuildConfigs("").List(metav1.ListOptions{})
+    namespace := "test001project"
+    buildConfigs, err := buildV1Client.BuildConfigs(namespace).List(metav1.ListOptions{})
 
     if err != nil {
         panic(err.Error())
@@ -40,7 +46,7 @@ func main() {
     fmt.Printf("There are %d builds in the cluster\n", len(buildConfigs.Items))
 
     //Change namespace and build accordingly
-    namespace := "testproject"
+
     buildConfig := "cakephp-ex"
     myBuildConfig, err := buildV1Client.BuildConfigs(namespace).Get(buildConfig, metav1.GetOptions{})
     if errors.IsNotFound(err) {
@@ -74,6 +80,58 @@ func main() {
     }
 
 
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        panic(err.Error())
+    }
+
+    pod := myBuild.Name + "-build"
+    // https://github.com/kubernetes/helm/blob/master/pkg/kube/wait.go
+    fmt.Printf("Found pod %s in namespace %s\n", pod, namespace)
+    err = wait.Poll(6*time.Second, 10*time.Minute, func() (bool, error) {
+
+        myPod, err := clientset.CoreV1().Pods(namespace).Get(pod, metav1.GetOptions{})
+        if err != nil {
+            return false, err
+        }
+        fmt.Printf("Found pod %s in status %+v\n", myPod.Name, myPod.Status)
+        if myPod.Status.Phase == "Succeeded" || myPod.Status.Phase == "Failed" {
+            return true, nil
+        }
+        return false, nil
+    })
+
+    if err != nil {
+        panic(err.Error())
+    } else {
+
+        // not found api on sub-resource (log is a sub-resource of pod)
+        // https://stackoverflow.com/questions/32983228/kubernetes-go-client-api-for-log-of-a-particular-pod
+        req := clientset.CoreV1().RESTClient().Get().
+                Namespace(namespace).
+                Name(pod).
+                Resource("pods").
+                SubResource("log").
+                Param("follow", strconv.FormatBool(false)).
+                Param("container", "").
+                Param("previous", strconv.FormatBool(false)).
+                Param("timestamps", strconv.FormatBool(true))
+
+        readCloser, err := req.Stream()
+        if err != nil {
+            panic(err.Error())
+        }
+
+        defer readCloser.Close()
+
+        if b, err := ioutil.ReadAll(readCloser); err == nil {
+            fmt.Printf("logs begin ======\n")
+            fmt.Printf("%s\n", string(b))
+            fmt.Printf("logs end ======\n")
+        } else {
+            panic(err.Error())
+        }
+    }
 }
 
 func homeDir() string {
