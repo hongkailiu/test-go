@@ -1,5 +1,5 @@
-hash: af1fe470538919f73bd8f6dac69da98d9ae4cfbbb8b265a7ef75bba37308433e
-updated: 2017-12-22T14:43:00.365651393-05:00
+hash: e7c19b8c94affcd3d2d61c691338ee42b629698539e8a48bcc8c995a5e78adec
+updated: 2018-02-03T10:25:30.48416447-05:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -59,11 +59,11 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/openshift/api
-  version: 8af7eb601905edfe64e764c92d495c985863da18
+  version: 0d921e363e951d89f583292c60d013c318df64dc
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
-  version: 67d69e208a14eaa14fd782e198acfdd48441c604
+  version: 54eeb57ead752fbf5564b4713bb7321f8aa24f8b
   subpackages:
   - build/clientset/versioned/scheme
   - build/clientset/versioned/typed/build/v1
@@ -73,6 +73,8 @@ imports:
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
+- name: github.com/sirupsen/logrus
+  version: 768a92a02685ee7535069fc1581341b41bab9b72
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: golang.org/x/crypto

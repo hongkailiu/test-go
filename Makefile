@@ -5,3 +5,7 @@ build-k8s:
 .PHONY : build-oc
 build-oc:
 	./script/ci/build-oc.sh
+
+.PHONY : update-dep
+update-dep:
+	./script/ci/update-dep.sh
