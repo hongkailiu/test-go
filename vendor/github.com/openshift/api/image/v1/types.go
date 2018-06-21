@@ -158,7 +158,7 @@ type ImageStreamList struct {
 }
 
 // +genclient
-// +genclient:method=Secrets,verb=list,subresource=secrets,result=k8s.io/api/core/v1.Secret
+// +genclient:method=Secrets,verb=get,subresource=secrets,result=k8s.io/api/core/v1.SecretList
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ImageStream stores a mapping of tags to images, metadata overrides that are applied
@@ -347,7 +347,7 @@ type ImageStreamMapping struct {
 }
 
 // +genclient
-// +genclient:onlyVerbs=get,create,update,delete
+// +genclient:onlyVerbs=get,list,create,update,delete
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ImageStreamTag represents an Image that is retrieved by tag name from an ImageStream.

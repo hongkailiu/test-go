@@ -1,5 +1,5 @@
-hash: e7c19b8c94affcd3d2d61c691338ee42b629698539e8a48bcc8c995a5e78adec
-updated: 2018-02-03T10:25:30.48416447-05:00
+hash: 7274fa43f1071ba5a2543721ff2b4cb642763cce3979679872889764e3c9a880
+updated: 2018-06-20T15:56:17.211631298-04:00
 imports:
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
@@ -15,6 +15,8 @@ imports:
   version: 7abd5745472fff5eb3685386d5fb8bf38683154d
 - name: github.com/go-openapi/swag
   version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
+- name: github.com/go-stomp/stomp
+  version: ba860900ef3307ecfe85ca14bc4838f24cfc7126
 - name: github.com/gogo/protobuf
   version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
@@ -59,11 +61,11 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/openshift/api
-  version: 0d921e363e951d89f583292c60d013c318df64dc
+  version: 0ce1df2db7debb15eddb25f3ae76df4180777221
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
-  version: 54eeb57ead752fbf5564b4713bb7321f8aa24f8b
+  version: 570cd3183379dc770a8bb6cef90d5dbe01f678d8
   subpackages:
   - build/clientset/versioned/scheme
   - build/clientset/versioned/typed/build/v1
@@ -74,7 +76,9 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/sirupsen/logrus
-  version: 768a92a02685ee7535069fc1581341b41bab9b72
+  version: 75068beb13ada9c0ddde611f678523fda7352650
+  subpackages:
+  - hooks/syslog
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: golang.org/x/crypto

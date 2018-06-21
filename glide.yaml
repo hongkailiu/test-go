@@ -4,3 +4,4 @@ import:
   version: v6.0.0
 - package: github.com/openshift/client-go
 - package: github.com/sirupsen/logrus
+- package: github.com/go-stomp/stomp
