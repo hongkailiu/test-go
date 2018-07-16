@@ -57,8 +57,10 @@ func sendMessages() {
 	for i := 1; i <= *messageCount; i++ {
 		text := fmt.Sprintf("Message #%d", i)
 		err = conn.Send(*queueName, "text/plain",
+			[]byte(text),
 			// Hongkai: cannot use nil for options as the original example does
-			[]byte(text), stomp.SendOpt.Receipt)
+			stomp.SendOpt.Receipt,
+			stomp.SendOpt.Header("persistent", "true"))
 		if err != nil {
 			println("failed to send to server:", err.Error())
 			return
@@ -88,12 +90,13 @@ func recvMessages(subscribed chan bool) {
 
 	for i := 1; i <= *messageCount; i++ {
 		msg := <-sub.C
-		expectedText := fmt.Sprintf("Message #%d", i)
+		//expectedText := fmt.Sprintf("Message #%d", i)
 		actualText := string(msg.Body)
-		if expectedText != actualText {
-			println("Expected:", expectedText)
-			println("Actual:", actualText)
-		}
+		println("Actual:", actualText)
+		//if expectedText != actualText {
+		//	println("Expected:", expectedText)
+		//	println("Actual:", actualText)
+		//}
 	}
 	println("receiver finished")
 
