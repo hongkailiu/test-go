@@ -31,8 +31,16 @@ func configureAPI(api *operations.HelloAPI) http.Handler {
 
 	api.JSONConsumer = runtime.JSONConsumer()
 
+	api.JSONProducer = runtime.JSONProducer()
+
 	api.TxtProducer = runtime.TextProducer()
 
+	api.GetUserUserIDHandler = operations.GetUserUserIDHandlerFunc(func(params operations.GetUserUserIDParams) middleware.Responder {
+		return middleware.NotImplemented("operation .GetUserUserID has not yet been implemented")
+	})
+	api.GetUsersHandler = operations.GetUsersHandlerFunc(func(params operations.GetUsersParams) middleware.Responder {
+		return middleware.NotImplemented("operation .GetUsers has not yet been implemented")
+	})
 	api.GetHostnameHandler = operations.GetHostnameHandlerFunc(func(params operations.GetHostnameParams) middleware.Responder {
 		return middleware.NotImplemented("operation .GetHostname has not yet been implemented")
 	})

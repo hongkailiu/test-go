@@ -46,6 +46,76 @@ func init() {
           }
         }
       }
+    },
+    "/user/{userId}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "summary": "Returns a user by ID.",
+        "parameters": [
+          {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64",
+            "description": "The ID of the user to return.",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A user object.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 4
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Jessica Smith"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The specified user ID is invalid (not a number)."
+          },
+          "404": {
+            "description": "A user with the specified ID was not found."
+          },
+          "default": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "description": "Optional extended description in CommonMark or HTML.",
+        "produces": [
+          "application/json"
+        ],
+        "summary": "Returns a list of users.",
+        "responses": {
+          "200": {
+            "description": "A JSON array of user names",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -91,6 +161,76 @@ func init() {
             "description": "error",
             "schema": {
               "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/user/{userId}": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "summary": "Returns a user by ID.",
+        "parameters": [
+          {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64",
+            "description": "The ID of the user to return.",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A user object.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 4
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Jessica Smith"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The specified user ID is invalid (not a number)."
+          },
+          "404": {
+            "description": "A user with the specified ID was not found."
+          },
+          "default": {
+            "description": "Unexpected error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "description": "Optional extended description in CommonMark or HTML.",
+        "produces": [
+          "application/json"
+        ],
+        "summary": "Returns a list of users.",
+        "responses": {
+          "200": {
+            "description": "A JSON array of user names",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }

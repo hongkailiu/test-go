@@ -36,7 +36,14 @@ func NewHelloAPI(spec *loads.Document) *HelloAPI {
 		APIKeyAuthenticator: security.APIKeyAuth,
 		BearerAuthenticator: security.BearerAuth,
 		JSONConsumer:        runtime.JSONConsumer(),
+		JSONProducer:        runtime.JSONProducer(),
 		TxtProducer:         runtime.TextProducer(),
+		GetUserUserIDHandler: GetUserUserIDHandlerFunc(func(params GetUserUserIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserUserID has not yet been implemented")
+		}),
+		GetUsersHandler: GetUsersHandlerFunc(func(params GetUsersParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUsers has not yet been implemented")
+		}),
 		GetHostnameHandler: GetHostnameHandlerFunc(func(params GetHostnameParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetHostname has not yet been implemented")
 		}),
@@ -68,9 +75,15 @@ type HelloAPI struct {
 	// JSONConsumer registers a consumer for a "application/json" mime type
 	JSONConsumer runtime.Consumer
 
+	// JSONProducer registers a producer for a "application/json" mime type
+	JSONProducer runtime.Producer
 	// TxtProducer registers a producer for a "text/plain" mime type
 	TxtProducer runtime.Producer
 
+	// GetUserUserIDHandler sets the operation handler for the get user user ID operation
+	GetUserUserIDHandler GetUserUserIDHandler
+	// GetUsersHandler sets the operation handler for the get users operation
+	GetUsersHandler GetUsersHandler
 	// GetHostnameHandler sets the operation handler for the get hostname operation
 	GetHostnameHandler GetHostnameHandler
 
@@ -132,8 +145,20 @@ func (o *HelloAPI) Validate() error {
 		unregistered = append(unregistered, "JSONConsumer")
 	}
 
+	if o.JSONProducer == nil {
+		unregistered = append(unregistered, "JSONProducer")
+	}
+
 	if o.TxtProducer == nil {
 		unregistered = append(unregistered, "TxtProducer")
+	}
+
+	if o.GetUserUserIDHandler == nil {
+		unregistered = append(unregistered, "GetUserUserIDHandler")
+	}
+
+	if o.GetUsersHandler == nil {
+		unregistered = append(unregistered, "GetUsersHandler")
 	}
 
 	if o.GetHostnameHandler == nil {
@@ -193,6 +218,9 @@ func (o *HelloAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer
 	for _, mt := range mediaTypes {
 		switch mt {
 
+		case "application/json":
+			result["application/json"] = o.JSONProducer
+
 		case "text/plain":
 			result["text/plain"] = o.TxtProducer
 
@@ -237,6 +265,16 @@ func (o *HelloAPI) initHandlerCache() {
 	if o.handlers == nil {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/{userId}"] = NewGetUserUserID(o.context, o.GetUserUserIDHandler)
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/users"] = NewGetUsers(o.context, o.GetUsersHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)

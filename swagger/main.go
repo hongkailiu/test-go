@@ -7,6 +7,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 
@@ -57,6 +58,43 @@ func getHostnameHandler(params operations.GetHostnameParams) middleware.Responde
 	return operations.NewGetHostnameOK().WithPayload(payload)
 }
 
+
+type User struct {
+	Name        string
+}
+
+func getUsersHandler(params operations.GetUsersParams) middleware.Responder {
+	users := []User{User{"hongkliu"}}
+	bytes, _ := json.Marshal(users)
+	return operations.NewGetUsersOK().WithPayload([]string{string(bytes)})
+}
+
+func getUserUserIDHandler(params operations.GetUserUserIDParams) middleware.Responder {
+
+	if params.UserID == 1 {
+
+		user := User{"mike"}
+		bytes, err := json.Marshal(user)
+
+		if err != nil {
+			errPayload := &models.Error{
+				Code:    500,
+				Message: swag.String("failed to retrieve users"),
+			}
+
+			return operations.
+				NewGetUserUserIDDefault(500).
+				WithPayload(errPayload)
+		}
+		return operations.NewGetHostnameOK().WithPayload(string(bytes))
+	} else {
+		return operations.
+			NewGetUserUserIDNotFound()
+	}
+
+
+}
+
 // main performs the main routine of the application:
 //	1.	parses the args;
 //	2.	analyzes the declaration of the API
@@ -89,6 +127,9 @@ func main() {
 	// Add our handler implementation
 	api.GetHostnameHandler = operations.GetHostnameHandlerFunc(
 		getHostnameHandler)
+
+	api.GetUsersHandler = operations.GetUsersHandlerFunc(getUsersHandler)
+	api.GetUserUserIDHandler = operations.GetUserUserIDHandlerFunc(getUserUserIDHandler)
 
 	// Let it run
 	if err := server.Serve(); err != nil {
