@@ -5,3 +5,7 @@ import:
 - package: github.com/openshift/client-go
 - package: github.com/sirupsen/logrus
 - package: github.com/go-stomp/stomp
+- package: github.com/alexflint/go-arg
+# workaround: https://github.com/go-openapi/analysis/issues/14
+- package: github.com/go-openapi/spec
+  version: ^0.16.0
