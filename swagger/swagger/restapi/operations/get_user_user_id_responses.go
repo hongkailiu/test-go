@@ -25,7 +25,7 @@ type GetUserUserIDOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *GetUserUserIDOKBody `json:"body,omitempty"`
+	Payload *models.User `json:"body,omitempty"`
 }
 
 // NewGetUserUserIDOK creates GetUserUserIDOK with default headers values
@@ -35,13 +35,13 @@ func NewGetUserUserIDOK() *GetUserUserIDOK {
 }
 
 // WithPayload adds the payload to the get user user Id o k response
-func (o *GetUserUserIDOK) WithPayload(payload *GetUserUserIDOKBody) *GetUserUserIDOK {
+func (o *GetUserUserIDOK) WithPayload(payload *models.User) *GetUserUserIDOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get user user Id o k response
-func (o *GetUserUserIDOK) SetPayload(payload *GetUserUserIDOKBody) {
+func (o *GetUserUserIDOK) SetPayload(payload *models.User) {
 	o.Payload = payload
 }
 

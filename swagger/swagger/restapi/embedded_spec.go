@@ -69,17 +69,7 @@ func init() {
             "description": "A user object.",
             "schema": {
               "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "format": "int64",
-                  "example": 4
-                },
-                "name": {
-                  "type": "string",
-                  "example": "Jessica Smith"
-                }
-              }
+              "$ref": "#/definitions/user"
             }
           },
           "400": {
@@ -110,7 +100,8 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "object",
+                "$ref": "#/definitions/user"
               }
             }
           }
@@ -131,6 +122,27 @@ func init() {
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "user": {
+      "description": "A user is the security principal for this application.\nIt's also used as one of the main axes for reporting.\n\nA user can have friends with whom they can share what they like.",
+      "type": "object",
+      "title": "User represents the user for this application",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "the id for this user",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "name": {
+          "description": "the name for this user",
+          "type": "string",
+          "minLength": 3
         }
       }
     }
@@ -188,17 +200,7 @@ func init() {
             "description": "A user object.",
             "schema": {
               "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "format": "int64",
-                  "example": 4
-                },
-                "name": {
-                  "type": "string",
-                  "example": "Jessica Smith"
-                }
-              }
+              "$ref": "#/definitions/user"
             }
           },
           "400": {
@@ -229,7 +231,8 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "object",
+                "$ref": "#/definitions/user"
               }
             }
           }
@@ -250,6 +253,27 @@ func init() {
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "user": {
+      "description": "A user is the security principal for this application.\nIt's also used as one of the main axes for reporting.\n\nA user can have friends with whom they can share what they like.",
+      "type": "object",
+      "title": "User represents the user for this application",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "the id for this user",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "name": {
+          "description": "the name for this user",
+          "type": "string",
+          "minLength": 3
         }
       }
     }

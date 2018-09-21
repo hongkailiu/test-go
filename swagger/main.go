@@ -7,7 +7,6 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 
@@ -59,34 +58,18 @@ func getHostnameHandler(params operations.GetHostnameParams) middleware.Responde
 }
 
 
-type User struct {
-	Name        string
-}
-
 func getUsersHandler(params operations.GetUsersParams) middleware.Responder {
-	users := []User{User{"hongkliu"}}
-	bytes, _ := json.Marshal(users)
-	return operations.NewGetUsersOK().WithPayload([]string{string(bytes)})
+	id := int64(3)
+	users := []*models.User{{&id, "hongkliu"}}
+	return operations.NewGetUsersOK().WithPayload(users)
 }
 
 func getUserUserIDHandler(params operations.GetUserUserIDParams) middleware.Responder {
 
 	if params.UserID == 1 {
-
-		user := User{"mike"}
-		bytes, err := json.Marshal(user)
-
-		if err != nil {
-			errPayload := &models.Error{
-				Code:    500,
-				Message: swag.String("failed to retrieve users"),
-			}
-
-			return operations.
-				NewGetUserUserIDDefault(500).
-				WithPayload(errPayload)
-		}
-		return operations.NewGetHostnameOK().WithPayload(string(bytes))
+		id := int64(1)
+		user := models.User{&id, "mike"}
+		return operations.NewGetUserUserIDOK().WithPayload(&user)
 	} else {
 		return operations.
 			NewGetUserUserIDNotFound()
