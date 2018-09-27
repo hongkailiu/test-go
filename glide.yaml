@@ -9,3 +9,5 @@ import:
 # workaround: https://github.com/go-openapi/analysis/issues/14
 - package: github.com/go-openapi/spec
   version: ^0.16.0
+- package: gopkg.in/ini.v1
+- package: github.com/aws/aws-sdk-go-v2

@@ -17,3 +17,14 @@ type Host struct {
 	OCSchedulable bool
 	IPv4PublicIP string
 }
+
+type OCPClusterConfig struct {
+	OCPClustertype string
+	OCPRoles []OCPRole
+}
+
+type OCPRole struct {
+	name string
+	size int
+}
+

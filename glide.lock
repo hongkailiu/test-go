@@ -1,5 +1,5 @@
-hash: 98dc76488f1c56606d64cf64011d681efe145c0431f9fa0d7c98fdc8f4e0f07b
-updated: 2018-09-21T13:05:00.396006631-04:00
+hash: cc933a95dd364d1f6a1a5ee1604d6c7cdd94c7958a7566eb713e2c1b4f071d3b
+updated: 2018-09-27T14:53:23.311189748-04:00
 imports:
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
@@ -7,6 +7,40 @@ imports:
   version: 45e5d6cd8605faef82fda2bacc59e734a0b6f1f0
 - name: github.com/asaskevich/govalidator
   version: f9ffefc3facfbe0caee3fea233cbb6e8208f4541
+- name: github.com/aws/aws-sdk-go
+  version: 2b2f47f9e4c78bb46ce6ebdb76efa7b458a2bf7b
+  subpackages:
+  - aws
+  - aws/awserr
+  - aws/awsutil
+  - aws/client
+  - aws/client/metadata
+  - aws/corehandlers
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/credentials/endpointcreds
+  - aws/credentials/stscreds
+  - aws/csm
+  - aws/defaults
+  - aws/ec2metadata
+  - aws/endpoints
+  - aws/request
+  - aws/session
+  - aws/signer/v4
+  - internal/sdkio
+  - internal/sdkrand
+  - internal/sdkuri
+  - internal/shareddefaults
+  - private/protocol
+  - private/protocol/ec2query
+  - private/protocol/query
+  - private/protocol/query/queryutil
+  - private/protocol/rest
+  - private/protocol/xml/xmlutil
+  - service/ec2
+  - service/sts
+- name: github.com/aws/aws-sdk-go-v2
+  version: 9b23956737c198b39d03e0a8ea6ee2f753c82f37
 - name: github.com/docker/go-units
   version: 47565b4f722fb6ceae66b95f853feed578a4a51c
 - name: github.com/emicklei/go-restful
@@ -20,12 +54,14 @@ imports:
   subpackages:
   - bson
   - internal/json
+- name: github.com/go-ini/ini
+  version: fa25069db393aecc09b71267d0489b357781c860
 - name: github.com/go-openapi/analysis
   version: b006789cd277d4fa4d16767046d694a256c6a218
   subpackages:
   - internal
 - name: github.com/go-openapi/errors
-  version: 87bb653288778f8b0d922c5c3fb8b3f00a47ff28
+  version: 1801eed82180a62bad31fddc6814cca143e4ee3a
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -88,7 +124,9 @@ imports:
 - name: github.com/imdario/mergo
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
 - name: github.com/jessevdk/go-flags
-  version: 1c38ed7ad0cc3d9e66649ac398c30e45f395c4eb
+  version: 7309ec74f752d05ce2c62b8fd5755c4a2e3913cb
+- name: github.com/jmespath/go-jmespath
+  version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
 - name: github.com/json-iterator/go
   version: 36b14963da70d11297d313183d7e6388c8510e1e
 - name: github.com/juju/ratelimit
@@ -104,7 +142,7 @@ imports:
 - name: github.com/mitchellh/mapstructure
   version: fa473d140ef3c6adf42d6b391fe76707f1f243c8
 - name: github.com/openshift/api
-  version: 739bd301126c341c6caddf2cb3e3935ae9e9fff9
+  version: cc577cdc22a21a372000477f72df3d4409197ea8
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
@@ -119,7 +157,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/sirupsen/logrus
-  version: 33a1e118e113c7d1dd24a80f80670864cd598519
+  version: a67f783a3814b8729bd2dac5780b5f78f8dbd64d
   subpackages:
   - hooks/syslog
 - name: github.com/spf13/pflag
@@ -133,6 +171,7 @@ imports:
   subpackages:
   - html
   - html/atom
+  - html/charset
   - http2
   - http2/hpack
   - idna
@@ -148,8 +187,19 @@ imports:
   version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:
   - cases
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
   - internal
   - internal/tag
+  - internal/utf8internal
   - language
   - runes
   - secure/bidirule
@@ -160,6 +210,8 @@ imports:
   - width
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
+- name: gopkg.in/ini.v1
+  version: 5cf292cae48347c2490ac1a58fe36735fb78df7e
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
@@ -286,4 +338,38 @@ imports:
   subpackages:
   - pkg/common
   - pkg/util/proto
-testImports: []
+testImports:
+- name: github.com/onsi/ginkgo
+  version: 11459a886d9cd66b319dac7ef1e917ee221372c9
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/spec_iterator
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
+- name: github.com/onsi/gomega
+  version: dcabb60a477c2b6f456df65037cb6708210fbb02
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
