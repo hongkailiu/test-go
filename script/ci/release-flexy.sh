@@ -20,12 +20,26 @@ readonly APP_FOLDER="$(dirname "$(dirname "${SOURCE_FOLDER}")")"
 readonly BUILD_DIR="${APP_FOLDER}/build"
 readonly RELEASE_DIR="${BUILD_DIR}/release"
 
+readonly BUILD_FILE="${APP_FOLDER}/build/flexy.test"
+readonly PKG_DIR_NAME="pkg-flexy"
+readonly PKG_DIR="${APP_FOLDER}/build/${PKG_DIR_NAME}"
+
 readonly VERSION=$(git describe --tags --always --dirty)
 readonly GO_OS="$(uname -s)"
 readonly GO_ARCH="$(uname -m)"
 
+mkdir -p "${PKG_DIR}"
+cp -fv "${BUILD_FILE}" "${PKG_DIR}/"
+cp -rfv "${APP_FOLDER}/test_files" "${PKG_DIR}/"
+
 readonly PKG_BASENAME="flexy-${VERSION}-${GO_OS}-${GO_ARCH}.tar.gz"
 readonly PKG_FULLNAME="${BUILD_DIR}/${PKG_BASENAME}"
+
+current_dir="$(pwd)"
+cd "${BUILD_DIR}" || exit 1
+tar -czf "${PKG_FULLNAME}" --transform "s/${PKG_DIR_NAME}/flexy/" "${PKG_DIR_NAME}"
+cd "${current_dir}" || exit 1
+
 if [[ ! -f "${PKG_FULLNAME}" ]]; then
   echo "pkg file does not exits: ${PKG_FULLNAME}"
   exit 1
@@ -37,7 +51,7 @@ readonly REPO_NAME="svt-release"
 readonly GH_TOKEN=${GH_TOKEN}
 readonly REPO_URL="https://${GH_TOKEN}:x-oauth-basic@github.com/cduser/${REPO_NAME}.git"
 
-readonly CURRENT_DIR="$(pwd)"
+current_dir="$(pwd)"
 cd "${RELEASE_DIR}" || exit 1
 
 git clone "${REPO_URL}"
@@ -59,4 +73,4 @@ else
   git commit -m "dev: ${PKG_BASENAME}"
   git push origin "HEAD:dev_${HOSTNAME}_${USERNAME}"
 fi
-cd "${CURRENT_DIR}" || exit 1
+cd "${current_dir}" || exit 1
