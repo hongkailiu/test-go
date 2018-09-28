@@ -59,3 +59,8 @@ run-flexy-playbooks:
 .PHONY : travis-ci
 travis-ci:
 	./script/ci/travis-ci.sh
+
+.PHONY : release-flexy
+travis-ci:
+	./script/ci/release-flexy.sh
+
