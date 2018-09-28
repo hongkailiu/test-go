@@ -20,7 +20,6 @@ var _ = Describe("[Main] Flexy", func() {
 		It("should start flexy job", func() {
 			config := flexy.OCPClusterConfig{}
 			Expect(flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
-			Expect(config.OCPRoles).Should(HaveLen(3))
 
 			bytes, _ := yaml.Marshal(config)
 			fmt.Println("=========\n" + string(bytes))

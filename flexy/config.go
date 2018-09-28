@@ -22,10 +22,11 @@ const (
 	OCPRoleMaster  = "master"
 	OCPRoleInfra   = "infra"
 	OCPRoleCompute = "compute"
+	OCPRoleGlusterFS = "glusterfs"
 )
 
 var (
-	OCPRoles = []string{OCPRoleMaster, OCPRoleInfra, OCPRoleCompute}
+	OCPRoles = []string{OCPRoleMaster, OCPRoleInfra, OCPRoleCompute, OCPRoleGlusterFS}
 )
 
 func ValidateOCPRole(role string) error {
@@ -51,6 +52,7 @@ type OCPClusterConfig struct {
 	KubernetesClusterValue string    `yaml:"kubernetesClusterValue"`
 	ImageID                string    `yaml:"imageID"`
 	InstancePrefix         string    `yaml:"instancePrefix"`
+	OpenshiftAnasibleVar   map[string]string `yaml:"openshiftAnasibleVar"`
 }
 
 type OCPRole struct {

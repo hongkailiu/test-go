@@ -16,6 +16,10 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 
 	var masterGroup, etcdGroup, nodeGroup, lbGroup, glusterFSGroup []Host
 	ocVars := map[string]string{}
+	for k, v := range config.OpenshiftAnasibleVar {
+		ocVars[k] = v
+		ocVars["openshift_clusterid"] = config.KubernetesClusterValue
+	}
 
 	for _, role := range config.OCPRoles {
 		if err := ValidateOCPRole(role.Name); err != nil {
@@ -50,6 +54,8 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 					host.OCNodeGroupName = "node-config-infra"
 				case OCPRoleCompute:
 					host.OCNodeGroupName = "node-config-compute"
+				case OCPRoleGlusterFS:
+					host.OCNodeGroupName = "node-config-compute"
 				}
 
 				err = WaitUntilRunning(svc, *instance.InstanceId, 2*time.Minute, &host)
@@ -69,6 +75,9 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 					nodeGroup = append(nodeGroup, host)
 				case OCPRoleCompute:
 					nodeGroup = append(nodeGroup, host)
+				case OCPRoleGlusterFS:
+					nodeGroup = append(nodeGroup, host)
+					glusterFSGroup = append(glusterFSGroup, host)
 				}
 
 

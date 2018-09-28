@@ -53,8 +53,32 @@ var _ = Describe("InventoryGenerator", func() {
 							OCNodeGroupName: "node-config-compute",
 						},
 					},
+			GlusterFSGroup: []flexy.Host{
+				{
+					ID:              "001",
+					PublicDNS:       "001.hongkailiu.tk",
+					OCNodeGroupName: "node-config-master",
+					OCMasterSchedulable:   true,
+				},
+				{
+					ID:              "002",
+					PublicDNS:       "002.hongkailiu.tk",
+					OCNodeGroupName: "node-config-infra",
+				},
+				{
+					ID:              "003",
+					PublicDNS:       "003.hongkailiu.tk",
+					OCNodeGroupName: "node-config-compute",
+				},
+			},
 			OCVars: map[string]string{
 				"openshift_master_default_subdomain": "apps.someip.xip.io",
+				"ansible_ssh_private_key_file": "/home/hongkliu/.ssh/id_rsa_perf",
+				"glusterfs_devices": "/dev/nvme2n1",
+				"aaa": "bbb",
+				"111": "222",
+				"abc": "xyz",
+				"openshift_clusterid": "cool-id",
 			},
 		}
 		outputFolder = "../build/output/flexy/tmp"
