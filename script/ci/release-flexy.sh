@@ -67,7 +67,7 @@ if [[ -n "${TRAVIS}" ]]; then
   msg_body_line2="TRAVIS_BUILD_ID: ${TRAVIS_BUILD_ID}"
   msg_body_line3="TRAVIS_JOB_NUMBER: ${TRAVIS_JOB_NUMBER}"
   git commit -m "travis: ${PKG_BASENAME}" -m "${msg_body_line1}" -m "${msg_body_line2}" -m "${msg_body_line3}"
-  git push origin "HEAD:travis_${TRAVIS_BUILD_NUMBER}"
+  git push origin "HEAD:travis_flexy_${TRAVIS_BUILD_NUMBER}"
 else
   echo "release by dev to branch: dev_${HOSTNAME}_${USERNAME}"
   git commit -m "dev: ${PKG_BASENAME}"
