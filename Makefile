@@ -61,6 +61,6 @@ travis-ci:
 	./script/ci/travis-ci.sh
 
 .PHONY : release-flexy
-travis-ci:
+release-flexy:
 	./script/ci/release-flexy.sh
 
