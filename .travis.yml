@@ -1,0 +1,16 @@
+language: go
+
+go:
+  - "1.10.x"
+  - master
+
+before_install:
+  - go get github.com/onsi/ginkgo/ginkgo
+
+script:
+  - echo "${GOPATH}"
+  - go version
+  - make travis-ci
+
+after_success:
+  - make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release
