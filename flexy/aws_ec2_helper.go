@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	nameKey = "Name"
-	securityGroupId = "sg-5c5ace38"
-	keyNameValue = "id_rsa_perf"
-	subnetId = "subnet-4879292d"
-	kubernetesClusterKey="KubernetesCluster"
+	nameKey              = "Name"
+	securityGroupId      = "sg-5c5ace38"
+	keyNameValue         = "id_rsa_perf"
+	subnetId             = "subnet-4879292d"
+	kubernetesClusterKey = "KubernetesCluster"
 )
 
-func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error)  {
-
+func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error) {
+	log.WithFields(log.Fields{"name": name,}).Info("instance creating")
 	req := svc.RunInstancesRequest(&ec2.RunInstancesInput{
 		// An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
 		ImageId:      aws.String(imageID),
@@ -31,20 +31,20 @@ func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, ins
 		SecurityGroupIds: []string{
 			securityGroupId,
 		},
-		KeyName: aws.String(keyNameValue),
-		SubnetId: aws.String(subnetId),
-		BlockDeviceMappings:blockDeviceMappings,
+		KeyName:             aws.String(keyNameValue),
+		SubnetId:            aws.String(subnetId),
+		BlockDeviceMappings: blockDeviceMappings,
 		TagSpecifications: []ec2.TagSpecification{
-			
-			{ 
+
+			{
 				ResourceType: ec2.ResourceTypeInstance,
-				Tags: []ec2.Tag{ 
+				Tags: []ec2.Tag{
 					{
-						Key: &nameKey,
+						Key:   &nameKey,
 						Value: &name,
 					},
 					{
-						Key: &kubernetesClusterKey,
+						Key:   &kubernetesClusterKey,
 						Value: &kubernetesClusterValue,
 					},
 				},
@@ -59,8 +59,7 @@ func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, ins
 	return resp.Instances, nil
 }
 
-
-func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration) error {
+func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
 	err := wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
 			log.Debug("trying ===")
@@ -68,8 +67,10 @@ func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration) er
 			if err != nil {
 				return false, nil
 			}
-			log.WithFields(log.Fields{"instance.State.Code": strconv.FormatInt((*instance.State.Code), 10),}).Debug("instance code found")
+			log.WithFields(log.Fields{"instance.State.Code": strconv.FormatInt(*instance.State.Code, 10),}).Debug("instance code found")
 			if *(instance.State.Code) == int64(16) {
+				host.PublicDNS = *instance.PublicDnsName
+				host.IPv4PublicIP = *instance.PublicIpAddress
 				return true, nil
 			}
 			return false, nil
@@ -78,7 +79,7 @@ func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration) er
 }
 
 func DescribeAInstance(svc *ec2.EC2, instanceId string) (*ec2.Instance, error) {
-	req :=  svc.DescribeInstancesRequest(&ec2.DescribeInstancesInput{
+	req := svc.DescribeInstancesRequest(&ec2.DescribeInstancesInput{
 		InstanceIds: []string{
 			instanceId,
 		},

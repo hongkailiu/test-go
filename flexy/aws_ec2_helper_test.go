@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,6 +11,8 @@ import (
 	"github.com/hongkailiu/test-go/flexy"
 	log "github.com/sirupsen/logrus"
 )
+
+
 
 var _ = Describe("AwsEc2Helper", func() {
 	var (
@@ -24,21 +24,7 @@ var _ = Describe("AwsEc2Helper", func() {
 		svc                    *ec2.EC2
 	)
 
-	BeforeSuite(func() {
-		log.Debug("BeforeSuite============")
-		log.Debug("here i am")
-		cfg, err := external.LoadDefaultAWSConfig()
-		if err != nil {
-			panic("unable to load SDK config, " + err.Error())
-		}
 
-		// Set the AWS Region that the service clients should use
-		cfg.Region = endpoints.UsWest2RegionID
-
-		// Using the Config value, create the DynamoDB client
-		svc = ec2.New(cfg)
-
-	})
 
 	BeforeEach(func() {
 		log.Debug("BeforeEach============")
@@ -68,7 +54,8 @@ var _ = Describe("AwsEc2Helper", func() {
 			//}
 			//id := *(instances[0].InstanceId)
 			id := "i-012002d42f46bf4f0"
-			Expect(flexy.WaitUntilRunning(svc, id, 2*time.Minute)).To(BeNil())
+			host := flexy.Host{}
+			Expect(flexy.WaitUntilRunning(svc, id, 2*time.Minute, &host)).To(BeNil())
 
 		})
 	})

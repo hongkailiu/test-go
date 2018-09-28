@@ -15,35 +15,27 @@ var _ = Describe("InventoryGenerator", func() {
 	)
 
 	BeforeEach(func() {
-		inputPath = "../test_files/flexy"
+		inputPath = "../test_files/flexy/inv"
 		config = flexy.Config{
-			Groups: []flexy.Group{
-				{
-					"masters",
-					[]flexy.Host{
+			MasterGroup: []flexy.Host{
+
 						{
 							ID:        "111",
 							PublicDNS: "001.hongkailiu.tk",
 						},
 					},
-				},
-				{
-					"etcd",
-					[]flexy.Host{
+			ETCDGroup:	[]flexy.Host{
 						{
 							ID:        "111",
 							PublicDNS: "001.hongkailiu.tk",
 						},
 					},
-				},
-				{
-					"nodes",
-					[]flexy.Host{
+			NodeGroup: []flexy.Host{
 						{
 							ID:              "001",
 							PublicDNS:       "001.hongkailiu.tk",
 							OCNodeGroupName: "node-config-master",
-							OCSchedulable:   true,
+							OCMasterSchedulable:   true,
 						},
 						{
 							ID:              "002",
@@ -61,13 +53,11 @@ var _ = Describe("InventoryGenerator", func() {
 							OCNodeGroupName: "node-config-compute",
 						},
 					},
-				},
-			},
 			OCVars: map[string]string{
 				"openshift_master_default_subdomain": "apps.someip.xip.io",
 			},
 		}
-		outputFolder = "../build/output/flexy"
+		outputFolder = "../build/output/flexy/tmp"
 
 	})
 
@@ -75,5 +65,9 @@ var _ = Describe("InventoryGenerator", func() {
 		It("should generate the inventory file", func() {
 			Expect(flexy.Generate(inputPath, config, outputFolder)).To(BeNil())
 		})
+	})
+
+	It("should work", func() {
+
 	})
 })

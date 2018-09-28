@@ -1,6 +1,8 @@
 package flexy
 
 import (
+	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,6 +12,11 @@ import (
 )
 
 func Generate(inputPath string, config Config, outputFolder string) error {
+	bytes, err := yaml.Marshal(config)
+	if err != nil {
+		return err
+	}
+	fmt.Println("==========\n" + string(bytes))
 	files, err := ioutil.ReadDir(inputPath)
 	if err != nil {
 		return err

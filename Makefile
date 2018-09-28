@@ -40,3 +40,8 @@ gen-swagger: validate-swagger
 		--spec=./swagger/swagger/swagger.yml \
 		--exclude-main \
 		--name=hello
+
+
+.PHONY : build-flexy
+build-flexy:
+	./script/ci/build-flexy.sh

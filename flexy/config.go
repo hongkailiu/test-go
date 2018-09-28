@@ -1,30 +1,75 @@
 package flexy
 
+import (
+	"fmt"
+	"io/ioutil"
+
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+)
+
 type Config struct {
-	Groups []Group
+	MasterGroup []Host
+	ETCDGroup []Host
+	NodeGroup []Host
+	LBGroup []Host
+	GlusterFSGroup []Host
 	OCVars map[string]string
 }
 
-type Group struct {
-	Name string
-	Hosts []Host
+const (
+	OCPRoleMaster  = "master"
+	OCPRoleInfra   = "infra"
+	OCPRoleCompute = "compute"
+)
+
+var (
+	OCPRoles = []string{OCPRoleMaster, OCPRoleInfra, OCPRoleCompute}
+)
+
+func ValidateOCPRole(role string) error {
+	for _, r := range OCPRoles {
+		if role == r {
+			return nil
+		}
+	}
+	return errors.New(fmt.Sprintf("invalid OCP role: %s", role))
 }
 
 type Host struct {
-	ID string
-	PublicDNS string
-	OCNodeGroupName string
-	OCSchedulable bool
-	IPv4PublicIP string
+	ID                  string
+	PublicDNS           string
+	OCNodeGroupName     string
+	OCMasterSchedulable bool
+	IPv4PublicIP        string
 }
 
 type OCPClusterConfig struct {
-	OCPClustertype string
-	OCPRoles []OCPRole
+	OCPClustertype         string    `yaml:"ocpClusterType"`
+	OCPRoles               []OCPRole `yaml:"ocpRoles"`
+	KubernetesClusterValue string    `yaml:"kubernetesClusterValue"`
+	ImageID                string    `yaml:"imageID"`
+	InstancePrefix         string    `yaml:"instancePrefix"`
 }
 
 type OCPRole struct {
-	name string
-	size int
+	Name                string
+	Size                int
+	InstanceType        ec2.InstanceType         `yaml:"instanceType"`
+	CCC                 string                   `yaml:"ccc,omitempty"`
+	BlockDeviceMappings []ec2.BlockDeviceMapping `yaml:"blockDeviceMappings"`
 }
 
+func LoadOCPClusterConfig(file string, config *OCPClusterConfig) error {
+	bytes, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(bytes, config)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
