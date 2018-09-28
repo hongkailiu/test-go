@@ -45,3 +45,13 @@ gen-swagger: validate-swagger
 .PHONY : build-flexy
 build-flexy:
 	./script/ci/build-flexy.sh
+
+.PHONY : create-flexy-instances
+create-flexy-instances:
+	./script/run/create-flexy-instances.sh
+
+###make run-flexy-playbooks secret_vars_file=/tmp/aaa.sh ansible_repo_path=/home/hongkliu/repo/openshift/openshift-ansible install_glusterfs=false
+.PHONY : run-flexy-playbooks
+run-flexy-playbooks:
+	./script/run/run-flexy-playbooks.sh
+
