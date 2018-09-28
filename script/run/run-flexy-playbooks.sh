@@ -26,8 +26,8 @@ if [[ -z "${REG_AUTH_USER}" ]]; then
   exit 1
 fi
 
-ansible-playbook -i build/output/flexy/inv/2.ini ${ansible_repo_path}/playbooks/prerequisites.yml
-ansible-playbook -i build/output/flexy/inv/2.ini ${ansible_repo_path}/playbooks/deploy_cluster.yml
+ansible-playbook -i build/output/flexy/inv/2.file ${ansible_repo_path}/playbooks/prerequisites.yml
+ansible-playbook -i build/output/flexy/inv/2.file ${ansible_repo_path}/playbooks/deploy_cluster.yml
 
 
 if [[ $(echo "${install_glusterfs}" | awk '{print tolower($0)}') = "true" ]]; then
