@@ -55,3 +55,7 @@ create-flexy-instances:
 run-flexy-playbooks:
 	./script/run/run-flexy-playbooks.sh
 
+
+.PHONY : travis-ci
+travis-ci:
+	./script/ci/travis-ci.sh
