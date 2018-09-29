@@ -28,12 +28,19 @@ readonly VERSION=$(git describe --tags --always --dirty)
 readonly GO_OS="$(uname -s)"
 readonly GO_ARCH="$(uname -m)"
 
-mkdir -p "${PKG_DIR}"
-cp -fv "${BUILD_FILE}" "${PKG_DIR}/"
+rm -rfv "${PKG_DIR}"
+
+mkdir -p "${PKG_DIR}/build"
+cp -fv "${BUILD_FILE}" "${PKG_DIR}/build"
 cp -rfv "${APP_FOLDER}/test_files" "${PKG_DIR}/"
+mkdir -p "${PKG_DIR}/script/"
+cp -rfv "${APP_FOLDER}/script/run" "${PKG_DIR}/script/"
+cp -fv "${APP_FOLDER}/Makefile"  "${PKG_DIR}/"
 
 readonly PKG_BASENAME="flexy-${VERSION}-${GO_OS}-${GO_ARCH}.tar.gz"
 readonly PKG_FULLNAME="${BUILD_DIR}/${PKG_BASENAME}"
+
+rm -fv "${PKG_FULLNAME}"
 
 current_dir="$(pwd)"
 cd "${BUILD_DIR}" || exit 1
