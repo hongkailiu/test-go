@@ -10,18 +10,18 @@ import (
 )
 
 type Config struct {
-	MasterGroup []Host
-	ETCDGroup []Host
-	NodeGroup []Host
-	LBGroup []Host
+	MasterGroup    []Host
+	ETCDGroup      []Host
+	NodeGroup      []Host
+	LBGroup        []Host
 	GlusterFSGroup []Host
-	OCVars map[string]string
+	OCVars         map[string]string
 }
 
 const (
-	OCPRoleMaster  = "master"
-	OCPRoleInfra   = "infra"
-	OCPRoleCompute = "compute"
+	OCPRoleMaster    = "master"
+	OCPRoleInfra     = "infra"
+	OCPRoleCompute   = "compute"
 	OCPRoleGlusterFS = "glusterfs"
 )
 
@@ -45,13 +45,13 @@ type Host struct {
 	OCMasterSchedulable bool
 	IPv4PublicIP        string
 }
-
 type OCPClusterConfig struct {
-	OCPClustertype         string    `yaml:"ocpClusterType"`
-	OCPRoles               []OCPRole `yaml:"ocpRoles"`
-	KubernetesClusterValue string    `yaml:"kubernetesClusterValue"`
-	ImageID                string    `yaml:"imageID"`
-	InstancePrefix         string    `yaml:"instancePrefix"`
+	AllInOne               bool              `yaml:"allInOne"`
+	DryRun                 bool              `yaml:"dryRun"`
+	OCPRoles               []OCPRole         `yaml:"ocpRoles"`
+	KubernetesClusterValue string            `yaml:"kubernetesClusterValue"`
+	ImageID                string            `yaml:"imageID"`
+	InstancePrefix         string            `yaml:"instancePrefix"`
 	OpenshiftAnasibleVar   map[string]string `yaml:"openshiftAnasibleVar"`
 }
 

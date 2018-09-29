@@ -9,9 +9,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	InstanceCountLimit = 23
+	RoleCountLimit     = 6
+)
+
 func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder string) error {
-	if len(config.OCPRoles) > 6 {
-		return errors.New(fmt.Sprintf("too many roles: %d", len(config.OCPRoles)))
+	if len(config.OCPRoles) > RoleCountLimit {
+		return errors.New(fmt.Sprintf("RoleCountLimit is %d: too many roles: %d", RoleCountLimit, len(config.OCPRoles)))
 	}
 
 	var masterGroup, etcdGroup, nodeGroup, lbGroup, glusterFSGroup []Host
@@ -21,18 +26,30 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 		ocVars["openshift_clusterid"] = config.KubernetesClusterValue
 	}
 
+	instanceCount := 0
 	for _, role := range config.OCPRoles {
 		if err := ValidateOCPRole(role.Name); err != nil {
 			return err
 		}
-		if role.Size > 25 {
-			return errors.New(fmt.Sprintf("too many instance for role %s: %d", role.Name, role.Size))
+		if instanceCount > InstanceCountLimit {
+			return errors.New(fmt.Sprintf("instances over %d", InstanceCountLimit))
 		}
 
 		if role.Size > 0 {
 			for i := 1; i <= role.Size; i++ {
-				instances, err := CreateInstances(svc, fmt.Sprintf("%s-%s-%d", config.InstancePrefix, role.Name, i),
-					config.ImageID, int64(1), role.InstanceType, config.KubernetesClusterValue, role.BlockDeviceMappings)
+				name := fmt.Sprintf("%s-%s-%d", config.InstancePrefix, role.Name, i)
+				if config.DryRun {
+					name = fmt.Sprintf("%s-%s", config.InstancePrefix, "all-in-one")
+					if instanceCount == 1 {
+						return errors.New("required more than 1 instance for all-in-one cluster")
+					}
+				}
+				instances, err := CreateInstanceDryrun(name)
+				if !config.DryRun {
+					instances, err = CreateInstances(svc, name,
+						config.ImageID, int64(1), role.InstanceType, config.KubernetesClusterValue, role.BlockDeviceMappings)
+				}
+				instanceCount++
 				if err != nil {
 					return err
 				}
@@ -58,9 +75,18 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 					host.OCNodeGroupName = "node-config-compute"
 				}
 
-				err = WaitUntilRunning(svc, *instance.InstanceId, 2*time.Minute, &host)
-				if err != nil {
-					return err
+				if !config.DryRun {
+					err = WaitUntilRunning(svc, *instance.InstanceId, 2*time.Minute, &host)
+					if err != nil {
+						return err
+					}
+				} else {
+					host.IPv4PublicIP = *instance.PublicIpAddress
+					host.PublicDNS = *instance.PublicDnsName
+				}
+				if config.AllInOne {
+					host.OCNodeGroupName = "node-config-all-in-one"
+					ocVars["openshift_master_default_subdomain"] = fmt.Sprintf("apps.%s.xip.io", host.IPv4PublicIP)
 				}
 				if role.Name == OCPRoleInfra && len(ocVars["openshift_master_default_subdomain"]) == 0 {
 					//"openshift_master_default_subdomain": "apps.someip.xip.io",
@@ -79,7 +105,6 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 					nodeGroup = append(nodeGroup, host)
 					glusterFSGroup = append(glusterFSGroup, host)
 				}
-
 
 			}
 

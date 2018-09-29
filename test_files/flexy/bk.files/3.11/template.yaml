@@ -1,7 +1,7 @@
 ---
-allInOne: true
+allInOne: false
 ###
-dryRun: false
+dryRun: true
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu
 imageID : "ami-02a29c6a327959825"
@@ -15,5 +15,21 @@ ocpRoles:
     blockDeviceMappings:
       - devicename: /dev/sda1
         ebs:
+          volumesize: 60
+          volumetype: gp2
+  - name: infra
+    size: 1
+    instanceType: m5.xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+          volumesize: 60
+          volumetype: gp2
+  - name: compute
+    size: 2
+    instanceType: m5.xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
           volumesize: 60
           volumetype: gp2
