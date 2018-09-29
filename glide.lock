@@ -1,5 +1,5 @@
 hash: cc933a95dd364d1f6a1a5ee1604d6c7cdd94c7958a7566eb713e2c1b4f071d3b
-updated: 2018-09-27T14:53:23.311189748-04:00
+updated: 2018-09-29T12:02:47.281428591-04:00
 imports:
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
@@ -7,30 +7,22 @@ imports:
   version: 45e5d6cd8605faef82fda2bacc59e734a0b6f1f0
 - name: github.com/asaskevich/govalidator
   version: f9ffefc3facfbe0caee3fea233cbb6e8208f4541
-- name: github.com/aws/aws-sdk-go
-  version: 2b2f47f9e4c78bb46ce6ebdb76efa7b458a2bf7b
+- name: github.com/aws/aws-sdk-go-v2
+  version: d52522b5f4b95591ff6528d7c54923951aadf099
   subpackages:
   - aws
   - aws/awserr
-  - aws/awsutil
-  - aws/client
-  - aws/client/metadata
-  - aws/corehandlers
-  - aws/credentials
-  - aws/credentials/ec2rolecreds
-  - aws/credentials/endpointcreds
-  - aws/credentials/stscreds
-  - aws/csm
   - aws/defaults
   - aws/ec2metadata
+  - aws/ec2rolecreds
+  - aws/endpointcreds
   - aws/endpoints
-  - aws/request
-  - aws/session
+  - aws/external
   - aws/signer/v4
-  - internal/sdkio
-  - internal/sdkrand
-  - internal/sdkuri
-  - internal/shareddefaults
+  - aws/stscreds
+  - internal/awsutil
+  - internal/ini
+  - internal/sdk
   - private/protocol
   - private/protocol/ec2query
   - private/protocol/query
@@ -39,8 +31,6 @@ imports:
   - private/protocol/xml/xmlutil
   - service/ec2
   - service/sts
-- name: github.com/aws/aws-sdk-go-v2
-  version: 9b23956737c198b39d03e0a8ea6ee2f753c82f37
 - name: github.com/docker/go-units
   version: 47565b4f722fb6ceae66b95f853feed578a4a51c
 - name: github.com/emicklei/go-restful
@@ -54,8 +44,6 @@ imports:
   subpackages:
   - bson
   - internal/json
-- name: github.com/go-ini/ini
-  version: fa25069db393aecc09b71267d0489b357781c860
 - name: github.com/go-openapi/analysis
   version: b006789cd277d4fa4d16767046d694a256c6a218
   subpackages:
@@ -109,6 +97,8 @@ imports:
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
+- name: github.com/google/uuid
+  version: 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
 - name: github.com/googleapis/gnostic
   version: 0c5108395e2debce0d731cf0287ddf7242066aba
   subpackages:
@@ -140,7 +130,7 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/mitchellh/mapstructure
-  version: fa473d140ef3c6adf42d6b391fe76707f1f243c8
+  version: ce2ff0c13ce509e36e9254c08ea0bca90ed5af6c
 - name: github.com/openshift/api
   version: cc577cdc22a21a372000477f72df3d4409197ea8
   subpackages:
@@ -152,6 +142,8 @@ imports:
   - build/clientset/versioned/typed/build/v1
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
+- name: github.com/pkg/errors
+  version: c059e472caf75dbe73903f6521a20abac245b17f
 - name: github.com/PuerkitoBio/purell
   version: 8a290539e2e8629dbc4e6bad948158f790ec31f4
 - name: github.com/PuerkitoBio/urlesc
