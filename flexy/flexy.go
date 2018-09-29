@@ -38,8 +38,10 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 		if role.Size > 0 {
 			for i := 1; i <= role.Size; i++ {
 				name := fmt.Sprintf("%s-%s-%d", config.InstancePrefix, role.Name, i)
-				if config.DryRun {
+				if config.AllInOne {
 					name = fmt.Sprintf("%s-%s", config.InstancePrefix, "all-in-one")
+				}
+				if config.DryRun {
 					if instanceCount == 1 {
 						return errors.New("required more than 1 instance for all-in-one cluster")
 					}
