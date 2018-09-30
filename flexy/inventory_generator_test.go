@@ -15,7 +15,7 @@ var _ = Describe("InventoryGenerator", func() {
 	)
 
 	BeforeEach(func() {
-		inputPath = "../test_files/flexy/unit_test/inv"
+		inputPath = "../test_files/flexy/unit.test.files/inv"
 		config = flexy.Config{
 			MasterGroup: []flexy.Host{
 
