@@ -13,7 +13,7 @@ script:
   - go version
   - ginkgo version
   - glide --version
-  - glide up -v
+#  - glide up -v
   - make travis-ci
 
 after_success:
