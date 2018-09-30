@@ -62,7 +62,7 @@ func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, ins
 func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
 	err := wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
-			log.Debug("trying ===")
+			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", instanceId))
 			instance, err := DescribeAInstance(svc, instanceId)
 			if err != nil {
 				return false, nil

@@ -1,6 +1,7 @@
 package flexy_test
 
 import (
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -21,7 +22,6 @@ var _ = Describe("AwsEc2Helper", func() {
 		instanceType           ec2.InstanceType
 		kubernetesClusterValue string
 		blockDeviceMappings    []ec2.BlockDeviceMapping
-		svc                    *ec2.EC2
 	)
 
 
@@ -45,15 +45,19 @@ var _ = Describe("AwsEc2Helper", func() {
 
 	Context("With an ec2 instance", func() {
 		It("should create instance", func() {
+			if os.Getenv("aws_ec2_integration") != "true" {
+				Skip("Skip because ${aws_ec2_integration} is not true")
+			}
 			log.Info(imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
-			//instances, err := flexy.CreateInstances(svc, "hongkliu-311-001", imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
-			//Expect(err).To(BeNil())
-			//Expect(instances).NotTo(BeNil())
-			//for _, instance := range instances {
-			//	log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId,}).Debug("instance created")
-			//}
-			//id := *(instances[0].InstanceId)
-			id := "i-012002d42f46bf4f0"
+			Expect(svc).NotTo(BeNil())
+			instances, err := flexy.CreateInstances(svc, "hongkliu-311-001", imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
+			Expect(err).To(BeNil())
+			Expect(instances).NotTo(BeNil())
+			for _, instance := range instances {
+				log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId,}).Debug("instance created")
+			}
+			id := *(instances[0].InstanceId)
+			//id := "i-012002d42f46bf4f0"
 			host := flexy.Host{}
 			Expect(flexy.WaitUntilRunning(svc, id, 2*time.Minute, &host)).To(BeNil())
 
