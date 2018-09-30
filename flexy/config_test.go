@@ -9,7 +9,7 @@ import (
 var _ = Describe("Config", func() {
 
 	var (
-		inputPath = "../test_files/flexy/template.yaml"
+		inputPath = "../test_files/flexy/unit.test/template.yaml"
 	)
 
 	Context("With an input folder", func() {
