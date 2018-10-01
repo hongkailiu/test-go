@@ -1,5 +1,7 @@
 ---
-ocpClusterType: cluster
+allInOne: false
+###
+cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu
 imageID : "ami-02a29c6a327959825"
@@ -9,37 +11,41 @@ openshiftAnasibleVar:
 ocpRoles:
   - name: master
     size: 1
-    instanceType: m5.xlarge
-    blockDeviceMappings:
+    ec2Params:
+      instanceType: m5.xlarge
+      blockDeviceMappings:
+        - devicename: /dev/sda1
+          ebs:
+            volumesize: 60
+            volumetype: gp2
+  - name: infra
+    size: 1
+    ec2Params:
+      instanceType: m5.4xlarge
+      blockDeviceMappings:
+      - devicename: /dev/sda1
+        ebs:
+            volumesize: 60
+            volumetype: gp2
+  - name: compute
+    size: 1
+    ec2Params:
+      instanceType: m5.xlarge
+      blockDeviceMappings:
+      - devicename: /dev/sda1
+        ebs:
+            volumesize: 60
+            volumetype: gp2
+  - name: glusterfs
+    size: 3
+    ec2Params:
+      instanceType: m5.4xlarge
+      blockDeviceMappings:
       - devicename: /dev/sda1
         ebs:
           volumesize: 60
           volumetype: gp2
-  - name: infra
-    size: 1
-    instanceType: m5.4xlarge
-    blockDeviceMappings:
-    - devicename: /dev/sda1
-      ebs:
-          volumesize: 60
+      - devicename: /dev/sdf
+        ebs:
+          volumesize: 10
           volumetype: gp2
-  - name: compute
-    size: 1
-    instanceType: m5.xlarge
-    blockDeviceMappings:
-    - devicename: /dev/sda1
-      ebs:
-          volumesize: 60
-          volumetype: gp2
-  - name: glusterfs
-    size: 3
-    instanceType: m5.4xlarge
-    blockDeviceMappings:
-    - devicename: /dev/sda1
-      ebs:
-        volumesize: 60
-        volumetype: gp2
-    - devicename: /dev/sdf
-      ebs:
-        volumesize: 10
-        volumetype: gp2
