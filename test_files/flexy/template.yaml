@@ -11,9 +11,10 @@ openshiftAnasibleVar:
 ocpRoles:
   - name: master
     size: 1
-    instanceType: m5.xlarge
-    blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-          volumesize: 60
-          volumetype: gp2
+    ec2Params:
+      instanceType: m5.xlarge
+      blockDeviceMappings:
+        - devicename: /dev/sda1
+          ebs:
+            volumesize: 60
+            volumetype: gp2

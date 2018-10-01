@@ -1,7 +1,7 @@
 ---
 allInOne: false
 ###
-dryRun: true
+cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu
 imageID : "ami-02a29c6a327959825"
@@ -9,27 +9,30 @@ openshiftAnasibleVar:
   ansible_ssh_private_key_file: "/home/hongkliu/.ssh/id_rsa_perf"
   glusterfs_devices: "/dev/nvme2n1"
 ocpRoles:
-  - name: master
-    size: 1
-    instanceType: m5.xlarge
-    blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-          volumesize: 60
-          volumetype: gp2
-  - name: infra
-    size: 1
+- name: master
+  size: 1
+  ec2Params:
     instanceType: m5.xlarge
     blockDeviceMappings:
     - devicename: /dev/sda1
       ebs:
-          volumesize: 60
-          volumetype: gp2
-  - name: compute
-    size: 2
+        volumesize: 60
+        volumetype: gp2
+- name: infra
+  size: 1
+  ec2Params:
     instanceType: m5.xlarge
     blockDeviceMappings:
     - devicename: /dev/sda1
       ebs:
-          volumesize: 60
-          volumetype: gp2
+        volumesize: 60
+        volumetype: gp2
+- name: compute
+  size: 2
+  ec2Params:
+    instanceType: m5.xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+        volumesize: 60
+        volumetype: gp2
