@@ -1,5 +1,5 @@
 ---
-allInOne: false
+allInOne: true
 ###
 cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
@@ -11,28 +11,9 @@ openshiftAnasibleVar:
 ocpRoles:
   - name: master
     size: 1
-    ec2Params:
-      instanceType: m5.xlarge
-      blockDeviceMappings:
-        - devicename: /dev/sda1
-          ebs:
-            volumesize: 60
-            volumetype: gp2
-  - name: infra
-    size: 1
-    ec2Params:
-      instanceType: m5.xlarge
-      blockDeviceMappings:
+    instanceType: m5.xlarge
+    blockDeviceMappings:
       - devicename: /dev/sda1
         ebs:
-            volumesize: 60
-            volumetype: gp2
-  - name: compute
-    size: 2
-    ec2Params:
-      instanceType: m5.xlarge
-      blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-            volumesize: 60
-            volumetype: gp2
+          volumesize: 60
+          volumetype: gp2

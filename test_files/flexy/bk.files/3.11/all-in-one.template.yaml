@@ -1,7 +1,7 @@
 ---
 allInOne: true
 ###
-dryRun: false
+cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu
 imageID : "ami-02a29c6a327959825"
