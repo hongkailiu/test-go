@@ -4,7 +4,7 @@ set -e
 
 readonly GO_VERSION="$(go version)"
 echo "go version: ${GO_VERSION}"
-if [[ ! "${GO_VERSION}" == *"go1.10"* ]]; then
+if [[ ! "${GO_VERSION}" == *"go1.11"* ]]; then
   echo "skip release up to go version"
   exit 0
 fi

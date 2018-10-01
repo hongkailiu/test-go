@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -fv flexy/flexy.test
-rm -fv bulid/flexy.test
+rm -fv ./flexy/flexy.test
+rm -rfv ./bulid/
 mkdir -p ./build/
 ginkgo build flexy/
 mv -v flexy/flexy.test ./build/
