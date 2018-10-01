@@ -59,3 +59,6 @@ run-flexy-playbooks:
 release-flexy:
 	./script/ci/release-flexy.sh
 
+.PHONY : test-flexy
+test-flexy:
+	./script/ci/test-flexy.sh

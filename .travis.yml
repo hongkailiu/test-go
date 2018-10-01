@@ -15,7 +15,7 @@ script:
   - glide --version
 #  - glide up -v
   - make build-flexy
-  - ginkgo -v -skip="\[Main\] Flexy" ./build/flexy.test
+  - make test-flexy
 
 after_success:
   - make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release-flexy
