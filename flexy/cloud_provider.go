@@ -23,7 +23,7 @@ type AWS struct {
 	SVC *ec2.EC2
 }
 
-func (aws *AWS) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
+func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
 	name := configParams["name"]
 	imageID := configParams["imageID"]
 	kubernetesClusterValue := configParams["kubernetesClusterValue"]
@@ -41,14 +41,14 @@ func (aws *AWS) CreateAnInstance(role OCPRole, configParams map[string]string, h
 	return nil
 }
 
-func (aws *AWS) WaitUntilRunning(host *Host, timeout time.Duration) error {
+func (aws AWS) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return WaitUntilRunningOnEC2(aws.SVC, (*host).ID, timeout, host)
 }
 
 type DryRunner struct {
 }
 
-func (dr *DryRunner) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
+func (dr DryRunner) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
 	host.ID = fmt.Sprintf("dry-run-%s", uuid.New().String())
 	host.IPv4PublicIP = fmt.Sprintf("23.23.23.%d", DryRunnerCounter+23)
 	host.PublicDNS = fmt.Sprintf("dry-run-23-23-23-%d.example.com", DryRunnerCounter+23)
@@ -56,6 +56,6 @@ func (dr *DryRunner) CreateAnInstance(role OCPRole, configParams map[string]stri
 	return nil
 }
 
-func (dr *DryRunner) WaitUntilRunning(host *Host, timeout time.Duration) error {
+func (dr DryRunner) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return nil
 }

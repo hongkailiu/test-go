@@ -27,9 +27,9 @@ var _ = Describe("[Main] Flexy", func() {
 			log.WithFields(log.Fields{"config.CloudProvider": config.InstancePrefix,}).Debug("config.CloudProvider found:")
 			switch config.CloudProvider {
 			case flexy.CloudProviderAWS:
-				cp = &(flexy.AWS{SVC: svc})
+				cp = flexy.AWS{SVC: svc}
 			case flexy.CloudProviderDryRunner:
-				cp = &flexy.DryRunner{}
+				cp = flexy.DryRunner{}
 			default:
 				Fail(fmt.Sprintf("The required cloud provider is not implemented: %s", config.CloudProvider))
 			}
