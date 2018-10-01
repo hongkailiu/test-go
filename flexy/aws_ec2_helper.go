@@ -20,7 +20,7 @@ var (
 	kubernetesClusterKey = "KubernetesCluster"
 )
 
-func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error) {
+func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error) {
 	log.WithFields(log.Fields{"name": name,}).Info("instance creating")
 	req := svc.RunInstancesRequest(&ec2.RunInstancesInput{
 		// An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
@@ -59,7 +59,7 @@ func CreateInstances(svc *ec2.EC2, name string, imageID string, count int64, ins
 	return resp.Instances, nil
 }
 
-func WaitUntilRunning(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
+func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
 	err := wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
 			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", instanceId))

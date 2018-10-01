@@ -23,6 +23,8 @@ const (
 	OCPRoleInfra     = "infra"
 	OCPRoleCompute   = "compute"
 	OCPRoleGlusterFS = "glusterfs"
+	CloudProviderAWS = "aws"
+	CloudProviderDryRunner = "dry-runner"
 )
 
 var (
@@ -47,7 +49,7 @@ type Host struct {
 }
 type OCPClusterConfig struct {
 	AllInOne               bool              `yaml:"allInOne"`
-	DryRun                 bool              `yaml:"dryRun"`
+	CloudProvider          string            `yaml:"cloudProvider"`
 	OCPRoles               []OCPRole         `yaml:"ocpRoles"`
 	KubernetesClusterValue string            `yaml:"kubernetesClusterValue"`
 	ImageID                string            `yaml:"imageID"`
@@ -56,10 +58,13 @@ type OCPClusterConfig struct {
 }
 
 type OCPRole struct {
-	Name                string
-	Size                int
+	Name      string
+	Size      int
+	EC2Params EC2Params `yaml:"ec2Params"`
+}
+
+type EC2Params struct {
 	InstanceType        ec2.InstanceType         `yaml:"instanceType"`
-	CCC                 string                   `yaml:"ccc,omitempty"`
 	BlockDeviceMappings []ec2.BlockDeviceMapping `yaml:"blockDeviceMappings"`
 }
 

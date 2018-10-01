@@ -50,7 +50,7 @@ var _ = Describe("AwsEc2Helper", func() {
 			}
 			log.Info(imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
 			Expect(svc).NotTo(BeNil())
-			instances, err := flexy.CreateInstances(svc, "hongkliu-311-001", imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
+			instances, err := flexy.CreateInstancesOnEC2(svc, "hongkliu-311-001", imageID, count, instanceType, kubernetesClusterValue, blockDeviceMappings)
 			Expect(err).To(BeNil())
 			Expect(instances).NotTo(BeNil())
 			for _, instance := range instances {
@@ -59,7 +59,7 @@ var _ = Describe("AwsEc2Helper", func() {
 			id := *(instances[0].InstanceId)
 			//id := "i-012002d42f46bf4f0"
 			host := flexy.Host{}
-			Expect(flexy.WaitUntilRunning(svc, id, 2*time.Minute, &host)).To(BeNil())
+			Expect(flexy.WaitUntilRunningOnEC2(svc, id, 2*time.Minute, &host)).To(BeNil())
 
 		})
 	})

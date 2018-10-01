@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -14,7 +11,7 @@ const (
 	RoleCountLimit     = 6
 )
 
-func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder string) error {
+func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFolder string) error {
 	if len(config.OCPRoles) > RoleCountLimit {
 		return errors.New(fmt.Sprintf("RoleCountLimit is %d: too many roles: %d", RoleCountLimit, len(config.OCPRoles)))
 	}
@@ -44,24 +41,23 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 						return errors.New("required more than 1 instance for all-in-one cluster")
 					}
 				}
-				instances, err := CreateInstanceDryrun(name)
-				if !config.DryRun {
-					instances, err = CreateInstances(svc, name,
-						config.ImageID, int64(1), role.InstanceType, config.KubernetesClusterValue, role.BlockDeviceMappings)
+				host := Host{}
+				configParams := map[string]string {
+					"name": name,
+					"imageID": config.ImageID,
+					"kubernetesClusterValue": config.KubernetesClusterValue,
+				}
+				err := cp.CreateAnInstance(role, configParams, &host)
+				if err != nil {
+					return err
 				}
 				instanceCount++
+
+				err = cp.WaitUntilRunning(&host, 2*time.Minute)
 				if err != nil {
 					return err
 				}
 
-				if len(instances) != 1 {
-					return errors.New(fmt.Sprintf("NOT 1 instance: %d", len(instances)))
-				}
-
-				instance := instances[0]
-				log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId,}).Info("instance created")
-				host := Host{}
-				host.ID = *instance.InstanceId
 				host.OCMasterSchedulable = false
 				switch role.Name {
 				case OCPRoleMaster:
@@ -75,15 +71,6 @@ func Start(svc *ec2.EC2, config OCPClusterConfig, inputPath string, outputFolder
 					host.OCNodeGroupName = "node-config-compute"
 				}
 
-				if !config.DryRun {
-					err = WaitUntilRunning(svc, *instance.InstanceId, 2*time.Minute, &host)
-					if err != nil {
-						return err
-					}
-				} else {
-					host.IPv4PublicIP = *instance.PublicIpAddress
-					host.PublicDNS = *instance.PublicDnsName
-				}
 				if config.AllInOne {
 					host.OCNodeGroupName = "node-config-all-in-one"
 					ocVars["openshift_master_default_subdomain"] = fmt.Sprintf("apps.%s.xip.io", host.IPv4PublicIP)
