@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "secret_vars_path: ${secret_vars_file}"
 echo "ansible_repo_path: ${ansible_repo_path}"
 echo "install_glusterfs: ${install_glusterfs}"

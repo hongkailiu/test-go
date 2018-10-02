@@ -19,12 +19,12 @@ type Config struct {
 }
 
 const (
-	OCPRoleMaster    = "master"
-	OCPRoleInfra     = "infra"
-	OCPRoleCompute   = "compute"
-	OCPRoleGlusterFS = "glusterfs"
-	CloudProviderAWS = "aws"
-	CloudProviderGCE = "gce"
+	OCPRoleMaster          = "master"
+	OCPRoleInfra           = "infra"
+	OCPRoleCompute         = "compute"
+	OCPRoleGlusterFS       = "glusterfs"
+	CloudProviderAWS       = "aws"
+	CloudProviderGCE       = "gce"
 	CloudProviderDryRunner = "dry-runner"
 )
 
@@ -57,6 +57,7 @@ type OCPClusterConfig struct {
 	InstancePrefix         string            `yaml:"instancePrefix"`
 	OpenshiftAnsibleVar    map[string]string `yaml:"openshiftAnsibleVar"`
 	PublicKeyFile          string            `yaml:"publicKeyFile"`
+	GCSKeyfile string `yaml:"gcsKeyfile"`
 }
 
 type OCPRole struct {
@@ -72,8 +73,13 @@ type EC2Params struct {
 }
 
 type GCEParams struct {
-	MachineType        string         `yaml:"machineType"`
-	BlockDeviceMappings []ec2.BlockDeviceMapping `yaml:"blockDeviceMappings"`
+	MachineType string       `yaml:"machineType"`
+	Disks       []DiskParams `yaml:"disks"`
+}
+
+type DiskParams struct {
+	DiskType   string `yaml:"diskType"`
+	DiskSizeGb int    `yaml:"diskSizeGb"`
 }
 
 func LoadOCPClusterConfig(file string, config *OCPClusterConfig) error {

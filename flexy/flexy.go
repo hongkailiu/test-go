@@ -20,7 +20,16 @@ func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFo
 	ocVars := map[string]string{}
 	for k, v := range config.OpenshiftAnsibleVar {
 		ocVars[k] = v
+	}
+
+	switch config.CloudProvider {
+	case CloudProviderAWS:
 		ocVars["openshift_clusterid"] = config.KubernetesClusterValue
+	case CloudProviderDryRunner:
+		ocVars["openshift_clusterid"] = config.KubernetesClusterValue
+		ocVars["openshift_hosted_registry_storage_gcs_keyfile"] = config.GCSKeyfile
+	case CloudProviderGCE:
+		ocVars["openshift_hosted_registry_storage_gcs_keyfile"] = config.GCSKeyfile
 	}
 
 	instanceCount := 0

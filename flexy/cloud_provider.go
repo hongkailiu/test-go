@@ -115,6 +115,29 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 
 	value1 := "root:" + string(bytes)
 
+	var disks []*compute.AttachedDisk
+
+	for index, d := range role.GCEParams.Disks {
+		disk := &compute.AttachedDisk{
+			AutoDelete: true,
+			Boot:       index==0,
+			Type:       "PERSISTENT",
+			InitializeParams: &compute.AttachedDiskInitializeParams{
+				DiskName:    fmt.Sprintf("%s-%d", name, index),
+				SourceImage: GCEPrefix + "/global/images/" + imageID,
+				//SourceImage: "https://www.googleapis.com/compute/v1/projects/rhel-cloud" + "/global/images/family/" + "rhel-7",
+				DiskType: GCEPrefix + "/zones/" + GCEZone + "/diskTypes/" + d.DiskType,
+				DiskSizeGb: int64(d.DiskSizeGb),
+			},
+		}
+		if index>0 {
+			disk.InitializeParams = &compute.AttachedDiskInitializeParams{
+				DiskName:    fmt.Sprintf("%s-%d", name, index),
+			}
+		}
+		disks = append(disks, disk)
+	}
+
 	instance := &compute.Instance{
 		Name:        name,
 		Description: "compute sample instance",
@@ -142,18 +165,7 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 				Network: GCEPrefix + "/global/networks/default",
 			},
 		},
-		Disks: []*compute.AttachedDisk{
-			{
-				AutoDelete: true,
-				Boot:       true,
-				Type:       "PERSISTENT",
-				InitializeParams: &compute.AttachedDiskInitializeParams{
-					DiskName:    name + "-root-disk",
-					SourceImage: GCEPrefix + "/global/images/" + imageID,
-					//SourceImage: "https://www.googleapis.com/compute/v1/projects/rhel-cloud" + "/global/images/family/" + "rhel-7",
-				},
-			},
-		},
+		Disks: disks,
 		ServiceAccounts: []*compute.ServiceAccount{
 			{
 				Email: "1043659492591-0e9slvv63c1s4tqgsbsqlv8imruusjr9@developer.gserviceaccount.com",

@@ -1,0 +1,111 @@
+[OSEv3:children]
+masters
+nodes
+
+etcd
+
+
+
+
+
+
+
+
+
+[OSEv3:vars]
+
+#qe playbooks options start
+iaas_name=GCE
+image=qe-rhel-74-20180228
+
+enable_internal_dns=
+
+install_method=rpm
+openshift_playbook_rpm_repos=[{'id': 'aos-3_10-devel-install', 'name': 'aos-3_10-devel-install', 'baseurl': 'http://download.eng.bos.redhat.com/rcm-guest/puddles/RHAOS/AtomicOpenShift/3.10/latest/x86_64/os/', 'enabled': 1, 'gpgcheck': 0}]
+qe_additional_repos=[{'id': 'prerelease-rhel7', 'name': 'prerelease-rhel7', 'baseurl': 'https://mirror.openshift.com/enterprise/rhel/rhel7next/os', 'enabled': 0, 'gpgcheck': 0},{'id': 'prerelease-extra', 'name': 'prerelease-extra', 'baseurl': 'https://mirror.openshift.com/enterprise/rhel/rhel7next/extras', 'enabled': 0, 'gpgcheck': 0},{'id': 'dockernext', 'name': 'dockernext', 'baseurl': 'https://mirror.openshift.com/enterprise/rhel/dockerextra/x86_64/os/', 'enabled': 0, 'gpgcheck': 0},{'id': 'docker_previous', 'name': 'docker_previous', 'baseurl': 'https://mirror.openshift.com/enterprise/rhel/dockerextra.previous/x86_64/os/', 'enabled': 0, 'gpgcheck': 0},{'id': 'aos', 'name': 'Prerelease OCP', 'baseurl': 'https://mirror.openshift.com/enterprise/all/3.10/latest/x86_64/os', 'enabled': 1, 'gpgcheck': 0}]
+os_update=false
+
+install_update_docker=true
+install_update_rpms=["dbus"]
+docker_storage_driver=overlay2
+
+
+qe_registry_url=registry.reg-aws.openshift.com:443
+update_is_images_url=registry.access.redhat.com
+
+enable_cloudprovider=true
+openshift_crio_docker_gc_node_selector={"role": "node"}
+
+# qe playbook options end
+#openshift-ansible options start
+
+openshift_cloudprovider_kind=gce
+openshift_gcp_project=openshift-gce-devel
+openshift_gcp_prefix=qe
+
+os_firewall_use_firewalld=false
+openshift_master_default_subdomain_enable=true
+#openshift_master_default_subdomain=apps.1002-gf8.qe.rhcloud.com
+
+openshift_auth_type=allowall
+
+openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
+
+oreg_auth_user={{"{{"}} lookup('env','REG_AUTH_USER') {{"}}"}}
+oreg_auth_password={{"{{"}} lookup('env','REG_AUTH_PASSWORD') {{"}}"}}
+
+openshift_deployment_type=openshift-enterprise
+oreg_url=registry.reg-aws.openshift.com:443/openshift3/ose-${component}:${version}
+openshift_docker_insecure_registries=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888,virt-openshift-05.lab.eng.nay.redhat.com:5000,virt-openshift-05.lab.eng.nay.redhat.com:5001,registry.reg-aws.openshift.com:443,asb-registry.usersys.redhat.com:5000
+openshift_docker_blocked_registries=registry.hacker.com
+osm_use_cockpit=false
+osm_cockpit_plugins=['cockpit-kubernetes']
+openshift_hosted_registry_selector="role=node,registry=enabled"
+openshift_hosted_router_selector="role=node,router=enabled"
+debug_level=5
+template_service_broker_selector={"role": "node"}
+ansible_service_broker_node_selector={"role": "node"}
+openshift_hosted_registry_storage_kind=object
+openshift_hosted_registry_storage_provider=gcs
+openshift_hosted_registry_storage_gcs_bucket=ose-qe-docker-registry
+openshift_hosted_registry_storage_gcs_rootdirectory=/registry
+#openshift_hosted_registry_storage_gcs_keyfile={{ .OCVars.openshift_hosted_registry_storage_gcs_keyfile }}
+openshift_check_min_host_disk_gb=2
+openshift_check_min_host_memory_gb=1
+#openshift_use_crio=true
+#openshift_crio_use_rpm=true
+#openshift_crio_enable_docker_gc=true
+
+#openshift-ansible options end
+
+{{- range $key, $value := .OCVars }}
+{{- if ne $key "glusterfs_devices" }}
+{{ $key }}={{ $value }}
+{{- end }}
+{{- end }}
+
+
+[lb]
+{{- range .LBGroup }}
+{{.PublicDNS }} ansible_user=root ansible_ssh_user=root openshift_public_hostname={{ .PublicDNS }}
+{{- end}}
+
+
+[etcd]
+{{- range .ETCDGroup }}
+{{.PublicDNS }} ansible_user=root ansible_ssh_user=root openshift_public_hostname={{ .PublicDNS }}
+{{- end}}
+
+
+[masters]
+{{- range .MasterGroup }}
+{{.PublicDNS }} ansible_user=root ansible_ssh_user=root openshift_public_hostname={{ .PublicDNS }}
+{{- end}}
+
+
+[nodes]
+{{- range .NodeGroup }}
+{{.PublicDNS }} ansible_user=root ansible_ssh_user=root openshift_public_hostname={{ .PublicDNS }} openshift_node_group_name={{ .OCNodeGroupName }} {{ if .OCMasterSchedulable }}openshift_schedulable=true{{ end }}
+{{- end}}
+
+
