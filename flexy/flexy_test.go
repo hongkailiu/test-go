@@ -32,7 +32,7 @@ var _ = Describe("[Main] Flexy", func() {
 				cp = flexy.DryRunner{}
 			case flexy.CloudProviderGCE:
 				cp = flexy.GCE{SVC: computeService}
-				//Skip("Does not support GCE yet")
+				Skip("Does not support GCE yet")
 			default:
 				Fail(fmt.Sprintf("The required cloud provider is not implemented: %s", config.CloudProvider))
 			}
