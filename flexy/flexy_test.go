@@ -24,12 +24,15 @@ var _ = Describe("[Main] Flexy", func() {
 			log.WithFields(log.Fields{"inputPath": inputPath,}).Debug("loading config from path:")
 			config := flexy.OCPClusterConfig{}
 			Expect(flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
-			log.WithFields(log.Fields{"config.CloudProvider": config.InstancePrefix,}).Debug("config.CloudProvider found:")
+			log.WithFields(log.Fields{"config.CloudProvider": config.CloudProvider,}).Debug("config.CloudProvider found:")
 			switch config.CloudProvider {
 			case flexy.CloudProviderAWS:
 				cp = flexy.AWS{SVC: svc}
 			case flexy.CloudProviderDryRunner:
 				cp = flexy.DryRunner{}
+			case flexy.CloudProviderGCE:
+				cp = flexy.GCE{SVC: computeService}
+				//Skip("Does not support GCE yet")
 			default:
 				Fail(fmt.Sprintf("The required cloud provider is not implemented: %s", config.CloudProvider))
 			}

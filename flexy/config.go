@@ -24,6 +24,7 @@ const (
 	OCPRoleCompute   = "compute"
 	OCPRoleGlusterFS = "glusterfs"
 	CloudProviderAWS = "aws"
+	CloudProviderGCE = "gce"
 	CloudProviderDryRunner = "dry-runner"
 )
 
@@ -54,17 +55,24 @@ type OCPClusterConfig struct {
 	KubernetesClusterValue string            `yaml:"kubernetesClusterValue"`
 	ImageID                string            `yaml:"imageID"`
 	InstancePrefix         string            `yaml:"instancePrefix"`
-	OpenshiftAnasibleVar   map[string]string `yaml:"openshiftAnasibleVar"`
+	OpenshiftAnsibleVar    map[string]string `yaml:"openshiftAnsibleVar"`
+	PublicKeyFile          string            `yaml:"publicKeyFile"`
 }
 
 type OCPRole struct {
 	Name      string
 	Size      int
 	EC2Params EC2Params `yaml:"ec2Params"`
+	GCEParams GCEParams `yaml:"gceParams"`
 }
 
 type EC2Params struct {
 	InstanceType        ec2.InstanceType         `yaml:"instanceType"`
+	BlockDeviceMappings []ec2.BlockDeviceMapping `yaml:"blockDeviceMappings"`
+}
+
+type GCEParams struct {
+	MachineType        string         `yaml:"machineType"`
 	BlockDeviceMappings []ec2.BlockDeviceMapping `yaml:"blockDeviceMappings"`
 }
 

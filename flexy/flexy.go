@@ -18,7 +18,7 @@ func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFo
 
 	var masterGroup, etcdGroup, nodeGroup, lbGroup, glusterFSGroup []Host
 	ocVars := map[string]string{}
-	for k, v := range config.OpenshiftAnasibleVar {
+	for k, v := range config.OpenshiftAnsibleVar {
 		ocVars[k] = v
 		ocVars["openshift_clusterid"] = config.KubernetesClusterValue
 	}
@@ -46,6 +46,7 @@ func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFo
 					"name": name,
 					"imageID": config.ImageID,
 					"kubernetesClusterValue": config.KubernetesClusterValue,
+					"publicKeyFile" : config.PublicKeyFile,
 				}
 				err := cp.CreateAnInstance(role, configParams, &host)
 				if err != nil {

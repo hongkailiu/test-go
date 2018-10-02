@@ -60,7 +60,7 @@ func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64
 }
 
 func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
-	err := wait.Poll(10*time.Second, timeout,
+	return wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
 			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", instanceId))
 			instance, err := DescribeAInstance(svc, instanceId)
@@ -75,7 +75,6 @@ func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duratio
 			}
 			return false, nil
 		})
-	return err
 }
 
 func DescribeAInstance(svc *ec2.EC2, instanceId string) (*ec2.Instance, error) {

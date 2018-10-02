@@ -4,14 +4,52 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"google.golang.org/api/compute/v1"
+	"io/ioutil"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	GCEProjectName = "openshift-gce-devel"
+	GCEZone        = "us-central1-a"
+	GCEPrefix      = "https://www.googleapis.com/compute/v1/projects/" + GCEProjectName
+)
+
 var (
 	DryRunnerCounter = 0
+
+	value2 = `#cloud-config
+
+# see
+# http://www.marcoberube.com/archives/236
+# https://cloudinit.readthedocs.org/en/latest/topics/examples.html
+# https://help.ubuntu.com/community/CloudInit
+
+disable_root: false
+# preserve_hostname: true 
+# Remove update_hostname as we want preserve the hostname after rebooted
+cloud_init_modules:
+ - migrator
+ - bootcmd
+ - write-files
+ - growpart
+ - resizefs
+ - set_hostname
+ - update_etc_hosts
+ - rsyslog
+ - users-groups
+ - ssh
+
+# sudo without tty
+runcmd:
+- "sed -i -e 's/^.*requiretty$/# \\0/' /etc/sudoers"
+- "sed -i -e 's/^.*visiblepw$/# \\0/' /etc/sudoers"
+# for GCE until https://bugzilla.redhat.com/show_bug.cgi?id=1310649 is fixed
+- "curl 'http://metadata.google.internal/computeMetadata/v1/instance/attributes/sshKeys' -H 'Metadata-Flavor: Google' | sed -r -e 's/(^|,)[^\\S]*:/\\1/g' -e 's/,/\\n/g' >> /root/.ssh/authorized_keys"`
 )
 
 type CloudProvider interface {
@@ -21,6 +59,10 @@ type CloudProvider interface {
 
 type AWS struct {
 	SVC *ec2.EC2
+}
+
+type GCE struct {
+	SVC *compute.Service
 }
 
 func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
@@ -58,4 +100,104 @@ func (dr DryRunner) CreateAnInstance(role OCPRole, configParams map[string]strin
 
 func (dr DryRunner) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return nil
+}
+
+func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
+	name := configParams["name"]
+	imageID := configParams["imageID"]
+	publicKeyFile := configParams["publicKeyFile"]
+
+	log.WithFields(log.Fields{"publicKeyFile": publicKeyFile,}).Info("file:")
+	bytes, err := ioutil.ReadFile(publicKeyFile)
+	if err != nil {
+		return err
+	}
+
+	value1 := "root:" + string(bytes)
+
+	instance := &compute.Instance{
+		Name:        name,
+		Description: "compute sample instance",
+		MachineType: GCEPrefix + "/zones/" + GCEZone + "/machineTypes/" + role.GCEParams.MachineType,
+		Metadata: &compute.Metadata{
+			Items: []*compute.MetadataItems{
+				{
+					Key:   "sshKeys",
+					Value: &value1,
+				},
+				{
+					Key:   "user-data",
+					Value: &value2,
+				},
+			},
+		},
+		NetworkInterfaces: []*compute.NetworkInterface{
+			{
+				AccessConfigs: []*compute.AccessConfig{
+					{
+						Type: "ONE_TO_ONE_NAT",
+						Name: "External NAT",
+					},
+				},
+				Network: GCEPrefix + "/global/networks/default",
+			},
+		},
+		Disks: []*compute.AttachedDisk{
+			{
+				AutoDelete: true,
+				Boot:       true,
+				Type:       "PERSISTENT",
+				InitializeParams: &compute.AttachedDiskInitializeParams{
+					DiskName:    name + "-root-disk",
+					SourceImage: GCEPrefix + "/global/images/" + imageID,
+					//SourceImage: "https://www.googleapis.com/compute/v1/projects/rhel-cloud" + "/global/images/family/" + "rhel-7",
+				},
+			},
+		},
+		ServiceAccounts: []*compute.ServiceAccount{
+			{
+				Email: "1043659492591-0e9slvv63c1s4tqgsbsqlv8imruusjr9@developer.gserviceaccount.com",
+				Scopes: []string{
+					compute.CloudPlatformScope,
+				},
+			},
+		},
+	}
+	op, err := g.SVC.Instances.Insert(GCEProjectName, GCEZone, instance).Do()
+	//log.Printf("Got compute.Operation, err: %#v, %v", op, err)
+	if err != nil {
+		return err
+	}
+	log.WithFields(log.Fields{"name": name, "op.TargetLink": op.TargetLink,}).Info("instance created on gce")
+	host.ID = name
+	return nil
+}
+
+func (g GCE) WaitUntilRunning(host *Host, timeout time.Duration) error {
+	return wait.Poll(10*time.Second, timeout,
+		func() (bool, error) {
+			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", host.ID))
+			instance, err := g.SVC.Instances.Get(GCEProjectName, GCEZone, host.ID).Do()
+			//inst.Metadata
+			//log.Printf("Got compute.Instance, err: %#v, %v", instance, err)
+			if err != nil {
+				return false, nil
+			}
+			log.WithFields(log.Fields{"instance.Status": instance.Status,}).Debug("instance.Status found")
+			if instance.Status == "RUNNING" {
+				if len(instance.NetworkInterfaces) != 1 {
+					return false, errors.New(fmt.Sprintf("length of instance.NetworkInterfaces is %d", len(instance.NetworkInterfaces)))
+				}
+				if len(instance.NetworkInterfaces[0].AccessConfigs) != 1 {
+					return false, errors.New(fmt.Sprintf("length of instance.NetworkInterfaces[0].AccessConfigs is %d", len(instance.NetworkInterfaces[0].AccessConfigs)))
+				}
+				ip := instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
+				host.PublicDNS = "ocp." + ip + ".xip.io"
+
+				host.IPv4PublicIP = ip
+				return true, nil
+			}
+			return false, nil
+		})
+
 }

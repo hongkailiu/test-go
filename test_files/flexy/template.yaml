@@ -1,11 +1,13 @@
 ---
 allInOne: true
 ###
-cloudProvider: dry-runner
+cloudProvider: gce
 kubernetesClusterValue: hongkliu-ocp
-instancePrefix: hongkliu
-imageID : "ami-02a29c6a327959825"
-openshiftAnasibleVar:
+instancePrefix: hongkliu-test
+imageID : "qe-rhel-74-20180228"
+###needed for gce
+publicKeyFile: "/home/hongkliu/repo/me/svt-secret/cert/id_rsa.pub.libra"
+openshiftAnsibleVar:
   ansible_ssh_private_key_file: "/home/hongkliu/.ssh/id_rsa_perf"
   glusterfs_devices: "/dev/nvme2n1"
 ocpRoles:
@@ -18,3 +20,5 @@ ocpRoles:
           ebs:
             volumesize: 60
             volumetype: gp2
+    gceParams:
+      machineType: n1-standard-4

@@ -5,14 +5,20 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	"io/ioutil"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/compute/v1"
 )
 
 var (
 	svc *ec2.EC2
+	computeService *compute.Service
 )
 
 func TestFlexy(t *testing.T) {
@@ -32,6 +38,21 @@ func TestFlexy(t *testing.T) {
 
 		// Using the Config value, create the DynamoDB client
 		svc = ec2.New(cfg)
+		Expect(svc).NotTo(BeNil())
+		data, err := ioutil.ReadFile("/tmp/gce.json")
+		if err != nil {
+			Fail(err.Error())
+		}
+		conf, err := google.JWTConfigFromJSON(data, compute.ComputeScope)
+		if err != nil {
+			Fail(err.Error())
+		}
+		client := conf.Client(oauth2.NoContext)
+
+		computeService, err = compute.New(client)
+		if err != nil {
+			Fail(err.Error())
+		}
 
 	})
 	RunSpecs(t, "Flexy Suite")
