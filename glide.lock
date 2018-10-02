@@ -1,5 +1,5 @@
 hash: cc933a95dd364d1f6a1a5ee1604d6c7cdd94c7958a7566eb713e2c1b4f071d3b
-updated: 2018-09-29T12:02:47.281428591-04:00
+updated: 2018-10-01T23:15:23.309638653-04:00
 imports:
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
@@ -130,7 +130,7 @@ imports:
   - jlexer
   - jwriter
 - name: github.com/mitchellh/mapstructure
-  version: ce2ff0c13ce509e36e9254c08ea0bca90ed5af6c
+  version: fe40af7a9c397fa3ddba203c38a5042c5d0475ad
 - name: github.com/openshift/api
   version: cc577cdc22a21a372000477f72df3d4409197ea8
   subpackages:
@@ -149,7 +149,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/sirupsen/logrus
-  version: a67f783a3814b8729bd2dac5780b5f78f8dbd64d
+  version: 1ed61965b9e594bf37539680d7f63eccd060314f
   subpackages:
   - hooks/syslog
 - name: github.com/spf13/pflag
@@ -161,6 +161,8 @@ imports:
 - name: golang.org/x/net
   version: 1c05540f6879653db88113bc4a2b70aec4bd491f
   subpackages:
+  - context
+  - context/ctxhttp
   - html
   - html/atom
   - html/charset
@@ -203,7 +205,7 @@ imports:
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/ini.v1
-  version: 5cf292cae48347c2490ac1a58fe36735fb78df7e
+  version: 7b294651033cd7d9e7f0d9ffa1b75ed1e198e737
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/api
@@ -331,6 +333,11 @@ imports:
   - pkg/common
   - pkg/util/proto
 testImports:
+- name: cloud.google.com/go
+  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
+  subpackages:
+  - compute/metadata
+  - internal
 - name: github.com/onsi/ginkgo
   version: 11459a886d9cd66b319dac7ef1e917ee221372c9
   subpackages:
@@ -365,3 +372,29 @@ testImports:
   - matchers/support/goraph/node
   - matchers/support/goraph/util
   - types
+- name: golang.org/x/oauth2
+  version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
+  subpackages:
+  - google
+  - internal
+  - jws
+  - jwt
+- name: google.golang.org/api
+  version: 5da02d31af7d15cc65a207f8a46a6e3c50d41178
+  subpackages:
+  - compute/v1
+  - gensupport
+  - googleapi
+  - googleapi/internal/uritemplates
+- name: google.golang.org/appengine
+  version: ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06
+  subpackages:
+  - internal
+  - internal/app_identity
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/modules
+  - internal/remote_api
+  - internal/urlfetch
+  - urlfetch
