@@ -2,50 +2,50 @@
 allInOne: false
 ###
 cloudProvider: dry-runner
-kubernetesClusterValue: hongkliu-ocp
-instancePrefix: hongkliu
-imageID : "ami-02a29c6a327959825"
-openshiftAnasibleVar:
+kubernetesClusterValue: hongkliu-ocp-gluster
+instancePrefix: hongkliu-test
+imageID : "ami-0f131f680c5cffdff"
+openshiftAnsibleVar:
   ansible_ssh_private_key_file: "/home/hongkliu/.ssh/id_rsa_perf"
   glusterfs_devices: "/dev/nvme2n1"
 ocpRoles:
-  - name: master
-    size: 1
-    ec2Params:
-      instanceType: m5.xlarge
-      blockDeviceMappings:
-        - devicename: /dev/sda1
-          ebs:
-            volumesize: 60
-            volumetype: gp2
-  - name: infra
-    size: 1
-    ec2Params:
-      instanceType: m5.4xlarge
-      blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-            volumesize: 60
-            volumetype: gp2
-  - name: compute
-    size: 1
-    ec2Params:
-      instanceType: m5.xlarge
-      blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-            volumesize: 60
-            volumetype: gp2
-  - name: glusterfs
-    size: 3
-    ec2Params:
-      instanceType: m5.4xlarge
-      blockDeviceMappings:
-      - devicename: /dev/sda1
-        ebs:
-          volumesize: 60
-          volumetype: gp2
-      - devicename: /dev/sdf
-        ebs:
-          volumesize: 10
-          volumetype: gp2
+- name: master
+  size: 1
+  ec2Params:
+    instanceType: m5.xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+        volumesize: 60
+        volumetype: gp2
+- name: infra
+  size: 1
+  ec2Params:
+    instanceType: m5.4xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+        volumesize: 60
+        volumetype: gp2
+- name: compute
+  size: 4
+  ec2Params:
+    instanceType: m5.xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+        volumesize: 60
+        volumetype: gp2
+- name: glusterfs
+  size: 3
+  ec2Params:
+    instanceType: m5.4xlarge
+    blockDeviceMappings:
+    - devicename: /dev/sda1
+      ebs:
+        volumesize: 60
+        volumetype: gp2
+    - devicename: /dev/sdf
+      ebs:
+        volumesize: 1000
+        volumetype: gp2
