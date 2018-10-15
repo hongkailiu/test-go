@@ -30,7 +30,7 @@ fi
 
 ansible-playbook -i build/output/flexy/inv/2.file ${ansible_repo_path}/playbooks/prerequisites.yml
 ansible-playbook -i build/output/flexy/inv/2.file ${ansible_repo_path}/playbooks/deploy_cluster.yml
-
+#ansible-playbook -i build/output/flexy/inv/2.file ${ansible_repo_path}/playbooks/olm/config.yml
 
 if [[ $(echo "${install_glusterfs}" | awk '{print tolower($0)}') = "true" ]]; then
   ansible-playbook -i build/output/flexy/inv/ ${ansible_repo_path}/playbooks/openshift-glusterfs/config.yml
