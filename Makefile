@@ -62,3 +62,16 @@ release-flexy:
 .PHONY : test-flexy
 test-flexy:
 	./script/ci/test-flexy.sh
+
+.PHONY : code-gen-clean
+code-gen-clean:
+	./script/ci/code-gen-clean.sh
+
+.PHONY : code-gen
+code-gen:
+	./script/ci/code-gen.sh
+
+.PHONY : build-code-gen
+build-code-gen:
+	./script/ci/build-code-gen.sh
+

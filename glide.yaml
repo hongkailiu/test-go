@@ -1,7 +1,7 @@
 package: github.com/hongkailiu/test-go
 import:
 - package: k8s.io/client-go
-  version: v6.0.0
+  version: kubernetes-1.12.1
 - package: github.com/openshift/client-go
 - package: github.com/sirupsen/logrus
 - package: github.com/go-stomp/stomp
@@ -11,3 +11,6 @@ import:
   version: ^0.16.0
 - package: gopkg.in/ini.v1
 - package: github.com/aws/aws-sdk-go-v2
+- package: k8s.io/code-generator
+  version: kubernetes-1.12.1
+- package: k8s.io/gengo
