@@ -1,5 +1,5 @@
-hash: da7a04c30a745877cc13a07526189d359be118c5ec1e0b14f2750de4f8434dff
-updated: 2018-10-15T17:38:27.078413567-04:00
+hash: 14020d86154c972f44f070046ee558badacda2d41f2c8ba07c62360265181597
+updated: 2018-10-16T08:33:23.407343722-04:00
 imports:
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
@@ -153,7 +153,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/sirupsen/logrus
-  version: 458213699411cdceb6fd839a3178be49c01fba54
+  version: 680f584d621da87ee04ea659130e149ba9d23cae
   subpackages:
   - hooks/syslog
 - name: github.com/spf13/pflag
@@ -217,8 +217,12 @@ imports:
   version: f51c12702a4d776e4c1fa9b0fabab841babae631
   subpackages:
   - rate
+- name: golang.org/x/tools
+  version: 5d4988d199e2aeefda3528f599e06410c43caa29
+  subpackages:
+  - imports
 - name: google.golang.org/api
-  version: 625cd1887957946515db468ce519bb71fa31fc7f
+  version: c51f30376ab7ec4f22b65de846a41593c8b70f07
   subpackages:
   - compute/v1
   - gensupport
