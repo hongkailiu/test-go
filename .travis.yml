@@ -8,6 +8,7 @@ go:
 before_install:
   - go get github.com/onsi/ginkgo/ginkgo
   - curl https://glide.sh/get | sh
+  - cp test_files/flexy/unit.test.files/gce.json /tmp/
 
 script:
   - echo "${GOPATH}"
