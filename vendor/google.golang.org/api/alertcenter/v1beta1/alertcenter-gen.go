@@ -144,6 +144,10 @@ type Alert struct {
 	// e.g. google.apps.alertcenter.type.DeviceCompromised.
 	Data googleapi.RawMessage `json:"data,omitempty"`
 
+	// Deleted: Output only. Whether this alert has been marked for
+	// deletion.
+	Deleted bool `json:"deleted,omitempty"`
+
 	// EndTime: Optional. The time this alert was no longer active. If
 	// provided, the
 	// end time must not be earlier than the start time. If not provided,
@@ -755,12 +759,12 @@ func (s *ListAlertsResponse) MarshalJSON() ([]byte, error) {
 
 // LoginDetails: Details of the login action
 type LoginDetails struct {
-	// IpAddress: Required. Human readable IP address (e.g., 11.22.33.44)
+	// IpAddress: Optional. Human readable IP address (e.g., 11.22.33.44)
 	// that is
 	// associated with the warning event.
 	IpAddress string `json:"ipAddress,omitempty"`
 
-	// LoginTime: Required. Login time that is associated with the warning
+	// LoginTime: Optional. Login time that is associated with the warning
 	// event.
 	LoginTime string `json:"loginTime,omitempty"`
 
@@ -1089,7 +1093,10 @@ func (c *AlertsDeleteCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta1/alerts/{alertId}")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("DELETE", urls, body)
+	req, err := http.NewRequest("DELETE", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"alertId": c.alertId,
@@ -1241,7 +1248,10 @@ func (c *AlertsGetCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta1/alerts/{alertId}")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"alertId": c.alertId,
@@ -1510,7 +1520,10 @@ func (c *AlertsListCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta1/alerts")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	return gensupport.SendRequest(c.ctx_, c.s.client, req)
 }
@@ -1687,7 +1700,10 @@ func (c *AlertsFeedbackCreateCall) doRequest(alt string) (*http.Response, error)
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta1/alerts/{alertId}/feedback")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("POST", urls, body)
+	req, err := http.NewRequest("POST", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"alertId": c.alertId,
@@ -1842,7 +1858,10 @@ func (c *AlertsFeedbackListCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta1/alerts/{alertId}/feedback")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"alertId": c.alertId,

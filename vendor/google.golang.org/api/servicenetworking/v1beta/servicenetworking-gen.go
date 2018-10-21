@@ -153,6 +153,17 @@ type AddSubnetworkRequest struct {
 	// subnetwork.
 	Region string `json:"region,omitempty"`
 
+	// RequestedAddress: Optional. The starting address of a range. The
+	// address must be a valid
+	// IPv4 address in the x.x.x.x format. This value combined with the IP
+	// prefix
+	// range is the CIDR range for the subnet. The range must be within
+	// the
+	// allocated range that is assigned to the private connection. If the
+	// CIDR
+	// range isn't available, the call fails.
+	RequestedAddress string `json:"requestedAddress,omitempty"`
+
 	// Subnetwork: Required. Name for the new subnetwork.
 	// Must be a legal
 	// [subnetwork](compute/docs/reference/rest/v1/subnetworks)
@@ -4240,7 +4251,10 @@ func (c *OperationsGetCall) doRequest(alt string) (*http.Response, error) {
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta/{+name}")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"name": c.name,
@@ -4386,7 +4400,10 @@ func (c *ServicesAddSubnetworkCall) doRequest(alt string) (*http.Response, error
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta/{+parent}:addSubnetwork")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("POST", urls, body)
+	req, err := http.NewRequest("POST", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"parent": c.parent,
@@ -4537,7 +4554,10 @@ func (c *ServicesConnectionsCreateCall) doRequest(alt string) (*http.Response, e
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta/{+parent}/connections")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("POST", urls, body)
+	req, err := http.NewRequest("POST", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"parent": c.parent,
@@ -4697,7 +4717,10 @@ func (c *ServicesConnectionsListCall) doRequest(alt string) (*http.Response, err
 	c.urlParams_.Set("prettyPrint", "false")
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v1beta/{+parent}/connections")
 	urls += "?" + c.urlParams_.Encode()
-	req, _ := http.NewRequest("GET", urls, body)
+	req, err := http.NewRequest("GET", urls, body)
+	if err != nil {
+		return nil, err
+	}
 	req.Header = reqHeaders
 	googleapi.Expand(req.URL, map[string]string{
 		"parent": c.parent,
