@@ -75,3 +75,7 @@ code-gen:
 build-code-gen:
 	./script/ci/build-code-gen.sh
 
+.PHONY : build-http
+build-http:
+	./script/ci/build-http.sh
+
