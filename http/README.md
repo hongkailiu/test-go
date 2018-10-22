@@ -25,5 +25,8 @@ scrape_configs:
     static_configs:
     - targets: ['localhost:8080']
 
+# ./prometheus --config.file=prometheus.yml
+
 ```
 
+On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `storage_operation_duration_seconds_count`.
