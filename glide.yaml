@@ -21,3 +21,5 @@ import:
 #- package: github.com/prometheus/common/expfmt
 #- package: github.com/prometheus/common/model
 #- package: github.com/prometheus/procfs
+- package: github.com/gin-gonic/gin
+  version: v1.3.0

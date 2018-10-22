@@ -1,100 +1,67 @@
 package http
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	infoP := GetInfo()
-	if json, error := json.Marshal(infoP); error != nil {
-		log.Error(error)
-		http.Error(w, error.Error(), http.StatusInternalServerError)
-	} else {
-		w.Write(json)
+var (
+	httpRequestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+		},
+		[]string{"path"},
+	)
+)
+
+func PrometheusRegister() {
+	log.WithFields(log.Fields{
+		"name": "httpRequestsTotal",
+	}).Info("prometheus register")
+	prometheus.MustRegister(httpRequestsTotal)
+}
+
+func PrometheusLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		log.WithFields(log.Fields{
+			"c.Request.URL.Path": c.Request.URL.Path,
+		}).Debug("prometheus logger detected path visited")
+		httpRequestsTotal.With(prometheus.Labels{"path":c.Request.URL.Path}).Inc()
 	}
 }
 
-type logBody struct {
-	Line string `json:"line"`
-}
+func Run() {
+	PrometheusRegister()
 
-func logsHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf("%d - Log entries created.", http.StatusCreated)))
-	decoder := json.NewDecoder(r.Body)
-	var myLogBody logBody
-	if err := decoder.Decode(&myLogBody); err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else {
-		log.Info(myLogBody.Line)
-	}
-	defer r.Body.Close()
-}
+	// Creates a router without any middleware by default
+	r := gin.New()
 
-func foldersHandler(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Query().Get("p")
-	log.Info("path: " + path)
-	if path == "" {
-		dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-		log.Info("dir: " + dir)
-		path = dir
-	}
+	// Global middleware
+	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.
+	// By default gin.DefaultWriter = os.Stdout
+	gin.Logger()
+	r.Use(gin.Logger())
 
-	var result []string
-	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
-			result = append(result, err.Error())
-		} else {
-			basename := filepath.Base(path)
-			result = append(result, basename)
-		}
-		return err
+	// Recovery middleware recovers from any panics and writes a 500 if there was one.
+	r.Use(gin.Recovery())
+
+	r.Use(PrometheusLogger())
+
+	r.GET("/", func(c *gin.Context) {
+		infoP := GetInfo()
+		c.JSON(http.StatusOK, *infoP)
 	})
 
-	if json, error := json.Marshal(result); error != nil {
-		log.Error(error)
-		http.Error(w, error.Error(), http.StatusInternalServerError)
-	} else {
-		w.Write(json)
-	}
-}
+	r.GET("/metrics", func(c *gin.Context) {
+		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+	})
 
-func metricsHandler(w http.ResponseWriter, r *http.Request) {
-	promhttp.Handler().ServeHTTP(w, r)
-}
-
-type Server struct {
-	server *http.Server
-	Port   int
-}
-
-func (s Server) Run() {
-	r := mux.NewRouter()
-	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", rootHandler)
-	r.HandleFunc("/logs", logsHandler).Methods("POST").HeadersRegexp("Content-Type", "application/(json)")
-	r.HandleFunc("/folders", foldersHandler).Methods("GET")
-	r.HandleFunc("/metrics", metricsHandler).Methods("GET")
-	//http.Handle("/metrics", promhttp.Handler())
-
-	// Bind to a port and pass our router in
-	s.server = &(http.Server{Addr: fmt.Sprintf(":%d", s.Port), Handler: r})
-
-	log.Fatal(s.server.ListenAndServe())
-}
-
-func (s Server) Stop() {
-	if s.server != nil {
-		s.server.Close()
-		s.server = nil
-	}
+	// By default it serves on :8080 unless a
+	// PORT environment variable was defined.
+	r.Run()
 }

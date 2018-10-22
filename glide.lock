@@ -1,5 +1,5 @@
-hash: 8a8dd873ea05d50c9796f4623866f0083ebdc87f373f4f92e1d04e391ea0971f
-updated: 2018-10-21T13:47:39.314360073-04:00
+hash: 0964b892a1fd78fb4903ddf1e9062c78a0ba247c13cd321a9b723272941fb241
+updated: 2018-10-22T10:40:02.660956175-04:00
 imports:
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
@@ -43,6 +43,14 @@ imports:
   version: 47565b4f722fb6ceae66b95f853feed578a4a51c
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/gin-contrib/sse
+  version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
+- name: github.com/gin-gonic/gin
+  version: b869fe1415e4b9eb52f247441830d502aece2d4d
+  subpackages:
+  - binding
+  - json
+  - render
 - name: github.com/globalsign/mgo
   version: eeefdecb41b842af6dc652aaea4026e8403e62df
   subpackages:
@@ -109,8 +117,6 @@ imports:
   - OpenAPIv2
   - compiler
   - extensions
-- name: github.com/gorilla/mux
-  version: deb579d6e030503f430978ee229008b9bc912d40
 - name: github.com/gregjones/httpcache
   version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
@@ -135,6 +141,8 @@ imports:
   - buffer
   - jlexer
   - jwriter
+- name: github.com/mattn/go-isatty
+  version: 3fb116b820352b7f0c281308a4d6250c22d94e27
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
@@ -190,6 +198,10 @@ imports:
   - hooks/syslog
 - name: github.com/spf13/pflag
   version: 583c0c0531f06d5278b7d917446061adc344b5cd
+- name: github.com/ugorji/go
+  version: b30ce92d500bfa0cea9bd56f104cf3eb339fd585
+  subpackages:
+  - codec
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
@@ -272,6 +284,8 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
+- name: gopkg.in/go-playground/validator.v8
+  version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/ini.v1
