@@ -31,7 +31,7 @@ func PrometheusLogger() gin.HandlerFunc {
 		log.WithFields(log.Fields{
 			"c.Request.URL.Path": c.Request.URL.Path,
 		}).Debug("prometheus logger detected path visited")
-		httpRequestsTotal.With(prometheus.Labels{"path":c.Request.URL.Path}).Inc()
+		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path}).Inc()
 	}
 }
 
