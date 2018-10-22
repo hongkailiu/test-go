@@ -9,7 +9,7 @@ import (
 
 func init() {
 
-	log.SetFormatter(&log.TextFormatter{})
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true,})
 
 	// Log as JSON instead of the default ASCII formatter.
 	//log.SetFormatter(&log.JSONFormatter{})
@@ -23,5 +23,7 @@ func init() {
 }
 
 func main() {
+	log.Info("============")
 	http.Run()
+
 }

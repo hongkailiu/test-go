@@ -32,11 +32,7 @@ type Logger struct {
 	mu MutexWrap
 	// Reusable empty entry
 	entryPool sync.Pool
-	// Function to exit the application, defaults to `os.Exit()`
-	ExitFunc exitFunc
 }
-
-type exitFunc func(int)
 
 type MutexWrap struct {
 	lock     sync.Mutex
@@ -77,7 +73,6 @@ func New() *Logger {
 		Formatter: new(TextFormatter),
 		Hooks:     make(LevelHooks),
 		Level:     InfoLevel,
-		ExitFunc:  os.Exit,
 	}
 }
 
@@ -124,14 +119,6 @@ func (logger *Logger) WithTime(t time.Time) *Entry {
 	entry := logger.newEntry()
 	defer logger.releaseEntry(entry)
 	return entry.WithTime(t)
-}
-
-func (logger *Logger) Tracef(format string, args ...interface{}) {
-	if logger.IsLevelEnabled(TraceLevel) {
-		entry := logger.newEntry()
-		entry.Tracef(format, args...)
-		logger.releaseEntry(entry)
-	}
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {
@@ -186,21 +173,13 @@ func (logger *Logger) Fatalf(format string, args ...interface{}) {
 		entry.Fatalf(format, args...)
 		logger.releaseEntry(entry)
 	}
-	logger.Exit(1)
+	Exit(1)
 }
 
 func (logger *Logger) Panicf(format string, args ...interface{}) {
 	if logger.IsLevelEnabled(PanicLevel) {
 		entry := logger.newEntry()
 		entry.Panicf(format, args...)
-		logger.releaseEntry(entry)
-	}
-}
-
-func (logger *Logger) Trace(args ...interface{}) {
-	if logger.IsLevelEnabled(TraceLevel) {
-		entry := logger.newEntry()
-		entry.Trace(args...)
 		logger.releaseEntry(entry)
 	}
 }
@@ -257,21 +236,13 @@ func (logger *Logger) Fatal(args ...interface{}) {
 		entry.Fatal(args...)
 		logger.releaseEntry(entry)
 	}
-	logger.Exit(1)
+	Exit(1)
 }
 
 func (logger *Logger) Panic(args ...interface{}) {
 	if logger.IsLevelEnabled(PanicLevel) {
 		entry := logger.newEntry()
 		entry.Panic(args...)
-		logger.releaseEntry(entry)
-	}
-}
-
-func (logger *Logger) Traceln(args ...interface{}) {
-	if logger.IsLevelEnabled(TraceLevel) {
-		entry := logger.newEntry()
-		entry.Traceln(args...)
 		logger.releaseEntry(entry)
 	}
 }
@@ -328,7 +299,7 @@ func (logger *Logger) Fatalln(args ...interface{}) {
 		entry.Fatalln(args...)
 		logger.releaseEntry(entry)
 	}
-	logger.Exit(1)
+	Exit(1)
 }
 
 func (logger *Logger) Panicln(args ...interface{}) {
@@ -337,14 +308,6 @@ func (logger *Logger) Panicln(args ...interface{}) {
 		entry.Panicln(args...)
 		logger.releaseEntry(entry)
 	}
-}
-
-func (logger *Logger) Exit(code int) {
-	runHandlers()
-	if logger.ExitFunc == nil {
-		logger.ExitFunc = os.Exit
-	}
-	logger.ExitFunc(code)
 }
 
 //When file is opened with appending mode, it's safe to

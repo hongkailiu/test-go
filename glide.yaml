@@ -4,6 +4,7 @@ import:
   version: kubernetes-1.12.1
 - package: github.com/openshift/client-go
 - package: github.com/sirupsen/logrus
+  version: v1.1.1
 - package: github.com/go-stomp/stomp
 - package: github.com/alexflint/go-arg
 # workaround: https://github.com/go-openapi/analysis/issues/14
