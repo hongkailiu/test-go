@@ -23,7 +23,6 @@ func init() {
 }
 
 func main() {
-	log.Info("============")
 	http.Run()
 
 }
