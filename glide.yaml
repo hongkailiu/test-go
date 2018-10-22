@@ -15,3 +15,9 @@ import:
   version: kubernetes-1.12.1
 - package: k8s.io/gengo
 - package: golang.org/x/tools/imports
+- package: github.com/prometheus/client_golang
+  version: v0.9.0
+- package: github.com/prometheus/client_model/go
+#- package: github.com/prometheus/common/expfmt
+#- package: github.com/prometheus/common/model
+#- package: github.com/prometheus/procfs

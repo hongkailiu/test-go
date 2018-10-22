@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -48,7 +49,7 @@ func foldersHandler(w http.ResponseWriter, r *http.Request) {
 		path = dir
 	}
 
-	result := []string{}
+	var result []string
 	filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			result = append(result, err.Error())
@@ -67,6 +68,10 @@ func foldersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func metricsHandler(w http.ResponseWriter, r *http.Request) {
+	promhttp.Handler().ServeHTTP(w, r)
+}
+
 type Server struct {
 	server *http.Server
 	Port   int
@@ -78,9 +83,12 @@ func (s Server) Run() {
 	r.HandleFunc("/", rootHandler)
 	r.HandleFunc("/logs", logsHandler).Methods("POST").HeadersRegexp("Content-Type", "application/(json)")
 	r.HandleFunc("/folders", foldersHandler).Methods("GET")
+	r.HandleFunc("/metrics", metricsHandler).Methods("GET")
+	//http.Handle("/metrics", promhttp.Handler())
 
 	// Bind to a port and pass our router in
 	s.server = &(http.Server{Addr: fmt.Sprintf(":%d", s.Port), Handler: r})
+
 	log.Fatal(s.server.ListenAndServe())
 }
 
