@@ -11,6 +11,8 @@ $ make build-http
 
 ```bash
 $ [PORT=8080] ./build/http
+$ curl localhost:8080
+$ curl localhost:8080/metrics
 
 ```
 
