@@ -90,8 +90,4 @@ var _ = Describe("InventoryGenerator", func() {
 			Expect(flexy.Generate(inputPath, config, outputFolder)).To(BeNil())
 		})
 	})
-
-	It("should work", func() {
-
-	})
 })
