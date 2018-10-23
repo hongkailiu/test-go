@@ -1,10 +1,9 @@
 package flexy_test
 
 import (
+	"github.com/hongkailiu/test-go/flexy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/hongkailiu/test-go/flexy"
 )
 
 var _ = Describe("InventoryGenerator", func() {
