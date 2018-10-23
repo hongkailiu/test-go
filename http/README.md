@@ -33,3 +33,11 @@ scrape_configs:
 ```
 
 On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `storage_operation_duration_seconds_count`.
+
+## Images
+
+```bash
+$ buildah bud --format=docker -f test_files/docker/Dockerfile.http.txt -t quay.io/hongkailiu/test-go:http-0.0.1 .
+$ buildah push --creds=hongkailiu d58cbf2a06aa docker://quay.io/hongkailiu/test-go:http-0.0.1
+
+```
