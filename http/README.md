@@ -32,7 +32,7 @@ scrape_configs:
 
 ```
 
-On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `storage_operation_duration_seconds_count`.
+On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `storage_operation_duration_seconds`.
 
 ## Images
 
