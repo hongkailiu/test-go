@@ -13,8 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-
-
 var _ = Describe("AwsEc2Helper", func() {
 	var (
 		imageID                string
@@ -23,8 +21,6 @@ var _ = Describe("AwsEc2Helper", func() {
 		kubernetesClusterValue string
 		blockDeviceMappings    []ec2.BlockDeviceMapping
 	)
-
-
 
 	BeforeEach(func() {
 		log.Debug("BeforeEach============")
@@ -54,7 +50,7 @@ var _ = Describe("AwsEc2Helper", func() {
 			Expect(err).To(BeNil())
 			Expect(instances).NotTo(BeNil())
 			for _, instance := range instances {
-				log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId,}).Debug("instance created")
+				log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId}).Debug("instance created")
 			}
 			id := *(instances[0].InstanceId)
 			//id := "i-012002d42f46bf4f0"

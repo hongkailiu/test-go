@@ -21,7 +21,7 @@ var (
 )
 
 func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error) {
-	log.WithFields(log.Fields{"name": name,}).Info("instance creating")
+	log.WithFields(log.Fields{"name": name}).Info("instance creating")
 	req := svc.RunInstancesRequest(&ec2.RunInstancesInput{
 		// An Amazon Linux AMI ID for t2.micro instances in the us-west-2 region
 		ImageId:      aws.String(imageID),
@@ -67,7 +67,7 @@ func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duratio
 			if err != nil {
 				return false, nil
 			}
-			log.WithFields(log.Fields{"instance.State.Code": strconv.FormatInt(*instance.State.Code, 10),}).Debug("instance code found")
+			log.WithFields(log.Fields{"instance.State.Code": strconv.FormatInt(*instance.State.Code, 10)}).Debug("instance code found")
 			if *(instance.State.Code) == int64(16) {
 				host.PublicDNS = *instance.PublicDnsName
 				host.IPv4PublicIP = *instance.PublicIpAddress

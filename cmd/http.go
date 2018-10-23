@@ -9,7 +9,7 @@ import (
 
 func init() {
 
-	log.SetFormatter(&log.TextFormatter{FullTimestamp: true,})
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
 
 	// Log as JSON instead of the default ASCII formatter.
 	//log.SetFormatter(&log.JSONFormatter{})

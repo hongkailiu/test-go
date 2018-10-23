@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-
-
 func PrometheusLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.WithFields(log.Fields{

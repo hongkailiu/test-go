@@ -1,16 +1,16 @@
 package logger
 
 import (
-	"log/syslog"
-	"os"
 	"github.com/sirupsen/logrus"
 	lSyslog "github.com/sirupsen/logrus/hooks/syslog"
+	"log/syslog"
+	"os"
 )
 
 var Logger = logrus.New()
 
 func init() {
-	Logger.Formatter = &logrus.TextFormatter{FullTimestamp:true}
+	Logger.Formatter = &logrus.TextFormatter{FullTimestamp: true}
 	Logger.Out = os.Stdout
 	Logger.Level = logrus.DebugLevel
 
@@ -22,6 +22,3 @@ func init() {
 
 	Logger.Hooks.Add(hook)
 }
-
-
-

@@ -21,7 +21,6 @@ import (
 	"github.com/hongkailiu/test-go/swagger/swagger/restapi/operations"
 )
 
-
 type cliArgs struct {
 	Port int `arg:"-p,help:port to listen to"`
 }
@@ -57,7 +56,6 @@ func getHostnameHandler(params operations.GetHostnameParams) middleware.Responde
 	return operations.NewGetHostnameOK().WithPayload(payload)
 }
 
-
 func getUsersHandler(params operations.GetUsersParams) middleware.Responder {
 	id := int64(3)
 	users := []*models.User{{&id, "hongkliu"}}
@@ -74,7 +72,6 @@ func getUserUserIDHandler(params operations.GetUserUserIDParams) middleware.Resp
 		return operations.
 			NewGetUserUserIDNotFound()
 	}
-
 
 }
 

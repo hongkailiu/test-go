@@ -57,7 +57,7 @@ type OCPClusterConfig struct {
 	InstancePrefix         string            `yaml:"instancePrefix"`
 	OpenshiftAnsibleVar    map[string]string `yaml:"openshiftAnsibleVar"`
 	PublicKeyFile          string            `yaml:"publicKeyFile"`
-	GCSKeyfile string `yaml:"gcsKeyfile"`
+	GCSKeyfile             string            `yaml:"gcsKeyfile"`
 }
 
 type OCPRole struct {

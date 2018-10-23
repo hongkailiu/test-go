@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"github.com/hongkailiu/test-go/lib/util"
+
 	"github.com/hongkailiu/test-go/lib/logger"
+	"github.com/hongkailiu/test-go/lib/util"
 )
 
 var (
@@ -20,7 +21,7 @@ func worker(index int, linkChan chan job, resultChan chan result, wg *sync.WaitG
 	log.Info(fmt.Sprintf("Getting job ..."))
 	for j := range linkChan {
 		n := util.GetRandomInt(10)
-		if n>3 {
+		if n > 3 {
 			doSilly()
 		}
 		log.Info(fmt.Sprintf("doing #%s, #%s, %d", j.param1, j.param2, n))
@@ -42,18 +43,15 @@ type job struct {
 	param2 string
 }
 
-
 type result struct {
 	param1 string
 	param2 string
 }
 
-
-
 func main() {
 	jobSlice := make([]job, 50)
 	for i := 0; i < 50; i++ {
-		jobSlice[i] = job{fmt.Sprintf("%d", i+1),fmt.Sprintf("%d", i+2)}
+		jobSlice[i] = job{fmt.Sprintf("%d", i+1), fmt.Sprintf("%d", i+2)}
 	}
 
 	poolSize := 10
@@ -91,4 +89,3 @@ func main() {
 	close(rCh)
 
 }
-

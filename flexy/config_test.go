@@ -15,7 +15,7 @@ var _ = Describe("Config", func() {
 	Context("With an input folder", func() {
 		It("should load the config file", func() {
 			config := flexy.OCPClusterConfig{}
-			Expect( flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
+			Expect(flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
 			Expect(config.OCPRoles).Should(HaveLen(3))
 		})
 	})

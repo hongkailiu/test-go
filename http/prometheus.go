@@ -19,7 +19,6 @@ var (
 			Name: "random_number",
 			Help: "the value of random number.",
 		}, []string{"key"},
-
 	)
 
 	//https://github.com/kubernetes/kubernetes/blob/master/pkg/volume/util/metrics.go
@@ -34,7 +33,7 @@ var (
 )
 
 func PrometheusRegister() {
-	log.WithFields(log.Fields{"name": "httpRequestsTotal",}).Info("prometheus register")
+	log.WithFields(log.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
 	prometheus.MustRegister(httpRequestsTotal)
 	prometheus.MustRegister(randomNumber)
 	randomNumber.With(prometheus.Labels{"key": "value"}).Set(0)

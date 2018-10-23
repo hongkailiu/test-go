@@ -51,11 +51,11 @@ func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFo
 					}
 				}
 				host := Host{}
-				configParams := map[string]string {
-					"name": name,
-					"imageID": config.ImageID,
+				configParams := map[string]string{
+					"name":                   name,
+					"imageID":                config.ImageID,
 					"kubernetesClusterValue": config.KubernetesClusterValue,
-					"publicKeyFile" : config.PublicKeyFile,
+					"publicKeyFile":          config.PublicKeyFile,
 				}
 				err := cp.CreateAnInstance(role, configParams, &host)
 				if err != nil {

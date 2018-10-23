@@ -27,7 +27,7 @@ func Generate(inputPath string, config Config, outputFolder string) error {
 	}
 
 	for _, f := range files {
-		log.WithFields(log.Fields{"f.Name()": f.Name(),}).Debug("a file found")
+		log.WithFields(log.Fields{"f.Name()": f.Name()}).Debug("a file found")
 		if err != nil {
 			return err
 		}
@@ -41,7 +41,6 @@ func Generate(inputPath string, config Config, outputFolder string) error {
 }
 
 func generate(name string, file string, config Config, outputFolder string) error {
-
 
 	t, err := template.New(name).ParseFiles(file)
 	if err != nil {

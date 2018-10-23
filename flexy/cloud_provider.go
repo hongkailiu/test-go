@@ -78,7 +78,7 @@ func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, ho
 		return errors.New(fmt.Sprintf("NOT 1 instance: %d", len(instances)))
 	}
 	instance := instances[0]
-	log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId,}).Info("instance created")
+	log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId}).Info("instance created")
 	(*host).ID = *instance.InstanceId
 	return nil
 }
@@ -107,7 +107,7 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 	imageID := configParams["imageID"]
 	publicKeyFile := configParams["publicKeyFile"]
 
-	log.WithFields(log.Fields{"publicKeyFile": publicKeyFile,}).Info("file:")
+	log.WithFields(log.Fields{"publicKeyFile": publicKeyFile}).Info("file:")
 	bytes, err := ioutil.ReadFile(publicKeyFile)
 	if err != nil {
 		return err
@@ -120,19 +120,19 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 	for index, d := range role.GCEParams.Disks {
 		disk := &compute.AttachedDisk{
 			AutoDelete: true,
-			Boot:       index==0,
+			Boot:       index == 0,
 			Type:       "PERSISTENT",
 			InitializeParams: &compute.AttachedDiskInitializeParams{
 				DiskName:    fmt.Sprintf("%s-%d", name, index),
 				SourceImage: GCEPrefix + "/global/images/" + imageID,
 				//SourceImage: "https://www.googleapis.com/compute/v1/projects/rhel-cloud" + "/global/images/family/" + "rhel-7",
-				DiskType: GCEPrefix + "/zones/" + GCEZone + "/diskTypes/" + d.DiskType,
+				DiskType:   GCEPrefix + "/zones/" + GCEZone + "/diskTypes/" + d.DiskType,
 				DiskSizeGb: int64(d.DiskSizeGb),
 			},
 		}
-		if index>0 {
+		if index > 0 {
 			disk.InitializeParams = &compute.AttachedDiskInitializeParams{
-				DiskName:    fmt.Sprintf("%s-%d", name, index),
+				DiskName: fmt.Sprintf("%s-%d", name, index),
 			}
 		}
 		disks = append(disks, disk)
@@ -180,7 +180,7 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 	if err != nil {
 		return err
 	}
-	log.WithFields(log.Fields{"name": name, "op.TargetLink": op.TargetLink,}).Info("instance created on gce")
+	log.WithFields(log.Fields{"name": name, "op.TargetLink": op.TargetLink}).Info("instance created on gce")
 	host.ID = name
 	return nil
 }
@@ -195,7 +195,7 @@ func (g GCE) WaitUntilRunning(host *Host, timeout time.Duration) error {
 			if err != nil {
 				return false, nil
 			}
-			log.WithFields(log.Fields{"instance.Status": instance.Status,}).Debug("instance.Status found")
+			log.WithFields(log.Fields{"instance.Status": instance.Status}).Debug("instance.Status found")
 			if instance.Status == "RUNNING" {
 				if len(instance.NetworkInterfaces) != 1 {
 					return false, errors.New(fmt.Sprintf("length of instance.NetworkInterfaces is %d", len(instance.NetworkInterfaces)))

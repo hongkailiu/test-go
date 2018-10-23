@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	svc *ec2.EC2
+	svc            *ec2.EC2
 	computeService *compute.Service
 )
 

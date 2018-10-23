@@ -21,10 +21,10 @@ var _ = Describe("[Main] Flexy", func() {
 
 	Context("With an input folder", func() {
 		It("should start flexy job", func() {
-			log.WithFields(log.Fields{"inputPath": inputPath,}).Debug("loading config from path:")
+			log.WithFields(log.Fields{"inputPath": inputPath}).Debug("loading config from path:")
 			config := flexy.OCPClusterConfig{}
 			Expect(flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
-			log.WithFields(log.Fields{"config.CloudProvider": config.CloudProvider,}).Debug("config.CloudProvider found:")
+			log.WithFields(log.Fields{"config.CloudProvider": config.CloudProvider}).Debug("config.CloudProvider found:")
 			switch config.CloudProvider {
 			case flexy.CloudProviderAWS:
 				cp = flexy.AWS{SVC: svc}
