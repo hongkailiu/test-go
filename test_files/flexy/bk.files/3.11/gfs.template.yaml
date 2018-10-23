@@ -1,12 +1,17 @@
 ---
 allInOne: false
 ###
-cloudProvider: dry-runner
-kubernetesClusterValue: hongkliu-ocp-gluster
+cloudProvider: aws
+kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu-test
-imageID : "ami-0f131f680c5cffdff"
+#imageID : "qe-rhel-74-20180228"
+imageID: "ami-07a4cf7e0d75f602e"
+###needed for gce
+publicKeyFile: "/home/hongkliu/repo/me/svt-secret/cert/id_rsa.pub.libra"
+gcsKeyfile: "/home/hongkliu/repo/openshift/openshift-misc/v3-launch-templates/functionality-testing/aos-3_10/extra-ansible/files/gcs_registry-key.json.j2"
 openshiftAnsibleVar:
   ansible_ssh_private_key_file: "/home/hongkliu/.ssh/id_rsa_perf"
+  #  ansible_ssh_private_key_file: "/home/hongkliu/.ssh/libra.pem"
   glusterfs_devices: "/dev/nvme2n1"
 ocpRoles:
 - name: master
@@ -18,6 +23,11 @@ ocpRoles:
       ebs:
         volumesize: 60
         volumetype: gp2
+  gceParams:
+    machineType: n1-standard-4
+    disks:
+    - diskType: pd-standard
+      diskSizeGb: 23
 - name: infra
   size: 1
   ec2Params:
@@ -28,7 +38,7 @@ ocpRoles:
         volumesize: 60
         volumetype: gp2
 - name: compute
-  size: 4
+  size: 2
   ec2Params:
     instanceType: m5.xlarge
     blockDeviceMappings:
