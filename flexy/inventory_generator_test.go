@@ -77,7 +77,7 @@ var _ = Describe("InventoryGenerator", func() {
 				"aaa":                                "bbb",
 				"111":                                "222",
 				"abc":                                "xyz",
-				//the following line is formatted by 1.10.4 to make go-reporter happy
+				//the following line is formatted by 1.10.4 to make go-report happy
 				//~/tool/go1.10.4/bin/gofmt -s -w -e ./flexy/inventory_generator_test.go
 				"openshift_clusterid": "cool-id",
 			},
