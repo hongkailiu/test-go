@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// VERSION of the http cmd
 	VERSION = "2.0.0"
 )
 
@@ -17,7 +18,8 @@ type info struct {
 	Now     time.Time `json:"now"`
 }
 
-func GetInfo() *info {
+// getInfo returns the required information
+func getInfo() *info {
 
 	i := info{}
 	i.Version = VERSION

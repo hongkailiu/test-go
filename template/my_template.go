@@ -8,6 +8,7 @@ import (
 	"text/template"
 )
 
+// Todo ...
 type Todo struct {
 	Name        string
 	Description string

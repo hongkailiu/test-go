@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Generate the inventory files
 func Generate(inputPath string, config Config, outputFolder string) error {
 	bytes, err := yaml.Marshal(config)
 	if err != nil {

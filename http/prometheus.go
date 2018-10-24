@@ -32,7 +32,7 @@ var (
 	)
 )
 
-func PrometheusRegister() {
+func prometheusRegister() {
 	log.WithFields(log.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
 	prometheus.MustRegister(httpRequestsTotal)
 	prometheus.MustRegister(randomNumber)

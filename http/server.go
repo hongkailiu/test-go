@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// PrometheusLogger intercepts all http requests and logging the path
 func PrometheusLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.WithFields(log.Fields{
@@ -19,8 +20,9 @@ func PrometheusLogger() gin.HandlerFunc {
 	}
 }
 
+// Run starts the http server
 func Run() {
-	PrometheusRegister()
+	prometheusRegister()
 
 	// Creates a router without any middleware by default
 	r := gin.New()
@@ -37,7 +39,7 @@ func Run() {
 	r.Use(PrometheusLogger())
 
 	r.GET("/", func(c *gin.Context) {
-		infoP := GetInfo()
+		infoP := getInfo()
 		c.JSON(http.StatusOK, *infoP)
 	})
 

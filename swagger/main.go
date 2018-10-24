@@ -68,10 +68,8 @@ func getUserUserIDHandler(params operations.GetUserUserIDParams) middleware.Resp
 		id := int64(1)
 		user := models.User{&id, "mike"}
 		return operations.NewGetUserUserIDOK().WithPayload(&user)
-	} else {
-		return operations.
-			NewGetUserUserIDNotFound()
 	}
+	return operations.NewGetUserUserIDNotFound()
 
 }
 
