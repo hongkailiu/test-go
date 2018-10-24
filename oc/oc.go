@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/hongkailiu/test-go/lib/util"
 	"github.com/openshift/api/build/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	"io/ioutil"
@@ -28,21 +29,15 @@ func main() {
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-	if err != nil {
-		panic(err.Error())
-	}
+	util.PanicIfError(err)
 
 	buildV1Client, err := buildv1.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
+	util.PanicIfError(err)
 
 	namespace := "test001project"
 	buildConfigs, err := buildV1Client.BuildConfigs(namespace).List(metav1.ListOptions{})
+	util.PanicIfError(err)
 
-	if err != nil {
-		panic(err.Error())
-	}
 	fmt.Printf("There are %d builds in the cluster\n", len(buildConfigs.Items))
 
 	//Change namespace and build accordingly
@@ -74,10 +69,9 @@ func main() {
 
 	if err != nil {
 		panic(err.Error())
-	} else {
-		fmt.Printf("====Trigger build %s in namespace %s\n", myBuild.Name, myBuild.Namespace)
-		//fmt.Printf("Found build %s in status %+v\n", buildConfig, myBuildConfig.Status)
 	}
+
+	fmt.Printf("====Trigger build %s in namespace %s\n", myBuild.Name, myBuild.Namespace)
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -102,34 +96,33 @@ func main() {
 
 	if err != nil {
 		panic(err.Error())
+	}
+
+	// not found api on sub-resource (log is a sub-resource of pod)
+	// https://stackoverflow.com/questions/32983228/kubernetes-go-client-api-for-log-of-a-particular-pod
+	req := clientset.CoreV1().RESTClient().Get().
+		Namespace(namespace).
+		Name(pod).
+		Resource("pods").
+		SubResource("log").
+		Param("follow", strconv.FormatBool(false)).
+		Param("container", "").
+		Param("previous", strconv.FormatBool(false)).
+		Param("timestamps", strconv.FormatBool(true))
+
+	readCloser, err := req.Stream()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer readCloser.Close()
+
+	if b, err := ioutil.ReadAll(readCloser); err == nil {
+		fmt.Printf("logs begin ======\n")
+		fmt.Printf("%s\n", string(b))
+		fmt.Printf("logs end ======\n")
 	} else {
-
-		// not found api on sub-resource (log is a sub-resource of pod)
-		// https://stackoverflow.com/questions/32983228/kubernetes-go-client-api-for-log-of-a-particular-pod
-		req := clientset.CoreV1().RESTClient().Get().
-			Namespace(namespace).
-			Name(pod).
-			Resource("pods").
-			SubResource("log").
-			Param("follow", strconv.FormatBool(false)).
-			Param("container", "").
-			Param("previous", strconv.FormatBool(false)).
-			Param("timestamps", strconv.FormatBool(true))
-
-		readCloser, err := req.Stream()
-		if err != nil {
-			panic(err.Error())
-		}
-
-		defer readCloser.Close()
-
-		if b, err := ioutil.ReadAll(readCloser); err == nil {
-			fmt.Printf("logs begin ======\n")
-			fmt.Printf("%s\n", string(b))
-			fmt.Printf("logs end ======\n")
-		} else {
-			panic(err.Error())
-		}
+		panic(err.Error())
 	}
 }
 
