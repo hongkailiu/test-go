@@ -19,7 +19,7 @@ limitations under the License.
 package app
 
 import (
-	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/app.example.com/v1alpha1"
+	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/app/v1alpha1"
 	internalinterfaces "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/internalinterfaces"
 )
 

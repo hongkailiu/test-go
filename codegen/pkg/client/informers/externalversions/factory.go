@@ -24,7 +24,7 @@ import (
 	time "time"
 
 	versioned "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned"
-	appexamplecom "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/app.example.com"
+	app "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/app"
 	internalinterfaces "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/internalinterfaces"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -172,9 +172,9 @@ type SharedInformerFactory interface {
 	ForResource(resource schema.GroupVersionResource) (GenericInformer, error)
 	WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool
 
-	App() appexamplecom.Interface
+	App() app.Interface
 }
 
-func (f *sharedInformerFactory) App() appexamplecom.Interface {
-	return appexamplecom.New(f, f.namespace, f.tweakListOptions)
+func (f *sharedInformerFactory) App() app.Interface {
+	return app.New(f, f.namespace, f.tweakListOptions)
 }

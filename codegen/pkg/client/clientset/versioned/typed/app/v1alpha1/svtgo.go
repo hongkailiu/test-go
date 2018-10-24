@@ -19,7 +19,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/apis/app.example.com/v1alpha1"
+	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/apis/app/v1alpha1"
 	scheme "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned/scheme"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

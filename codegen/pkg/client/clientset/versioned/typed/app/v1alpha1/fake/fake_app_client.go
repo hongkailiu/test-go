@@ -19,7 +19,7 @@ limitations under the License.
 package fake
 
 import (
-	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned/typed/app.example.com/v1alpha1"
+	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned/typed/app/v1alpha1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )

@@ -21,10 +21,10 @@ package v1alpha1
 import (
 	time "time"
 
-	appexamplecomv1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/apis/app.example.com/v1alpha1"
+	appv1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/apis/app/v1alpha1"
 	versioned "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned"
 	internalinterfaces "github.com/hongkailiu/test-go/codegen/pkg/client/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/listers/app.example.com/v1alpha1"
+	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/listers/app/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -70,7 +70,7 @@ func NewFilteredSVTGoInformer(client versioned.Interface, namespace string, resy
 				return client.AppV1alpha1().SVTGos(namespace).Watch(options)
 			},
 		},
-		&appexamplecomv1alpha1.SVTGo{},
+		&appv1alpha1.SVTGo{},
 		resyncPeriod,
 		indexers,
 	)
@@ -81,7 +81,7 @@ func (f *sVTGoInformer) defaultInformer(client versioned.Interface, resyncPeriod
 }
 
 func (f *sVTGoInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&appexamplecomv1alpha1.SVTGo{}, f.defaultInformer)
+	return f.factory.InformerFor(&appv1alpha1.SVTGo{}, f.defaultInformer)
 }
 
 func (f *sVTGoInformer) Lister() v1alpha1.SVTGoLister {

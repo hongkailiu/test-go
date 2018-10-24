@@ -7,13 +7,16 @@ import (
 )
 
 const (
+	// InstanceCountLimit limits the instances created by flexy
 	InstanceCountLimit = 23
+	// RoleCountLimit limits the instances created by flexy for each roles
 	RoleCountLimit     = 6
 )
 
+// Start starts flexy job
 func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFolder string) error {
 	if len(config.OCPRoles) > RoleCountLimit {
-		return errors.New(fmt.Sprintf("RoleCountLimit is %d: too many roles: %d", RoleCountLimit, len(config.OCPRoles)))
+		return fmt.Errorf("RoleCountLimit is %d: too many roles: %d", RoleCountLimit, len(config.OCPRoles))
 	}
 
 	var masterGroup, etcdGroup, nodeGroup, lbGroup, glusterFSGroup []Host
@@ -38,7 +41,7 @@ func Start(cp CloudProvider, config OCPClusterConfig, inputPath string, outputFo
 			return err
 		}
 		if instanceCount > InstanceCountLimit {
-			return errors.New(fmt.Sprintf("instances over %d", InstanceCountLimit))
+			return fmt.Errorf("instances over %d", InstanceCountLimit)
 		}
 
 		if role.Size > 0 {
