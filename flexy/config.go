@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -43,7 +42,7 @@ func ValidateOCPRole(role string) error {
 			return nil
 		}
 	}
-	return errors.New(fmt.Sprintf("invalid OCP role: %s", role))
+	return fmt.Errorf("invalid OCP role: %s", role)
 }
 
 // Host represent a host
