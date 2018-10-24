@@ -10,7 +10,7 @@ const (
 	// InstanceCountLimit limits the instances created by flexy
 	InstanceCountLimit = 23
 	// RoleCountLimit limits the instances created by flexy for each roles
-	RoleCountLimit     = 6
+	RoleCountLimit = 6
 )
 
 // Start starts flexy job

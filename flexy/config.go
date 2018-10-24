@@ -20,10 +20,10 @@ type Config struct {
 
 //
 const (
-	OCPRoleMaster          = "master"
-	OCPRoleInfra           = "infra"
-	OCPRoleCompute         = "compute"
-	OCPRoleGlusterFS       = "glusterfs"
+	OCPRoleMaster    = "master"
+	OCPRoleInfra     = "infra"
+	OCPRoleCompute   = "compute"
+	OCPRoleGlusterFS = "glusterfs"
 
 	CloudProviderAWS       = "aws"
 	CloudProviderGCE       = "gce"

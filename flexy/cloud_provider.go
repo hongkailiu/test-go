@@ -16,9 +16,9 @@ const (
 	// GCEProjectName is GCE project name
 	GCEProjectName = "openshift-gce-devel"
 	// GCEZone is GCE zone
-	GCEZone        = "us-central1-a"
+	GCEZone = "us-central1-a"
 	// GCEPrefix is GCE prefix
-	GCEPrefix      = "https://www.googleapis.com/compute/v1/projects/" + GCEProjectName
+	GCEPrefix = "https://www.googleapis.com/compute/v1/projects/" + GCEProjectName
 )
 
 var (
