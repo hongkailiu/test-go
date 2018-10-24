@@ -1,7 +1,6 @@
 package flexy
 
 import (
-	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"google.golang.org/api/compute/v1"
@@ -14,14 +13,18 @@ import (
 )
 
 const (
+	// GCEProjectName is GCE project name
 	GCEProjectName = "openshift-gce-devel"
+	// GCEZone is GCE zone
 	GCEZone        = "us-central1-a"
+	// GCEPrefix is GCE prefix
 	GCEPrefix      = "https://www.googleapis.com/compute/v1/projects/" + GCEProjectName
 )
 
 var (
+	// DryRunnerCounter is the instance counter for dry-runner
 	DryRunnerCounter = 0
-
+	// value2 is defined for gce instances created by cucushift flexy
 	value2 = `#cloud-config
 
 # see
@@ -52,19 +55,23 @@ runcmd:
 - "curl 'http://metadata.google.internal/computeMetadata/v1/instance/attributes/sshKeys' -H 'Metadata-Flavor: Google' | sed -r -e 's/(^|,)[^\\S]*:/\\1/g' -e 's/,/\\n/g' >> /root/.ssh/authorized_keys"`
 )
 
+// CloudProvider defines functions for cloud providers
 type CloudProvider interface {
 	CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error
 	WaitUntilRunning(host *Host, timeout time.Duration) error
 }
 
+// AWS represents cloud provider AWS
 type AWS struct {
 	SVC *ec2.EC2
 }
 
+// GCE represents cloud provider GCE
 type GCE struct {
 	SVC *compute.Service
 }
 
+// CreateAnInstance creates an instance on AWS
 func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
 	name := configParams["name"]
 	imageID := configParams["imageID"]
@@ -75,7 +82,7 @@ func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, ho
 		return err
 	}
 	if len(instances) != 1 {
-		return errors.New(fmt.Sprintf("NOT 1 instance: %d", len(instances)))
+		return fmt.Errorf("NOT 1 instance: %d", len(instances))
 	}
 	instance := instances[0]
 	log.WithFields(log.Fields{"instance.InstanceId": *instance.InstanceId}).Info("instance created")
@@ -83,13 +90,16 @@ func (aws AWS) CreateAnInstance(role OCPRole, configParams map[string]string, ho
 	return nil
 }
 
+// WaitUntilRunning waits until the instance is running on AWS
 func (aws AWS) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return WaitUntilRunningOnEC2(aws.SVC, (*host).ID, timeout, host)
 }
 
+// DryRunner represents a fake cloud provider
 type DryRunner struct {
 }
 
+// CreateAnInstance creates an instance for dry-runner
 func (dr DryRunner) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
 	host.ID = fmt.Sprintf("dry-run-%s", uuid.New().String())
 	host.IPv4PublicIP = fmt.Sprintf("23.23.23.%d", DryRunnerCounter+23)
@@ -98,10 +108,12 @@ func (dr DryRunner) CreateAnInstance(role OCPRole, configParams map[string]strin
 	return nil
 }
 
+// WaitUntilRunning waits until the instance is running for dry-runner
 func (dr DryRunner) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return nil
 }
 
+// CreateAnInstance creates an instance on GCE
 func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host *Host) error {
 	name := configParams["name"]
 	imageID := configParams["imageID"]
@@ -185,6 +197,7 @@ func (g GCE) CreateAnInstance(role OCPRole, configParams map[string]string, host
 	return nil
 }
 
+// WaitUntilRunning waits until the instance is running on GCE
 func (g GCE) WaitUntilRunning(host *Host, timeout time.Duration) error {
 	return wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
@@ -198,10 +211,10 @@ func (g GCE) WaitUntilRunning(host *Host, timeout time.Duration) error {
 			log.WithFields(log.Fields{"instance.Status": instance.Status}).Debug("instance.Status found")
 			if instance.Status == "RUNNING" {
 				if len(instance.NetworkInterfaces) != 1 {
-					return false, errors.New(fmt.Sprintf("length of instance.NetworkInterfaces is %d", len(instance.NetworkInterfaces)))
+					return false, fmt.Errorf("length of instance.NetworkInterfaces is %d", len(instance.NetworkInterfaces))
 				}
 				if len(instance.NetworkInterfaces[0].AccessConfigs) != 1 {
-					return false, errors.New(fmt.Sprintf("length of instance.NetworkInterfaces[0].AccessConfigs is %d", len(instance.NetworkInterfaces[0].AccessConfigs)))
+					return false, fmt.Errorf("length of instance.NetworkInterfaces[0].AccessConfigs is %d", len(instance.NetworkInterfaces[0].AccessConfigs))
 				}
 				ip := instance.NetworkInterfaces[0].AccessConfigs[0].NatIP
 				host.PublicDNS = "ocp." + ip + ".xip.io"

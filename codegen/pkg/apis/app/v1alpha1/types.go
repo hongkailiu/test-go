@@ -19,7 +19,7 @@ type SVTGo struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// DatabaseList is a list of Database resources
+// SVTGoList is a list of Database resources
 type SVTGoList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
@@ -27,9 +27,12 @@ type SVTGoList struct {
 	Items []SVTGo `json:"items"`
 }
 
+// SVTGoSpec is the specification of SVTGo
 type SVTGoSpec struct {
 	Size int32 `json:"size"`
 }
+
+// SVTGoStatus is the status of SVTGo
 type SVTGoStatus struct {
 	Nodes []string `json:"nodes"`
 }

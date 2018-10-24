@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// GroupName ...
 	GroupName = "app.example.com"
 )
 

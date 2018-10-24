@@ -1,7 +1,6 @@
 package flexy
 
 import (
-	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
@@ -14,12 +13,13 @@ import (
 
 var (
 	nameKey              = "Name"
-	securityGroupId      = "sg-5c5ace38"
+	securityGroupID      = "sg-5c5ace38"
 	keyNameValue         = "id_rsa_perf"
-	subnetId             = "subnet-4879292d"
+	subnetID             = "subnet-4879292d"
 	kubernetesClusterKey = "KubernetesCluster"
 )
 
+// CreateInstancesOnEC2 creates instances on EC2
 func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64, instanceType ec2.InstanceType, kubernetesClusterValue string, blockDeviceMappings []ec2.BlockDeviceMapping) ([]ec2.Instance, error) {
 	log.WithFields(log.Fields{"name": name}).Info("instance creating")
 	req := svc.RunInstancesRequest(&ec2.RunInstancesInput{
@@ -29,10 +29,10 @@ func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64
 		MinCount:     aws.Int64(count),
 		MaxCount:     aws.Int64(count),
 		SecurityGroupIds: []string{
-			securityGroupId,
+			securityGroupID,
 		},
 		KeyName:             aws.String(keyNameValue),
-		SubnetId:            aws.String(subnetId),
+		SubnetId:            aws.String(subnetID),
 		BlockDeviceMappings: blockDeviceMappings,
 		TagSpecifications: []ec2.TagSpecification{
 
@@ -59,11 +59,12 @@ func CreateInstancesOnEC2(svc *ec2.EC2, name string, imageID string, count int64
 	return resp.Instances, nil
 }
 
-func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duration, host *Host) error {
+// WaitUntilRunningOnEC2 waits until the instance is running on EC2
+func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceID string, timeout time.Duration, host *Host) error {
 	return wait.Poll(10*time.Second, timeout,
 		func() (bool, error) {
-			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", instanceId))
-			instance, err := DescribeAInstance(svc, instanceId)
+			log.Debug(fmt.Sprintf("checking if the instance %s is running ...", instanceID))
+			instance, err := DescribeAnInstance(svc, instanceID)
 			if err != nil {
 				return false, nil
 			}
@@ -77,10 +78,11 @@ func WaitUntilRunningOnEC2(svc *ec2.EC2, instanceId string, timeout time.Duratio
 		})
 }
 
-func DescribeAInstance(svc *ec2.EC2, instanceId string) (*ec2.Instance, error) {
+// DescribeAnInstance describe an instance
+func DescribeAnInstance(svc *ec2.EC2, instanceID string) (*ec2.Instance, error) {
 	req := svc.DescribeInstancesRequest(&ec2.DescribeInstancesInput{
 		InstanceIds: []string{
-			instanceId,
+			instanceID,
 		},
 	})
 
@@ -89,7 +91,7 @@ func DescribeAInstance(svc *ec2.EC2, instanceId string) (*ec2.Instance, error) {
 		return nil, err
 	}
 	if resp.Reservations == nil || resp.Reservations[0].Instances == nil {
-		return nil, errors.New(fmt.Sprintf("no found instance by id: %s", instanceId))
+		return nil, fmt.Errorf("no found instance by id: %s", instanceID)
 	}
 
 	return &resp.Reservations[0].Instances[0], nil
