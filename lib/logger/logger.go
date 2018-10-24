@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Logger with syslog hook
 var Logger = logrus.New()
 
 func init() {
