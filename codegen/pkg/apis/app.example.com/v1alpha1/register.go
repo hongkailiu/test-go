@@ -22,7 +22,9 @@ func Resource(resource string) schema.GroupResource {
 }
 
 var (
+	// SchemeBuilder ...
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+	// AddToScheme ...
 	AddToScheme   = SchemeBuilder.AddToScheme
 )
 
