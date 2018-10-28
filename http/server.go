@@ -1,13 +1,14 @@
 package http
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hongkailiu/test-go/random"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 )
 
 // PrometheusLogger intercepts all http requests and logging the path
