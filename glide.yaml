@@ -24,3 +24,5 @@ import:
 #- package: github.com/prometheus/procfs
 - package: github.com/gin-gonic/gin
   version: v1.3.0
+- package: github.com/satori/go.uuid
+  version: v1.2.0

@@ -1,6 +1,11 @@
-hash: 166d74c0a64081ceeff31edab1ba2ecd32fbdba7a32c7d56debf0185ad988793
-updated: 2018-10-22T16:48:38.554701538-04:00
+hash: a7953cfdb34fc0f5bd4a283b92a306d8fc91d7b96bc157c4638473c7c701e83a
+updated: 2018-10-28T10:49:57.526920278-04:00
 imports:
+- name: cloud.google.com/go
+  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
+  subpackages:
+  - compute/metadata
+  - internal
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
 - name: github.com/alexflint/go-scalar
@@ -8,7 +13,7 @@ imports:
 - name: github.com/asaskevich/govalidator
   version: f9ffefc3facfbe0caee3fea233cbb6e8208f4541
 - name: github.com/aws/aws-sdk-go-v2
-  version: d52522b5f4b95591ff6528d7c54923951aadf099
+  version: a7b51e7962c4227bc0fbe3b7ef635595e7d1a20c
   subpackages:
   - aws
   - aws/awserr
@@ -43,6 +48,10 @@ imports:
   version: 47565b4f722fb6ceae66b95f853feed578a4a51c
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
+- name: github.com/gin-contrib/sessions
+  version: 58cbcf30135cc04c55e4499757142265d58e62d6
+  subpackages:
+  - cookie
 - name: github.com/gin-contrib/sse
   version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
@@ -81,7 +90,7 @@ imports:
 - name: github.com/go-openapi/spec
   version: 5bae59e25b21498baea7f9d46e9c147ec106a42e
 - name: github.com/go-openapi/strfmt
-  version: edab9990ffc9b4a428f3306ecf4d18a069ca3317
+  version: 81f50457a25bb77f776d74c30350850b74b115ef
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-openapi/validate
@@ -107,6 +116,14 @@ imports:
   - ptypes/timestamp
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
+- name: github.com/google/go-github
+  version: 60c18f2b2f5c1fa591b80d73f33234584a61ee8c
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 44c6ddd0a2342c386950e880b658017258da92fc
+  subpackages:
+  - query
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/google/uuid
@@ -117,6 +134,12 @@ imports:
   - OpenAPIv2
   - compiler
   - extensions
+- name: github.com/gorilla/context
+  version: 51ce91d2eaddeca0ef29a71d766bb3634dadf729
+- name: github.com/gorilla/securecookie
+  version: e65cf8c5df817c89aeb47ecb46064e802e2de943
+- name: github.com/gorilla/sessions
+  version: 68d1edeb366b66bdd5d714e32d7a065f74b03b9b
 - name: github.com/gregjones/httpcache
   version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
@@ -154,18 +177,16 @@ imports:
 - name: github.com/modern-go/reflect2
   version: 05fbef0ca5da472bbf96c9322b84a53edc03c9fd
 - name: github.com/openshift/api
-  version: a46029836bdc207f9949fc5f4907f0bfd3cf7763
+  version: 57f423fba7855b51f0f7844e8e5ba57318dae738
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
-  version: 431ec9a26e5021f35fa41ee9a89842db9bfdb370
+  version: 20de51e05a11c297b27b03396fb7d0cb598468f5
   subpackages:
   - build/clientset/versioned/scheme
   - build/clientset/versioned/typed/build/v1
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
-- name: github.com/pkg/errors
-  version: d58f94251046e7f70ac45aceea6cf6f61415ccca
 - name: github.com/prometheus/client_golang
   version: 1cafe34db7fdec6022e17e00e1c1ea501022f3e4
   subpackages:
@@ -192,6 +213,8 @@ imports:
   version: 975f53781597ed779763b7b65566e74c4004d8de
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
+- name: github.com/satori/go.uuid
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sirupsen/logrus
   version: ad15b42461921f1fb3529b058c6786c6a45d5162
   subpackages:
@@ -203,7 +226,7 @@ imports:
   subpackages:
   - codec
 - name: golang.org/x/crypto
-  version: 0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb
+  version: e84da0312774c21d64ee2317962ef669b27ffb41
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
@@ -219,9 +242,11 @@ imports:
   - idna
   - lex/httplex
   - netutil
+  - websocket
 - name: golang.org/x/oauth2
   version: a6bd8cefa1811bd24b86f8902872e4e8225f74c4
   subpackages:
+  - github
   - google
   - internal
   - jws
@@ -258,11 +283,11 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: 6fe81c087942f588f40c3f67b41ce284f2f70eee
+  version: f60e5f99f0816fc2d9ecb338008ea420248d2943
   subpackages:
   - imports
 - name: google.golang.org/api
-  version: a2651947f503a1793446d4058bb073a6fdf99e53
+  version: 511bab8e55decfbe784cd2d1868fa5cda62dc6c1
   subpackages:
   - compute/v1
   - gensupport
@@ -440,11 +465,6 @@ imports:
   subpackages:
   - pkg/util/proto
 testImports:
-- name: cloud.google.com/go
-  version: 3b1ae45394a234c385be014e9a488f2bb6eef821
-  subpackages:
-  - compute/metadata
-  - internal
 - name: github.com/onsi/ginkgo
   version: 11459a886d9cd66b319dac7ef1e917ee221372c9
   subpackages:
