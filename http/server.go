@@ -49,7 +49,7 @@ func PrometheusLogger() gin.HandlerFunc {
 // Run starts the http server
 func Run() {
 
-	log.WithFields(log.Fields{"oauthConf.ClientID": oauthConf.ClientID, "oauthConf.ClientSecret": oauthConf.ClientSecret,}).Debug("oauthConf")
+	log.WithFields(log.Fields{"oauthConf.ClientID": oauthConf.ClientID, "oauthConf.ClientSecret": oauthConf.ClientSecret}).Debug("oauthConf")
 
 	prometheusRegister()
 
@@ -84,13 +84,13 @@ func Run() {
 		log.Fatal(err)
 	}
 	staticDir := filepath.Join(dir, "static")
-	log.WithFields(log.Fields{"staticDir": staticDir,}).Debug("http staticDir dir")
+	log.WithFields(log.Fields{"staticDir": staticDir}).Debug("http staticDir dir")
 	r.StaticFS("/console", http.Dir(staticDir))
 
 	//https://blog.kowalczyk.info/article/f/accessing-github-api-from-go.html
 	r.GET("/login", func(c *gin.Context) {
 		url := oauthConf.AuthCodeURL(oauthStateString, oauth2.AccessTypeOnline)
-		log.WithFields(log.Fields{"url": url,}).Debug("redirect login url")
+		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
 		c.Redirect(http.StatusTemporaryRedirect, url)
 	})
 
@@ -148,7 +148,7 @@ func Run() {
 	go func() {
 		for {
 			n := random.GetRandom(1000)
-			log.WithFields(log.Fields{"n": n,}).Debug("generated random number")
+			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
 			randomNumber.With(prometheus.Labels{"key": "value"}).Set(float64(n))
 			time.Sleep(10 * time.Second)
 		}
