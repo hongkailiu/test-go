@@ -121,7 +121,7 @@ func Run() {
 		}
 		fmt.Printf("Logged in as GitHub user: %s\n", *user.Login)
 		session := sessions.Default(c)
-		session.Set("username",  *user.Login)
+		session.Set("username", *user.Login)
 		session.Save()
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	})
