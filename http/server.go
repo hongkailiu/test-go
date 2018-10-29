@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/go-openapi/runtime/middleware"
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
 	"net/http"
@@ -164,6 +165,15 @@ func Run() {
 			time.Sleep(100 * time.Second)
 		}
 	}()
+
+	swaggerDir := filepath.Join(dir, "swagger")
+	log.WithFields(log.Fields{"swaggerDir": swaggerDir}).Debug("http swaggerDir dir")
+	r.StaticFS("/swagger", http.Dir(swaggerDir))
+
+	redoc := middleware.Redoc(middleware.RedocOpts{BasePath: "/api/", Path: "help", SpecURL: "/swagger/swagger.json", Title: "Hello"}, nil)
+	r.GET("/api/help", func(c *gin.Context) {
+		redoc.ServeHTTP(c.Writer, c.Request)
+	})
 
 	// By default it serves on :8080 unless a
 	// PORT environment variable was defined.
