@@ -1,5 +1,5 @@
 syntax = "proto3";
-package tutorial;
+package proto;
 
 import "google/protobuf/timestamp.proto";
 

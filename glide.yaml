@@ -15,14 +15,21 @@ import:
 - package: k8s.io/code-generator
   version: kubernetes-1.12.1
 - package: k8s.io/gengo
-- package: golang.org/x/tools/imports
+- package: golang.org/x/tools
+  subpackages:
+  - imports
 - package: github.com/prometheus/client_golang
   version: v0.9.0
-- package: github.com/prometheus/client_model/go
-#- package: github.com/prometheus/common/expfmt
-#- package: github.com/prometheus/common/model
-#- package: github.com/prometheus/procfs
+- package: github.com/prometheus/client_model
+  subpackages:
+  - go
 - package: github.com/gin-gonic/gin
   version: v1.3.0
 - package: github.com/satori/go.uuid
   version: v1.2.0
+- package: github.com/golang/protobuf
+  version: ^1.2.0
+  subpackages:
+  - proto
+- package: github.com/onsi/gomega
+  version: ^v1.4.2

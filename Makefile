@@ -79,3 +79,6 @@ build-code-gen:
 build-http:
 	./script/ci/build-http.sh
 
+.PHONY : test-pb
+test-pb:
+	./script/ci/test-pb.sh
