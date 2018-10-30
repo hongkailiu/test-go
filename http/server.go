@@ -184,6 +184,7 @@ func Run() {
 	log.WithFields(log.Fields{"swaggerDir": swaggerDir}).Debug("http swaggerDir dir")
 	r.StaticFS("/swagger", http.Dir(swaggerDir))
 
+	// https://goswagger.io/faq/faq_documenting.html#how-to-serve-swagger-ui-from-a-preexisting-web-app
 	redoc := middleware.Redoc(middleware.RedocOpts{BasePath: "/api/", Path: "help", SpecURL: "/swagger/swagger.json", Title: "Hello"}, nil)
 	r.GET("/api/help", func(c *gin.Context) {
 		redoc.ServeHTTP(c.Writer, c.Request)
