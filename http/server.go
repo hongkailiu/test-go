@@ -39,6 +39,7 @@ var (
 	// random string for oauth2 API calls to protect against CSRF
 	oauthStateString = uuid.NewV4().String()
 
+	//https://console.developers.google.com/apis/dashboard
 	oauthConfGoogle = &oauth2.Config{
 		ClientID:     os.Getenv("gg_client_id"),
 		ClientSecret: os.Getenv("gg_client_secret"),
