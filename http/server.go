@@ -74,7 +74,7 @@ func Run() {
 	sessionKey := securecookie.GenerateRandomKey(32)
 	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("generated session key")
 	store := cookie.NewStore(sessionKey)
-	r.Use(sessions.Sessions("my-session", store))
+	r.Use(sessions.Sessions("my_session", store))
 
 	r.GET("/", func(c *gin.Context) {
 		infoP := getInfo()
