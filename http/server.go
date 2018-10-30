@@ -3,9 +3,6 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/go-openapi/runtime/middleware"
-	"golang.org/x/oauth2"
-	githuboauth "golang.org/x/oauth2/github"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -14,12 +11,16 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/google/go-github/github"
+	"github.com/gorilla/securecookie"
 	"github.com/hongkailiu/test-go/random"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github"
 )
 
 var (
@@ -68,8 +69,12 @@ func Run() {
 
 	r.Use(PrometheusLogger())
 
-	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
+	// sessions and cookies are from github.com/gin-contrib
+	// which uses implementation from github.com/gorilla/
+	sessionKey := securecookie.GenerateRandomKey(32)
+	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("generated session key")
+	store := cookie.NewStore(sessionKey)
+	r.Use(sessions.Sessions("my-session", store))
 
 	r.GET("/", func(c *gin.Context) {
 		infoP := getInfo()
@@ -94,6 +99,14 @@ func Run() {
 		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
 		c.Redirect(http.StatusTemporaryRedirect, url)
 	})
+
+	options := sessions.Options{
+		//Path:     "/",
+		//Domain:   "hongkailiu.tk",
+		MaxAge: 300,
+		//Secure:   false,
+		//HttpOnly: false,
+	}
 
 	r.GET("/github_oauth_cb", func(c *gin.Context) {
 		r := c.Request
@@ -122,6 +135,7 @@ func Run() {
 		}
 		fmt.Printf("Logged in as GitHub user: %s\n", *user.Login)
 		session := sessions.Default(c)
+		session.Options(options)
 		session.Set("username", *user.Login)
 		session.Save()
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
