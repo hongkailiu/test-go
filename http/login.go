@@ -40,14 +40,13 @@ type user struct {
 	email string
 }
 
-// UserProvider provides user
-type UserProvider interface {
+type userProvider interface {
 	getUser(client *http.Client) (*user, error)
 }
 
 type login struct {
 	config       *oauth2.Config
-	userProvider UserProvider
+	userProvider userProvider
 }
 
 func (l login) getLoginHandler() gin.HandlerFunc {
