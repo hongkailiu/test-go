@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -63,7 +62,7 @@ func (l login) getCallbackHandler() gin.HandlerFunc {
 		r := c.Request
 		state := r.FormValue("state")
 		if state != oauthStateString {
-			fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
+			log.Errorf("invalid oauth state, expected '%s', got '%s'", oauthStateString, state)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
@@ -71,20 +70,18 @@ func (l login) getCallbackHandler() gin.HandlerFunc {
 		code := r.FormValue("code")
 		token, err := l.config.Exchange(oauth2.NoContext, code)
 		if err != nil {
-			fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+			log.Errorf("oauthConf.Exchange() failed with '%s'", err)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
 
 		u, err := l.userProvider.getUser(l.config.Client(oauth2.NoContext, token))
 		if err != nil {
-			fmt.Printf("l.userProvider.getUser() failed with '%s'\n", err)
+			log.Errorf("l.userProvider.getUser() failed with '%s'", err)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
-		//fmt.Printf("Logged in as google user: %s\n", (*u).name)
-		log.Debugf("Logged in as google user: %v", u)
-		log.WithFields(log.Fields{"u.name": u.name}).Debug("saving u.name")
+		log.Debugf("Logged in as user: %v", u)
 		saveDataInSession(c, u.name)
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	}
