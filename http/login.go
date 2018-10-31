@@ -3,6 +3,9 @@ package http
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
@@ -10,8 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	googleauth "google.golang.org/api/oauth2/v2"
-	"net/http"
-	"strconv"
 )
 
 var (
