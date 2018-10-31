@@ -132,6 +132,7 @@ func (up gitHubUserProvider) getUser(client *http.Client) (*user, error) {
 
 	}
 
+	log.Warnf("no primary email found in the first 30 emails for github user: %v", u)
 	result.email = ""
 	return result, nil
 }
