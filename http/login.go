@@ -3,42 +3,20 @@ package http
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"os"
-
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	githuboauth "golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/google"
 	googleauth "google.golang.org/api/oauth2/v2"
+	"net/http"
+	"strconv"
 )
 
 var (
-	// You must register the app at https://github.com/settings/applications
-	// Set callback to http://127.0.0.1:7000/github_oauth_cb
-	// Set ClientId and ClientSecret to
-	oauthConf = &oauth2.Config{
-		ClientID:     os.Getenv("gh_client_id"),
-		ClientSecret: os.Getenv("gh_client_secret"),
-		// select level of access you want https://developer.github.com/v3/oauth/#scopes
-		Scopes:   []string{"user:email"},
-		Endpoint: githuboauth.Endpoint,
-	}
 	// random string for oauth2 API calls to protect against CSRF
 	oauthStateString = uuid.NewV4().String()
-
-	//https://console.developers.google.com/apis/dashboard
-	oauthConfGoogle = &oauth2.Config{
-		ClientID:     os.Getenv("gg_client_id"),
-		ClientSecret: os.Getenv("gg_client_secret"),
-		RedirectURL:  "http://127.0.0.1:8080/google_oauth_cb",
-		Scopes:       []string{"profile", "email"},
-		Endpoint:     google.Endpoint,
-	}
 
 	options = sessions.Options{
 		//Path:     "/",
@@ -47,83 +25,6 @@ var (
 		//Secure:   false,
 		//HttpOnly: false,
 	}
-
-	githubLoginHandler = func(c *gin.Context) {
-		url := oauthConf.AuthCodeURL(oauthStateString, oauth2.AccessTypeOnline)
-		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
-		c.Redirect(http.StatusTemporaryRedirect, url)
-	}
-
-	githubCallbackHandler = func(c *gin.Context) {
-		r := c.Request
-		state := r.FormValue("state")
-		if state != oauthStateString {
-			fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-
-		code := r.FormValue("code")
-		token, err := oauthConf.Exchange(oauth2.NoContext, code)
-		if err != nil {
-			fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-
-		oauthClient := oauthConf.Client(oauth2.NoContext, token)
-		client := github.NewClient(oauthClient)
-		user, _, err := client.Users.Get(context.Background(), "")
-		if err != nil {
-			fmt.Printf("client.Users.Get() faled with '%s'\n", err)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-		fmt.Printf("Logged in as GitHub user: %s\n", *user.Name)
-		saveDataInSession(c, *user.Name)
-		c.Redirect(http.StatusTemporaryRedirect, "/console")
-	}
-
-	googleLoginHandler = func(c *gin.Context) {
-		url := oauthConfGoogle.AuthCodeURL(oauthStateString, oauth2.AccessTypeOnline)
-		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
-		c.Redirect(http.StatusTemporaryRedirect, url)
-	}
-
-	googleCallbackHandler = func(c *gin.Context) {
-		r := c.Request
-		state := r.FormValue("state")
-		if state != oauthStateString {
-			fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-
-		code := r.FormValue("code")
-		token, err := oauthConfGoogle.Exchange(oauth2.NoContext, code)
-		if err != nil {
-			fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-
-		oauthClient := oauthConfGoogle.Client(oauth2.NoContext, token)
-		googleService, err := googleauth.New(oauthClient)
-		if err != nil {
-			fmt.Printf("googleauth.New(oauthClient) faled with '%s'\n", err)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-		userinfoplus, err := googleService.Userinfo.Get().Do()
-		if err != nil {
-			fmt.Printf("googleService.Userinfo.Get().Do() faled with '%s'\n", err)
-			c.Redirect(http.StatusTemporaryRedirect, "/console")
-			return
-		}
-		fmt.Printf("Logged in as google user: %s\n", (*userinfoplus).Name)
-		saveDataInSession(c, (*userinfoplus).Name)
-		c.Redirect(http.StatusTemporaryRedirect, "/console")
-	}
 )
 
 func saveDataInSession(c *gin.Context, username string) {
@@ -131,4 +32,108 @@ func saveDataInSession(c *gin.Context, username string) {
 	session.Options(options)
 	session.Set("username", username)
 	session.Save()
+}
+
+type user struct {
+	name  string
+	id    string
+	email string
+}
+
+type UserProvider interface {
+	getUser(client *http.Client) (*user, error)
+}
+
+type login struct {
+	config       *oauth2.Config
+	userProvider UserProvider
+}
+
+func (l login) getLoginHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		url := l.config.AuthCodeURL(oauthStateString, oauth2.AccessTypeOnline)
+		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
+		c.Redirect(http.StatusTemporaryRedirect, url)
+	}
+}
+
+func (l login) getCallbackHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		r := c.Request
+		state := r.FormValue("state")
+		if state != oauthStateString {
+			fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", oauthStateString, state)
+			c.Redirect(http.StatusTemporaryRedirect, "/console")
+			return
+		}
+
+		code := r.FormValue("code")
+		token, err := l.config.Exchange(oauth2.NoContext, code)
+		if err != nil {
+			fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+			c.Redirect(http.StatusTemporaryRedirect, "/console")
+			return
+		}
+
+		u, err := l.userProvider.getUser(l.config.Client(oauth2.NoContext, token))
+		if err != nil {
+			fmt.Printf("l.userProvider.getUser() failed with '%s'\n", err)
+			c.Redirect(http.StatusTemporaryRedirect, "/console")
+			return
+		}
+		//fmt.Printf("Logged in as google user: %s\n", (*u).name)
+		log.Debugf("Logged in as google user: %v", u)
+		log.WithFields(log.Fields{"u.name": u.name}).Debug("saving u.name")
+		saveDataInSession(c, u.name)
+		c.Redirect(http.StatusTemporaryRedirect, "/console")
+	}
+}
+
+type googleUserProvider struct {
+}
+
+func (up googleUserProvider) getUser(client *http.Client) (*user, error) {
+	googleService, err := googleauth.New(client)
+	if err != nil {
+		return nil, err
+	}
+	userinfoplus, err := googleService.Userinfo.Get().Do()
+	if err != nil {
+		return nil, err
+	}
+	return &user{name: (*userinfoplus).Name, id: (*userinfoplus).Id, email: (*userinfoplus).Email}, nil
+}
+
+type gitHubUserProvider struct {
+}
+
+func (up gitHubUserProvider) getUser(client *http.Client) (*user, error) {
+	gitHubClient := github.NewClient(client)
+	u, _, err := gitHubClient.Users.Get(context.Background(), "")
+	log.Debugf("get github user: %v", u)
+	if err != nil {
+		return nil, err
+	}
+	//https://stackoverflow.com/questions/35373995/github-user-email-is-null-despite-useremail-scope
+	result := &user{name: *(u.Name), id: strconv.FormatInt(*(u.ID), 10)}
+	if u.Email != nil {
+		result.email = *(u.Email)
+		return result, nil
+	}
+
+	userEmails, _, err := gitHubClient.Users.ListEmails(context.Background(), &github.ListOptions{Page: 1, PerPage: 30})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, email := range userEmails {
+		if email != nil && email.Primary != nil && *email.Primary {
+			result.email = *email.Email
+			return result, nil
+		}
+
+	}
+
+	result.email = ""
+	return result, nil
 }

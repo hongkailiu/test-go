@@ -15,6 +15,34 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/google"
+)
+
+var (
+	// You must register the app at https://github.com/settings/applications
+	// Set callback to http://127.0.0.1:7000/github_oauth_cb
+	// Set ClientId and ClientSecret to
+	oauthConfGitHub = &oauth2.Config{
+		ClientID:     os.Getenv("gh_client_id"),
+		ClientSecret: os.Getenv("gh_client_secret"),
+		// select level of access you want from https://developer.github.com/v3/oauth/#scopes
+		Scopes:   []string{"read:user", "user:email"},
+		Endpoint: githuboauth.Endpoint,
+	}
+
+	//https://console.developers.google.com/apis/dashboard
+	oauthConfGoogle = &oauth2.Config{
+		ClientID:     os.Getenv("gg_client_id"),
+		ClientSecret: os.Getenv("gg_client_secret"),
+		RedirectURL:  "http://127.0.0.1:8080/google_oauth_cb",
+		Scopes:       []string{"profile", "email"},
+		Endpoint:     google.Endpoint,
+	}
+
+	githubLogin = login{oauthConfGitHub, gitHubUserProvider{}}
+	googleLogin = login{oauthConfGoogle, googleUserProvider{}}
 )
 
 // PrometheusLogger intercepts all http requests and logging the path
@@ -30,7 +58,7 @@ func PrometheusLogger() gin.HandlerFunc {
 // Run starts the http server
 func Run() {
 
-	log.WithFields(log.Fields{"oauthConf.ClientID": oauthConf.ClientID, "oauthConf.ClientSecret": oauthConf.ClientSecret}).Debug("oauthConf")
+	log.WithFields(log.Fields{"oauthConfGitHub.ClientID": oauthConfGitHub.ClientID, "oauthConfGitHub.ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConf")
 	log.WithFields(log.Fields{"oauthConfGoogle.ClientID": oauthConfGoogle.ClientID, "oauthConfGoogle.ClientSecret": oauthConfGoogle.ClientSecret}).Debug("oauthConf")
 
 	prometheusRegister()
@@ -74,12 +102,12 @@ func Run() {
 	r.StaticFS("/console", http.Dir(staticDir))
 
 	//https://blog.kowalczyk.info/article/f/accessing-github-api-from-go.html
-	r.GET("/login_github", githubLoginHandler)
-	r.GET("/github_oauth_cb", githubCallbackHandler)
+	r.GET("/login_github", githubLogin.getLoginHandler())
+	r.GET("/github_oauth_cb", githubLogin.getCallbackHandler())
 
 	//https://github.com/dghubble/gologin/blob/master/google/login.go
-	r.GET("/login_google", googleLoginHandler)
-	r.GET("/google_oauth_cb", googleCallbackHandler)
+	r.GET("/login_google", googleLogin.getLoginHandler())
+	r.GET("/google_oauth_cb", googleLogin.getCallbackHandler())
 
 	r.GET("/whoami", func(c *gin.Context) {
 		session := sessions.Default(c)
