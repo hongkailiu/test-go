@@ -40,6 +40,7 @@ type user struct {
 	email string
 }
 
+// UserProvider provides user
 type UserProvider interface {
 	getUser(client *http.Client) (*user, error)
 }
