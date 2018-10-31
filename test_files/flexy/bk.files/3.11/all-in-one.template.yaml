@@ -5,7 +5,7 @@ cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu
 imageID : "ami-02a29c6a327959825"
-openshiftAnasibleVar:
+openshiftAnsibleVar:
   ansible_ssh_private_key_file: "/home/hongkliu/.ssh/id_rsa_perf"
   glusterfs_devices: "/dev/nvme2n1"
 ocpRoles:
