@@ -23,6 +23,8 @@ import (
 )
 
 var (
+	sessionKey = securecookie.GenerateRandomKey(32)
+
 	// You must register the app at https://github.com/settings/applications
 	// Set callback to http://127.0.0.1:7000/github_oauth_cb
 	// Set ClientId and ClientSecret to
@@ -71,7 +73,6 @@ func Run() {
 	// Global middleware
 	// Logger middleware will write the logs to gin.DefaultWriter even if you set with GIN_MODE=release.
 	// By default gin.DefaultWriter = os.Stdout
-	gin.Logger()
 	r.Use(gin.Logger())
 
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
@@ -81,7 +82,6 @@ func Run() {
 
 	// sessions and cookies are from github.com/gin-contrib
 	// which uses implementation from github.com/gorilla/
-	sessionKey := securecookie.GenerateRandomKey(32)
 	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("generated session key")
 	store := cookie.NewStore(sessionKey)
 	r.Use(sessions.Sessions("my_session", store))
@@ -112,13 +112,10 @@ func Run() {
 	r.GET("/google_oauth_cb", googleLogin.getCallbackHandler())
 
 	r.GET("/whoami", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var username string
-		v := session.Get("username")
-		if v == nil {
-			username = ""
-		} else {
-			username = v.(string)
+		u := WhoAmI(c, "username")
+		username := ""
+		if u != nil {
+			username = *u
 		}
 		c.JSON(200, gin.H{"username": username})
 	})
@@ -126,6 +123,7 @@ func Run() {
 	r.GET("/logout", func(c *gin.Context) {
 		session := sessions.Default(c)
 		session.Delete("username")
+		session.Delete("localID")
 		session.Save()
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	})
@@ -155,6 +153,7 @@ func Run() {
 	r.StaticFS("/swagger", http.Dir(swaggerDir))
 
 	apiV1 := r.Group("/api/v1")
+	apiV1.Use(AuthorizationMiddleware())
 	// https://goswagger.io/faq/faq_documenting.html#how-to-serve-swagger-ui-from-a-preexisting-web-app
 	redoc := middleware.Redoc(middleware.RedocOpts{BasePath: "/api/v1", Path: "help", SpecURL: "/swagger/swagger.json", Title: "Hello"}, nil)
 	apiV1.GET("/help", func(c *gin.Context) {
@@ -177,6 +176,19 @@ func Run() {
 		}
 		u := models.User{ID: &idInt64, Name: "hongkai"}
 		c.JSON(http.StatusOK, u)
+	})
+
+	r.GET("/token", AuthenticationMiddleware(), func(c *gin.Context) {
+		localID := WhoAmI(c, "localID")
+		tokenString, err := getToken(*localID, sessionKey)
+
+		if err != nil {
+			msg := err.Error()
+			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
+			return
+		}
+		log.WithFields(log.Fields{"tokenString": tokenString}).Debug("generated token")
+		c.JSON(200, gin.H{"token": tokenString})
 	})
 
 	// By default it serves on :8080 unless a

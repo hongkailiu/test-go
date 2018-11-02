@@ -27,17 +27,26 @@ var (
 	}
 )
 
-func saveDataInSession(c *gin.Context, username string) {
+func saveDataInSession(c *gin.Context, u user) {
 	session := sessions.Default(c)
 	session.Options(options)
-	session.Set("username", username)
+	session.Set("username", u.name)
+	session.Set("localID", u.localID)
 	session.Save()
 }
 
 type user struct {
-	name  string
-	id    string
-	email string
+	name    string
+	id      string
+	email   string
+	from    string
+	localID string
+}
+
+func (u *user) setLocalID() {
+	//This is a dummy one
+	//TODO check if the user exists in the local system
+	u.localID = uuid.NewV4().String()
 }
 
 type userProvider interface {
@@ -76,13 +85,14 @@ func (l login) getCallbackHandler() gin.HandlerFunc {
 		}
 
 		u, err := l.userProvider.getUser(l.config.Client(oauth2.NoContext, token))
+		u.setLocalID()
 		if err != nil {
 			log.Errorf("l.userProvider.getUser() failed with '%s'", err)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
 		log.Debugf("Logged in as user: %v", u)
-		saveDataInSession(c, u.name)
+		saveDataInSession(c, *u)
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	}
 }
@@ -99,7 +109,7 @@ func (up googleUserProvider) getUser(client *http.Client) (*user, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &user{name: (*userinfoplus).Name, id: (*userinfoplus).Id, email: (*userinfoplus).Email}, nil
+	return &user{name: (*userinfoplus).Name, id: (*userinfoplus).Id, email: (*userinfoplus).Email, from: "google"}, nil
 }
 
 type gitHubUserProvider struct {
@@ -113,7 +123,7 @@ func (up gitHubUserProvider) getUser(client *http.Client) (*user, error) {
 		return nil, err
 	}
 	//https://stackoverflow.com/questions/35373995/github-user-email-is-null-despite-useremail-scope
-	result := &user{name: *(u.Name), id: strconv.FormatInt(*(u.ID), 10)}
+	result := &user{name: *(u.Name), id: strconv.FormatInt(*(u.ID), 10), from: "github"}
 	if u.Email != nil {
 		result.email = *(u.Email)
 		return result, nil

@@ -1,5 +1,5 @@
-hash: 2023dbb81fd34f75c4f28e1794e80995c6b28f46845c79e76e2b2a0f016f1ba9
-updated: 2018-10-29T17:19:55.875796353-04:00
+hash: 52e0b82e83de688ef357bf0c041af5b01e7917d1f25c3d3f18a5847b9585a91b
+updated: 2018-11-02T12:52:49.929998254-04:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -13,7 +13,7 @@ imports:
 - name: github.com/asaskevich/govalidator
   version: f9ffefc3facfbe0caee3fea233cbb6e8208f4541
 - name: github.com/aws/aws-sdk-go-v2
-  version: a7b51e7962c4227bc0fbe3b7ef635595e7d1a20c
+  version: 41ddff81b984b61f6ab92b4b7656ef0a3bc54c66
   subpackages:
   - aws
   - aws/awserr
@@ -44,8 +44,10 @@ imports:
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
   subpackages:
   - spew
+- name: github.com/dgrijalva/jwt-go
+  version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
 - name: github.com/docker/go-units
-  version: 47565b4f722fb6ceae66b95f853feed578a4a51c
+  version: 2fb04c6466a548a03cb009c5569ee1ab1e35398e
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gin-contrib/sessions
@@ -78,7 +80,7 @@ imports:
 - name: github.com/go-openapi/loads
   version: 150d36912387ec2f607be674c5be309ddccc0eed
 - name: github.com/go-openapi/runtime
-  version: 231d7876b7019dbcbfc97a7ba764379497b67c1d
+  version: aadb2cc7b8862fdab251bf60a8b9d2a951c9746c
   subpackages:
   - flagext
   - logger
@@ -90,7 +92,7 @@ imports:
 - name: github.com/go-openapi/spec
   version: 5bae59e25b21498baea7f9d46e9c147ec106a42e
 - name: github.com/go-openapi/strfmt
-  version: 81f50457a25bb77f776d74c30350850b74b115ef
+  version: b7bbaf9c758e8bee9311b1bb94262cd30f79dc16
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-openapi/validate
@@ -117,7 +119,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-github
-  version: e64590964d2c9cc256bc8783053ab19fd7b7a592
+  version: 01a88aee87606a81629924290413387b3ca30b00
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -191,11 +193,11 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/openshift/api
-  version: c68ae01e3fc183ba46cfcfdb20792b1e529c5361
+  version: 2699ad42427b7e7b2cad1daefc93b632c9c0bb6c
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
-  version: 20de51e05a11c297b27b03396fb7d0cb598468f5
+  version: 8641daf5752d24858c43f5f28feb2abc0afbfb2c
   subpackages:
   - build/clientset/versioned/scheme
   - build/clientset/versioned/typed/build/v1
@@ -240,7 +242,7 @@ imports:
   subpackages:
   - codec
 - name: golang.org/x/crypto
-  version: 7e6ffbd038512da5ae7ce06c196764f393990be1
+  version: 4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
@@ -297,18 +299,19 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: 2d2de6298155751e44170d1c9a9baacb688d2606
+  version: 92b943e6bff73e0dfe9e975d94043d8f31067b06
   subpackages:
   - imports
 - name: google.golang.org/api
-  version: aff2d7231e3cd0219626182c997296a559b5a27b
+  version: 04bb50b6b83d0e72253821af8cf3252d8e866517
   subpackages:
   - compute/v1
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
+  - oauth2/v2
 - name: google.golang.org/appengine
-  version: ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06
+  version: 4a4468ece617fc8205e99368fa2200e9d1fad421
   subpackages:
   - internal
   - internal/app_identity
