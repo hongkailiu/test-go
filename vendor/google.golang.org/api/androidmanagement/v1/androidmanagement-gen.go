@@ -14,15 +14,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	context "golang.org/x/net/context"
-	ctxhttp "golang.org/x/net/context/ctxhttp"
-	gensupport "google.golang.org/api/gensupport"
-	googleapi "google.golang.org/api/googleapi"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	context "golang.org/x/net/context"
+	ctxhttp "golang.org/x/net/context/ctxhttp"
+	gensupport "google.golang.org/api/gensupport"
+	googleapi "google.golang.org/api/googleapi"
 )
 
 // Always reference these packages, just in case the auto-generated code
@@ -2086,6 +2087,18 @@ type PasswordRequirements struct {
 	// example, password_minimum_letters are enforced.
 	PasswordQuality string `json:"passwordQuality,omitempty"`
 
+	// PasswordScope: The scope that the password requirement applies to.
+	//
+	// Possible values:
+	//   "SCOPE_UNSPECIFIED" - Scope is unspecified, will be profile scope
+	// in managed profile (work challenge) and device scope in managed
+	// device setup (device password).
+	//   "SCOPE_DEVICE" - The password requirements should only apply to the
+	// device.
+	//   "SCOPE_PROFILE" - The password requirements should only apply to
+	// the profile. Only applicable to devices with a managed profile.
+	PasswordScope string `json:"passwordScope,omitempty"`
+
 	// ForceSendFields is a list of field names (e.g.
 	// "MaximumFailedPasswordsForWipe") to unconditionally include in API
 	// requests. By default, fields with empty values are omitted from API
@@ -2460,7 +2473,8 @@ type Policy struct {
 	// default scope restriction.
 	PasswordPolicies []*PasswordRequirements `json:"passwordPolicies,omitempty"`
 
-	// PasswordRequirements: Password requirements.
+	// PasswordRequirements: Password requirements. DEPRECATED - Use
+	// password_policies
 	PasswordRequirements *PasswordRequirements `json:"passwordRequirements,omitempty"`
 
 	// PermissionGrants: Explicit permission or group grants or denials for

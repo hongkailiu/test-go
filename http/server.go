@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/securecookie"
 	"github.com/hongkailiu/test-go/random"
+	"github.com/hongkailiu/test-go/swagger/swagger/models"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -152,10 +154,29 @@ func Run() {
 	log.WithFields(log.Fields{"swaggerDir": swaggerDir}).Debug("http swaggerDir dir")
 	r.StaticFS("/swagger", http.Dir(swaggerDir))
 
+	apiV1 := r.Group("/api/v1")
 	// https://goswagger.io/faq/faq_documenting.html#how-to-serve-swagger-ui-from-a-preexisting-web-app
-	redoc := middleware.Redoc(middleware.RedocOpts{BasePath: "/api/", Path: "help", SpecURL: "/swagger/swagger.json", Title: "Hello"}, nil)
-	r.GET("/api/help", func(c *gin.Context) {
+	redoc := middleware.Redoc(middleware.RedocOpts{BasePath: "/api/v1", Path: "help", SpecURL: "/swagger/swagger.json", Title: "Hello"}, nil)
+	apiV1.GET("/help", func(c *gin.Context) {
 		redoc.ServeHTTP(c.Writer, c.Request)
+	})
+
+	apiV1.GET("/users", func(c *gin.Context) {
+		id1 := int64(23)
+		id2 := int64(33)
+		c.JSON(http.StatusOK, []models.User{{ID: &id1, Name: "hongkai"}, {ID: &id2, Name: "mike"}})
+	})
+	apiV1.GET("/user/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		log.WithFields(log.Fields{"id": id}).Debug("getting user with id")
+		idInt64, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			msg := err.Error()
+			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
+			return
+		}
+		u := models.User{ID: &idInt64, Name: "hongkai"}
+		c.JSON(http.StatusOK, u)
 	})
 
 	// By default it serves on :8080 unless a

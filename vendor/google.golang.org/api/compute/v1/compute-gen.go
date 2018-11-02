@@ -14,15 +14,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	context "golang.org/x/net/context"
-	ctxhttp "golang.org/x/net/context/ctxhttp"
-	gensupport "google.golang.org/api/gensupport"
-	googleapi "google.golang.org/api/googleapi"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	context "golang.org/x/net/context"
+	ctxhttp "golang.org/x/net/context/ctxhttp"
+	gensupport "google.golang.org/api/gensupport"
+	googleapi "google.golang.org/api/googleapi"
 )
 
 // Always reference these packages, just in case the auto-generated code
@@ -18084,6 +18085,8 @@ type Quota struct {
 	//   "NVIDIA_P100_VWS_GPUS"
 	//   "NVIDIA_P4_GPUS"
 	//   "NVIDIA_P4_VWS_GPUS"
+	//   "NVIDIA_T4_GPUS"
+	//   "NVIDIA_T4_VWS_GPUS"
 	//   "NVIDIA_V100_GPUS"
 	//   "PREEMPTIBLE_CPUS"
 	//   "PREEMPTIBLE_LOCAL_SSD_GB"
@@ -18092,6 +18095,8 @@ type Quota struct {
 	//   "PREEMPTIBLE_NVIDIA_P100_VWS_GPUS"
 	//   "PREEMPTIBLE_NVIDIA_P4_GPUS"
 	//   "PREEMPTIBLE_NVIDIA_P4_VWS_GPUS"
+	//   "PREEMPTIBLE_NVIDIA_T4_GPUS"
+	//   "PREEMPTIBLE_NVIDIA_T4_VWS_GPUS"
 	//   "PREEMPTIBLE_NVIDIA_V100_GPUS"
 	//   "REGIONAL_AUTOSCALERS"
 	//   "REGIONAL_INSTANCE_GROUP_MANAGERS"

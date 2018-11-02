@@ -14,15 +14,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	context "golang.org/x/net/context"
-	ctxhttp "golang.org/x/net/context/ctxhttp"
-	gensupport "google.golang.org/api/gensupport"
-	googleapi "google.golang.org/api/googleapi"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	context "golang.org/x/net/context"
+	ctxhttp "golang.org/x/net/context/ctxhttp"
+	gensupport "google.golang.org/api/gensupport"
+	googleapi "google.golang.org/api/googleapi"
 )
 
 // Always reference these packages, just in case the auto-generated code
@@ -50,8 +51,7 @@ const (
 	// Manage your YouTube account
 	YoutubeScope = "https://www.googleapis.com/auth/youtube"
 
-	// See, edit, and permanently delete your YouTube videos, ratings,
-	// comments and captions
+	// Manage your YouTube account
 	YoutubeForceSslScope = "https://www.googleapis.com/auth/youtube.force-ssl"
 
 	// View your YouTube account
