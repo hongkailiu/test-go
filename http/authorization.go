@@ -33,6 +33,7 @@ func getLocalID(s string) string {
 		localID, err := getLocalIDFromToken(tokenString, sessionKey)
 		if err != nil {
 			log.Warnf("found error when getLocalIDFromToken(s), %s", err.Error())
+			return ""
 		}
 		return localID
 	}
@@ -41,6 +42,9 @@ func getLocalID(s string) string {
 }
 
 func isAuthorized(localID, method, path string, c *gin.Context) bool {
+	if localID == "" {
+		return false
+	}
 	if strings.HasPrefix(path, "/api/v1") {
 		log.WithFields(log.Fields{"localID": localID, "method": method, "path": path}).Debug("isAuthorized")
 		// TODO Implement Role based authorization with storage
