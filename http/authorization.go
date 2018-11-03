@@ -15,7 +15,7 @@ func AuthorizationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !IsAuthorized(c) {
 			msg := "unauthorized operation"
-			c.JSON(http.StatusUnauthorized, models.Error{Code: int64(http.StatusUnauthorized), Message: &msg})
+			c.JSON(http.StatusForbidden, models.Error{Code: int64(http.StatusForbidden), Message: &msg})
 			c.Abort()
 			return
 		}
