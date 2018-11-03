@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -23,25 +24,26 @@ func AuthorizationMiddleware() gin.HandlerFunc {
 func IsAuthorized(c *gin.Context) bool {
 	method := c.Request.Method
 	path := c.Request.URL.Path
-	aHeader := c.GetHeader("Authorization")
-	log.WithFields(log.Fields{"aHeader": aHeader, "method": method, "path": path}).Debug("isAuthorized")
-	return isAuthorized(getLocalID(aHeader), method, path, c)
-}
-func getLocalID(s string) string {
-	if strings.HasPrefix(s, "Bearer ") {
-		tokenString := strings.TrimPrefix(s, "Bearer ")
-		localID, err := getLocalIDFromToken(tokenString, sessionKey)
-		if err != nil {
-			log.Warnf("found error when getLocalIDFromToken(s), %s", err.Error())
-			return ""
-		}
-		return localID
+	tokenString, err := getTokenString(c)
+	if err != nil {
+		log.Warnf("found error when getTokenString(c), %s", err.Error())
 	}
-	log.Warnf("malformed Authorization header: %s", s)
-	return ""
+	localID, err := getLocalIDFromToken(tokenString, sessionKey)
+	if err != nil {
+		log.Warnf("found error when getLocalIDFromToken(tokenString, sessionKey), %s", err.Error())
+	}
+	return isAuthorized(localID, method, path)
 }
 
-func isAuthorized(localID, method, path string, c *gin.Context) bool {
+func getTokenString(c *gin.Context) (string, error) {
+	headerValue := c.GetHeader("Authorization")
+	if strings.HasPrefix(headerValue, "Bearer ") {
+		return strings.TrimPrefix(headerValue, "Bearer "), nil
+	}
+	return "", fmt.Errorf("malformed Authorization header: %s", headerValue)
+}
+
+func isAuthorized(localID, method, path string) bool {
 	if localID == "" {
 		return false
 	}
