@@ -1,10 +1,23 @@
 package main
 
 import (
-	"os"
-
+	"fmt"
 	"github.com/hongkailiu/test-go/http"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/alecthomas/kingpin.v2"
+	"os"
+)
+
+var (
+	app = kingpin.New("test-go", "A web application for test.").Version(http.VERSION)
+
+	debug = app.Flag("debug", "Enable debug mode.").Short('v').Default("false").Bool()
+
+	get          = app.Command("get", "get resources.")
+	getResource  = get.Arg("resource", "targeting resource.").Required().String()
+	secretLength = get.Flag("secretLength", "the length of the secret.").Short('l').Default("32").Int()
+
+	start = app.Command("start", "Start server")
 )
 
 func init() {
@@ -19,10 +32,25 @@ func init() {
 	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.WarnLevel)
 }
 
 func main() {
-	http.Run()
+	command := kingpin.MustParse(app.Parse(os.Args[1:]))
+	if debug != nil && *debug {
+		log.SetLevel(log.DebugLevel)
+	}
+	switch command {
+	case get.FullCommand():
+		log.Info(get.FullCommand())
+		switch *getResource {
+		case "secret":
+			fmt.Println(http.GetSecret(*secretLength))
+
+		}
+	case start.FullCommand():
+		log.Info(start.FullCommand())
+		http.Run()
+	}
 
 }

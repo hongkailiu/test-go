@@ -1,10 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -62,6 +64,13 @@ func PrometheusLogger() gin.HandlerFunc {
 // Run starts the http server
 func Run() {
 
+	newSessionKey, err := getSessionKey()
+	if err != nil {
+		log.Warnf("error found when getSessionKey(): %s", err.Error())
+	} else {
+		sessionKey = newSessionKey
+	}
+
 	log.WithFields(log.Fields{"oauthConfGitHub.ClientID": oauthConfGitHub.ClientID, "oauthConfGitHub.ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConf")
 	log.WithFields(log.Fields{"oauthConfGoogle.ClientID": oauthConfGoogle.ClientID, "oauthConfGoogle.ClientSecret": oauthConfGoogle.ClientSecret}).Debug("oauthConf")
 
@@ -82,7 +91,7 @@ func Run() {
 
 	// sessions and cookies are from github.com/gin-contrib
 	// which uses implementation from github.com/gorilla/
-	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("generated session key")
+	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("using session key")
 	store := cookie.NewStore(sessionKey)
 	r.Use(sessions.Sessions("my_session", store))
 
@@ -207,4 +216,32 @@ func getKeyInSession(c *gin.Context, key string) *string {
 		return &username
 	}
 	return nil
+}
+
+// GetSecret returns a secret
+func GetSecret(length int) []byte {
+	return securecookie.GenerateRandomKey(length)
+}
+
+func getSessionKey() ([]byte, error) {
+	key := os.Getenv("session_key")
+	if key == "" {
+		return nil, fmt.Errorf("env. var. session_key not found")
+	}
+	trimKey := strings.TrimSuffix(strings.TrimPrefix(key, "["), "]")
+	bytes := strings.Split(trimKey, " ")
+	if len(bytes) != 32 {
+		return nil, fmt.Errorf("key length is %d (only 32 allowed)", len(bytes))
+	}
+
+	var result []byte
+	for _, b := range bytes {
+		i, err := strconv.ParseUint(b, 10, 8)
+		if err != nil {
+			return nil, fmt.Errorf("get error when strconv.ParseUint(b, 10, 8) for b=%s", b)
+		}
+		result = append(result, byte(i))
+	}
+	log.WithFields(log.Fields{"result": result}).Debug("got secret from env. var. session_key")
+	return result, nil
 }

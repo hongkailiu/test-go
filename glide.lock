@@ -1,11 +1,17 @@
-hash: 52e0b82e83de688ef357bf0c041af5b01e7917d1f25c3d3f18a5847b9585a91b
-updated: 2018-11-02T12:52:49.929998254-04:00
+hash: fabba3c807e760a41833f819deae660f217849d17261766de162d72371cab8a3
+updated: 2018-11-03T11:31:50.395269268-04:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/alecthomas/template
+  version: a0175ee3bccc567396460bf5acd36800cb10c49c
+  subpackages:
+  - parse
+- name: github.com/alecthomas/units
+  version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/alexflint/go-arg
   version: f7c0423bd11ee80ab81d25c6d46f492998af8547
 - name: github.com/alexflint/go-scalar
@@ -193,7 +199,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/openshift/api
-  version: 2699ad42427b7e7b2cad1daefc93b632c9c0bb6c
+  version: dcf20c602be3ac19340b60a4f80c9147c77c543b
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
@@ -299,7 +305,7 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: 92b943e6bff73e0dfe9e975d94043d8f31067b06
+  version: 96e9e165b75e735822645eff82850b08c377be36
   subpackages:
   - imports
 - name: google.golang.org/api
@@ -322,6 +328,8 @@ imports:
   - internal/remote_api
   - internal/urlfetch
   - urlfetch
+- name: gopkg.in/alecthomas/kingpin.v2
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
 - name: gopkg.in/go-playground/validator.v8
   version: 5f1438d3fca68893a817e4a66806cea46a9e4ebf
 - name: gopkg.in/inf.v0
