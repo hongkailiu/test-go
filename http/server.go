@@ -112,7 +112,7 @@ func Run() {
 	r.GET("/google_oauth_cb", googleLogin.getCallbackHandler())
 
 	r.GET("/whoami", func(c *gin.Context) {
-		u := WhoAmI(c, "username")
+		u := getKeyInSession(c, "username")
 		username := ""
 		if u != nil {
 			username = *u
@@ -179,7 +179,7 @@ func Run() {
 	})
 
 	r.GET("/token", AuthenticationMiddleware(), func(c *gin.Context) {
-		localID := WhoAmI(c, "localID")
+		localID := getKeyInSession(c, "localID")
 		tokenString, err := getToken(*localID, sessionKey)
 
 		if err != nil {
@@ -194,4 +194,17 @@ func Run() {
 	// By default it serves on :8080 unless a
 	// PORT environment variable was defined.
 	r.Run()
+}
+
+func getKeyInSession(c *gin.Context, key string) *string {
+	if value, exists := c.Get(sessions.DefaultKey); exists {
+		session := value.(sessions.Session)
+		v := session.Get(key)
+		if v == nil {
+			return nil
+		}
+		username := v.(string)
+		return &username
+	}
+	return nil
 }

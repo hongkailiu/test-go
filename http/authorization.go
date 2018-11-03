@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// AuthorizationMiddleware handles if the context is not authorized
 func AuthorizationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !IsAuthorized(c) {
@@ -21,6 +22,7 @@ func AuthorizationMiddleware() gin.HandlerFunc {
 	}
 }
 
+// IsAuthorized returns true if the context is authorized
 func IsAuthorized(c *gin.Context) bool {
 	method := c.Request.Method
 	path := c.Request.URL.Path

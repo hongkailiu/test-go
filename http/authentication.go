@@ -3,11 +3,11 @@ package http
 import (
 	"net/http"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/hongkailiu/test-go/swagger/swagger/models"
 )
 
+// AuthenticationMiddleware handles if the context is not authenticated
 func AuthenticationMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !IsAuthenticated(c) {
@@ -19,20 +19,8 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 	}
 }
 
+// IsAuthenticated returns true if the context is authenticated
 func IsAuthenticated(c *gin.Context) bool {
-	return WhoAmI(c, "username") != nil
+	return getKeyInSession(c, "username") != nil
 }
 
-func WhoAmI(c *gin.Context, key string) *string {
-	if value, exists := c.Get(sessions.DefaultKey); exists {
-		session := value.(sessions.Session)
-		v := session.Get(key)
-		if v == nil {
-			return nil
-		} else {
-			username := v.(string)
-			return &username
-		}
-	}
-	return nil
-}
