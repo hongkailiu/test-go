@@ -1,12 +1,10 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -25,14 +23,14 @@ import (
 )
 
 var (
-	sessionKey = securecookie.GenerateRandomKey(32)
+	appConfig = loadConfig()
 
 	// You must register the app at https://github.com/settings/applications
 	// Set callback to http://127.0.0.1:7000/github_oauth_cb
 	// Set ClientId and ClientSecret to
 	oauthConfGitHub = &oauth2.Config{
-		ClientID:     os.Getenv("gh_client_id"),
-		ClientSecret: os.Getenv("gh_client_secret"),
+		ClientID:     appConfig.ghClientID,
+		ClientSecret: appConfig.ghClientSecret,
 		// select level of access you want from https://developer.github.com/v3/oauth/#scopes
 		Scopes:   []string{"read:user", "user:email"},
 		Endpoint: githuboauth.Endpoint,
@@ -40,9 +38,9 @@ var (
 
 	//https://console.developers.google.com/apis/dashboard
 	oauthConfGoogle = &oauth2.Config{
-		ClientID:     os.Getenv("gg_client_id"),
-		ClientSecret: os.Getenv("gg_client_secret"),
-		RedirectURL:  "http://127.0.0.1:8080/google_oauth_cb",
+		ClientID:     appConfig.ggClientID,
+		ClientSecret: appConfig.ggClientSecret,
+		RedirectURL:  appConfig.ggRedirectURL,
 		Scopes:       []string{"profile", "email"},
 		Endpoint:     google.Endpoint,
 	}
@@ -64,15 +62,8 @@ func PrometheusLogger() gin.HandlerFunc {
 // Run starts the http server
 func Run() {
 
-	newSessionKey, err := getSessionKey()
-	if err != nil {
-		log.Warnf("error found when getSessionKey(): %s", err.Error())
-	} else {
-		sessionKey = newSessionKey
-	}
-
-	log.WithFields(log.Fields{"oauthConfGitHub.ClientID": oauthConfGitHub.ClientID, "oauthConfGitHub.ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConf")
-	log.WithFields(log.Fields{"oauthConfGoogle.ClientID": oauthConfGoogle.ClientID, "oauthConfGoogle.ClientSecret": oauthConfGoogle.ClientSecret}).Debug("oauthConf")
+	log.WithFields(log.Fields{"ClientID": oauthConfGitHub.ClientID, "ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConfGitHub")
+	log.WithFields(log.Fields{"ClientID": oauthConfGoogle.ClientID, "ClientSecret": oauthConfGoogle.ClientSecret, "RedirectURL": oauthConfGoogle.RedirectURL}).Debug("oauthConfGoogle")
 
 	prometheusRegister()
 
@@ -91,8 +82,8 @@ func Run() {
 
 	// sessions and cookies are from github.com/gin-contrib
 	// which uses implementation from github.com/gorilla/
-	log.WithFields(log.Fields{"sessionKey": sessionKey}).Info("using session key")
-	store := cookie.NewStore(sessionKey)
+	log.WithFields(log.Fields{"sessionKey": appConfig.sessionKey}).Info("using session key")
+	store := cookie.NewStore(appConfig.sessionKey)
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.GET("/", func(c *gin.Context) {
@@ -189,7 +180,7 @@ func Run() {
 
 	r.GET("/token", AuthenticationMiddleware(), func(c *gin.Context) {
 		localID := getKeyInSession(c, "localID")
-		tokenString, err := getToken(*localID, sessionKey)
+		tokenString, err := getToken(*localID, appConfig.sessionKey)
 
 		if err != nil {
 			msg := err.Error()
@@ -221,27 +212,4 @@ func getKeyInSession(c *gin.Context, key string) *string {
 // GetSecret returns a secret
 func GetSecret(length int) []byte {
 	return securecookie.GenerateRandomKey(length)
-}
-
-func getSessionKey() ([]byte, error) {
-	key := os.Getenv("session_key")
-	if key == "" {
-		return nil, fmt.Errorf("env. var. session_key not found")
-	}
-	trimKey := strings.TrimSuffix(strings.TrimPrefix(key, "["), "]")
-	bytes := strings.Split(trimKey, " ")
-	if len(bytes) != 32 {
-		return nil, fmt.Errorf("key length is %d (only 32 allowed)", len(bytes))
-	}
-
-	var result []byte
-	for _, b := range bytes {
-		i, err := strconv.ParseUint(b, 10, 8)
-		if err != nil {
-			return nil, fmt.Errorf("get error when strconv.ParseUint(b, 10, 8) for b=%s", b)
-		}
-		result = append(result, byte(i))
-	}
-	log.WithFields(log.Fields{"result": result}).Debug("got secret from env. var. session_key")
-	return result, nil
 }

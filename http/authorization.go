@@ -30,7 +30,7 @@ func IsAuthorized(c *gin.Context) bool {
 	if err != nil {
 		log.Warnf("found error when getTokenString(c), %s", err.Error())
 	}
-	localID, err := getLocalIDFromToken(tokenString, sessionKey)
+	localID, err := getLocalIDFromToken(tokenString, appConfig.sessionKey)
 	if err != nil {
 		log.Warnf("found error when getLocalIDFromToken(tokenString, sessionKey), %s", err.Error())
 	}
