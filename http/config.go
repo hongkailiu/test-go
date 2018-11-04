@@ -29,7 +29,7 @@ func loadConfig() *config {
 		config.sessionKey = newSessionKey
 	}
 	config.ghClientID = os.Getenv("gh_client_id")
-	config.ggClientSecret = os.Getenv("gh_client_secret")
+	config.ghClientSecret = os.Getenv("gh_client_secret")
 	config.ggClientID = os.Getenv("gg_client_id")
 	config.ggClientSecret = os.Getenv("gg_client_secret")
 	config.ggRedirectURL = os.Getenv("gg_redirect_url")
