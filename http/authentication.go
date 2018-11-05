@@ -23,4 +23,3 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 func IsAuthenticated(c *gin.Context) bool {
 	return getKeyInSession(c, "username") != nil
 }
-
