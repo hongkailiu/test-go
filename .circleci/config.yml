@@ -27,6 +27,7 @@ jobs:
 
     # specify any bash command here prefixed with `run: `
     - run: echo "${GOPATH}"
+    - run: pwd
     - run: go version
     - run: ginkgo version
     - run: glide --version
