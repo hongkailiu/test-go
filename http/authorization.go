@@ -46,6 +46,9 @@ func getTokenString(c *gin.Context) (string, error) {
 }
 
 func isAuthorized(localID, method, path string) bool {
+	if method == http.MethodGet && strings.HasSuffix(path, "help") {
+		return true
+	}
 	if localID == "" {
 		return false
 	}
