@@ -5,7 +5,9 @@ WORKDIR /go/src/github.com/hongkailiu/test-go/
 RUN make CGO_ENABLED=0 GOOS=linux build-http
 
 
-FROM alpine:3.6
+#FROM alpine:3.6
+#https://github.com/docker-library/golang/issues/97
+FROM centos:7
 WORKDIR /
 COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/http /http
 COPY http/static /static
