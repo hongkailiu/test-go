@@ -6,7 +6,7 @@ jobs:
   build:
     docker:
     # specify the version
-    - image: circleci/golang:1.9
+    - image: circleci/golang:1.11
 
     # Specify service dependencies here if necessary
     # CircleCI maintains a library of pre-built images
@@ -20,6 +20,10 @@ jobs:
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
     - checkout
+
+    - run: go get github.com/onsi/ginkgo/ginkgo
+    - run: curl https://glide.sh/get | sh
+    - run: cp test_files/flexy/unit.test.files/gce.json /tmp/
 
     # specify any bash command here prefixed with `run: `
     - run: echo "${GOPATH}"
