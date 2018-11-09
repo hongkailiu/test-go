@@ -23,6 +23,7 @@ script:
   - env GO111MODULE=on make build-code-gen
   - env GO111MODULE=on make build-http
   - env GO111MODULE=on make test-pb
+  - git diff go.*
 
 after_success:
   - env GO111MODULE=on make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release-flexy
