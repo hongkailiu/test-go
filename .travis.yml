@@ -8,7 +8,7 @@ go:
 before_install:
   - go get github.com/onsi/ginkgo/ginkgo
 #  - curl https://glide.sh/get | sh
-  - go get k8s.io/code-generator/cmd/client-gen && cd ${GOPATH}/src/k8s.io/code-generator/ && git checkout kubernetes-1.12.1
+  - go get k8s.io/code-generator/cmd/client-gen && git -C "${GOPATH}/src/k8s.io/code-generator" checkout kubernetes-1.12.1
   - cp test_files/flexy/unit.test.files/gce.json /tmp/
 
 script:
