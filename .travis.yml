@@ -16,12 +16,12 @@ script:
   - ginkgo version
 #  - glide --version
 #  - glide up -v
-  - make build-flexy
-  - make test-flexy
-  - make code-gen
-  - make build-code-gen
-  - make build-http
-  - make test-pb
+  - env GO111MODULE=on make build-flexy
+  - env GO111MODULE=on make test-flexy
+  - env GO111MODULE=on make code-gen
+  - env GO111MODULE=on make build-code-gen
+  - env GO111MODULE=on make build-http
+  - env GO111MODULE=on make test-pb
 
 after_success:
-  - make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release-flexy
+  - env GO111MODULE=on make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release-flexy
