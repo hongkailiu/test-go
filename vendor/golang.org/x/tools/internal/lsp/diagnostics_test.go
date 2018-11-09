@@ -1,7 +1,12 @@
+// Copyright 2018 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package lsp
 
 import (
 	"go/token"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -10,6 +15,7 @@ import (
 	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/go/packages/packagestest"
 	"golang.org/x/tools/internal/lsp/protocol"
+	"golang.org/x/tools/internal/lsp/source"
 )
 
 func TestDiagnostics(t *testing.T) {
@@ -29,6 +35,7 @@ func testDiagnostics(t *testing.T, exporter packagestest.Exporter) {
 	exported := packagestest.Export(t, exporter, modules)
 	defer exported.Cleanup()
 
+	dirs := make(map[string]bool)
 	wants := make(map[string][]protocol.Diagnostic)
 	for _, module := range modules {
 		for fragment := range module.Files {
@@ -37,6 +44,7 @@ func testDiagnostics(t *testing.T, exporter packagestest.Exporter) {
 			}
 			filename := exporter.Filename(exported, module.Name, fragment)
 			wants[filename] = []protocol.Diagnostic{}
+			dirs[filepath.Dir(filename)] = true
 		}
 	}
 	err := exported.Expect(map[string]interface{}{
@@ -68,20 +76,35 @@ func testDiagnostics(t *testing.T, exporter packagestest.Exporter) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v := newView()
-	v.config = exported.Config
-	v.config.Mode = packages.LoadSyntax
-	for filename, want := range wants {
-		diagnostics, err := v.diagnostics(filenameToURI(filename))
-		if err != nil {
-			t.Fatal(err)
-		}
-		got := diagnostics[filename]
-		sort.Slice(got, func(i int, j int) bool {
-			return got[i].Range.Start.Line < got[j].Range.Start.Line
-		})
-		if equal := reflect.DeepEqual(want, got); !equal {
-			t.Errorf("diagnostics failed for %s: (expected: %v), (got: %v)", filename, want, got)
+	var dirList []string
+	for dir := range dirs {
+		dirList = append(dirList, dir)
+	}
+	exported.Config.Mode = packages.LoadFiles
+	pkgs, err := packages.Load(exported.Config, dirList...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v := source.NewView()
+	// merge the config objects
+	cfg := *exported.Config
+	cfg.Fset = v.Config.Fset
+	cfg.Mode = packages.LoadSyntax
+	v.Config = &cfg
+	for _, pkg := range pkgs {
+		for _, filename := range pkg.GoFiles {
+			diagnostics, err := diagnostics(v, source.ToURI(filename))
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := diagnostics[filename]
+			sort.Slice(got, func(i int, j int) bool {
+				return got[i].Range.Start.Line < got[j].Range.Start.Line
+			})
+			want := wants[filename]
+			if equal := reflect.DeepEqual(want, got); !equal {
+				t.Errorf("diagnostics failed for %s: (expected: %v), (got: %v)", filename, want, got)
+			}
 		}
 	}
 }
