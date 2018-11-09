@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/securecookie"
+	"github.com/hongkailiu/test-go/http/db"
 	"github.com/hongkailiu/test-go/random"
 	"github.com/hongkailiu/test-go/swagger/swagger/models"
 	"github.com/prometheus/client_golang/prometheus"
@@ -47,6 +48,9 @@ var (
 
 	githubLogin = login{oauthConfGitHub, gitHubUserProvider{}}
 	googleLogin = login{oauthConfGoogle, googleUserProvider{}}
+
+	appDBConfig = loadDBConfig()
+	appDBString = appDBConfig.getDBString()
 )
 
 // PrometheusLogger intercepts all http requests and logging the path
@@ -64,6 +68,20 @@ func Run() {
 
 	log.WithFields(log.Fields{"ClientID": oauthConfGitHub.ClientID, "ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConfGitHub")
 	log.WithFields(log.Fields{"ClientID": oauthConfGoogle.ClientID, "ClientSecret": oauthConfGoogle.ClientSecret, "RedirectURL": oauthConfGoogle.RedirectURL}).Debug("oauthConfGoogle")
+
+	log.WithFields(log.Fields{"appDBString": appDBString}).Debug("Using this db")
+	appDB, err := db.OpenPostgres(appDBString)
+	defer appDB.Close()
+	appDB.LogMode(true)
+
+	if err != nil {
+		log.Errorf("error occurred when db.OpenPostgres(appDBString): %s", err.Error())
+		log.Warnf("running application without db")
+	}
+
+	if err == nil {
+		db.Migrate(appDB)
+	}
 
 	prometheusRegister()
 

@@ -62,3 +62,41 @@ func getSessionKey() ([]byte, error) {
 	log.WithFields(log.Fields{"result": result}).Warnf("got secret from env. var. session_key")
 	return result, nil
 }
+
+type dbConfig struct {
+	// "host=myhost port=myport user=gorm dbname=gorm password=mypassword"
+	host     string
+	port     string
+	user     string
+	dbname   string
+	password string
+}
+
+func loadDBConfig() *dbConfig {
+	config := &dbConfig{}
+	config.host = os.Getenv("db_host")
+	if config.host == "" {
+		config.host = "localhost"
+	}
+	config.port = os.Getenv("db_port")
+	if config.port == "" {
+		config.port = "5432"
+	}
+	config.user = os.Getenv("db_user")
+	if config.user == "" {
+		config.user = "redhat"
+	}
+	config.dbname = os.Getenv("db_name")
+	if config.dbname == "" {
+		config.dbname = "ttt"
+	}
+	config.password = os.Getenv("db_password")
+	if config.password == "" {
+		config.password = "redhat"
+	}
+	return config
+}
+
+func (c dbConfig) getDBString() string {
+	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable", c.host, c.port, c.user, c.dbname, c.password)
+}

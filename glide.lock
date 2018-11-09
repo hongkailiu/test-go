@@ -1,5 +1,5 @@
-hash: fabba3c807e760a41833f819deae660f217849d17261766de162d72371cab8a3
-updated: 2018-11-03T11:31:50.395269268-04:00
+hash: 5240799aa3bed3f7f315261d9dca443dba09981e09ad84a1dc69ea94fc6044c6
+updated: 2018-11-09T12:59:54.801526241-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -19,7 +19,7 @@ imports:
 - name: github.com/asaskevich/govalidator
   version: f9ffefc3facfbe0caee3fea233cbb6e8208f4541
 - name: github.com/aws/aws-sdk-go-v2
-  version: 41ddff81b984b61f6ab92b4b7656ef0a3bc54c66
+  version: da966e8143e64d9c7474bb7b7824289c3011d802
   subpackages:
   - aws
   - aws/awserr
@@ -73,6 +73,8 @@ imports:
   subpackages:
   - bson
   - internal/json
+- name: github.com/go-gormigrate/gormigrate
+  version: dcfb424b8448715735468fa2f573cce5caca178b
 - name: github.com/go-openapi/analysis
   version: c701774f4e604d952e4e8c56dee260be696e33c3
   subpackages:
@@ -125,7 +127,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-github
-  version: 01a88aee87606a81629924290413387b3ca30b00
+  version: 99760a16213d6fdde13f4e477438f876b6c9c6eb
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -160,12 +162,23 @@ imports:
   version: 9316a62528ac99aaecb4e47eadd6dc8aa6533d58
 - name: github.com/jessevdk/go-flags
   version: 5de817a9aa209ed35a164cb04aec82b7df1a47a6
+- name: github.com/jinzhu/gorm
+  version: 6ed508ec6a4ecb3531899a69cbc746ccf65a4166
+  subpackages:
+  - dialects/postgres
+- name: github.com/jinzhu/inflection
+  version: 04140366298a54a039076d798123ffa108fff46c
 - name: github.com/jmespath/go-jmespath
   version: c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/konsorten/go-windows-terminal-sequences
   version: 5c8c8bd35d3832f5d134ae1e1e375b69a4d25242
+- name: github.com/lib/pq
+  version: 9eb73efc1fcc404148b56765b0d3f61d9a5ef8ee
+  subpackages:
+  - hstore
+  - oid
 - name: github.com/mailru/easyjson
   version: 60711f1a8329503b04e1c88535f419d0bb440bff
   subpackages:
@@ -199,11 +212,11 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/openshift/api
-  version: dcf20c602be3ac19340b60a4f80c9147c77c543b
+  version: c3b47bfe89cdc8f9eeba184e9ab130518893e471
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
-  version: 8641daf5752d24858c43f5f28feb2abc0afbfb2c
+  version: 94890c75c8081c1f818f137be55d0720758c4638
   subpackages:
   - build/clientset/versioned/scheme
   - build/clientset/versioned/typed/build/v1
@@ -220,7 +233,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 7e9e6cabbd393fc208072eedef99188d0ce788b6
+  version: 0b1957f9d949dfa3084171a6ec5642b38055276a
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -248,7 +261,7 @@ imports:
   subpackages:
   - codec
 - name: golang.org/x/crypto
-  version: 4d3f4d9ffa16a13f451c3b2999e9c49e9750bf06
+  version: e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa
   subpackages:
   - ssh/terminal
 - name: golang.org/x/net
@@ -305,11 +318,11 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: 96e9e165b75e735822645eff82850b08c377be36
+  version: d3a25d70bd81b856234d22c2b05b334ebd2b46ea
   subpackages:
   - imports
 - name: google.golang.org/api
-  version: 04bb50b6b83d0e72253821af8cf3252d8e866517
+  version: cfbc873f6b93790282bed8e31e7f7df417caee1b
   subpackages:
   - compute/v1
   - gensupport
@@ -484,7 +497,7 @@ imports:
 - name: k8s.io/code-generator
   version: 3dcf91f64f638563e5106f21f50c31fa361c918d
 - name: k8s.io/gengo
-  version: 7338e4bfd6915369a1375890db1bbda0158c9863
+  version: 7765d7f4899dc5c529e16c90791a600b0914c2a0
 - name: k8s.io/kube-openapi
   version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
   subpackages:
