@@ -1,5 +1,5 @@
-hash: 5240799aa3bed3f7f315261d9dca443dba09981e09ad84a1dc69ea94fc6044c6
-updated: 2018-11-09T12:59:54.801526241-05:00
+hash: cae13030c0e3744062290cb7be8dbbf54017279553ca67f01989ffa73f5b7c66
+updated: 2018-11-10T13:23:34.900652366-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -106,7 +106,7 @@ imports:
 - name: github.com/go-openapi/validate
   version: d2eab7d93009e9215fc85b2faa2c2f2a98c2af48
 - name: github.com/go-stomp/stomp
-  version: 8a8033db547238f32a69359fc1b0c50359339e95
+  version: 7ed7cfe401c108ff4dbab2d7a825874948826571
   subpackages:
   - frame
 - name: github.com/gogo/protobuf
@@ -318,7 +318,7 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: d3a25d70bd81b856234d22c2b05b334ebd2b46ea
+  version: 92d8274bd7b8a4c65f24bafe401a029e58392704
   subpackages:
   - imports
 - name: google.golang.org/api
@@ -498,6 +498,8 @@ imports:
   version: 3dcf91f64f638563e5106f21f50c31fa361c918d
 - name: k8s.io/gengo
   version: 7765d7f4899dc5c529e16c90791a600b0914c2a0
+- name: k8s.io/klog
+  version: 8139d8cb77af419532b33dfa7dd09fbc5f1d344f
 - name: k8s.io/kube-openapi
   version: 0cf8f7e6ed1d2e3d47d02e3b6e559369af24d803
   subpackages:

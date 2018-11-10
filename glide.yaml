@@ -15,6 +15,7 @@ import:
 - package: k8s.io/code-generator
   version: kubernetes-1.12.1
 - package: k8s.io/gengo
+- package: k8s.io/klog
 - package: golang.org/x/tools
   subpackages:
   - imports
