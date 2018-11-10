@@ -49,6 +49,9 @@ func isAuthorized(localID, method, path string) bool {
 	if method == http.MethodGet && strings.HasSuffix(path, "help") {
 		return true
 	}
+	if strings.HasSuffix(path, "city") || strings.HasSuffix(path, "cities") {
+		return true
+	}
 	if localID == "" {
 		return false
 	}

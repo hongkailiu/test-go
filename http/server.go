@@ -13,6 +13,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/securecookie"
 	"github.com/hongkailiu/test-go/http/db"
+	"github.com/hongkailiu/test-go/http/model"
 	"github.com/hongkailiu/test-go/random"
 	"github.com/hongkailiu/test-go/swagger/swagger/models"
 	"github.com/prometheus/client_golang/prometheus"
@@ -51,6 +52,8 @@ var (
 
 	appDBConfig = loadDBConfig()
 	appDBString = appDBConfig.getDBString()
+
+	dbService *db.Service
 )
 
 // PrometheusLogger intercepts all http requests and logging the path
@@ -82,6 +85,7 @@ func Run() {
 	if err == nil {
 		db.Migrate(appDB)
 	}
+	dbService = db.New(appDB)
 
 	prometheusRegister()
 
@@ -194,6 +198,19 @@ func Run() {
 		}
 		u := models.User{ID: &idInt64, Name: "hongkai"}
 		c.JSON(http.StatusOK, u)
+	})
+
+	apiV1.GET("/cities", func(c *gin.Context) {
+		var cities []model.City
+		if err = dbService.GetCities(10, 0, &cities); err != nil {
+			msg := err.Error()
+			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
+			return
+		}
+		if cities == nil {
+			cities = []model.City{}
+		}
+		c.JSON(http.StatusOK, cities)
 	})
 
 	r.GET("/token", AuthenticationMiddleware(), func(c *gin.Context) {

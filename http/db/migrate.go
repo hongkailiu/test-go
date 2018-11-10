@@ -19,7 +19,6 @@ func Migrate(db *gorm.DB) {
 		{
 			ID: MigrateID201811092300,
 			Migrate: func(tx *gorm.DB) error {
-				log.Error("=================================111")
 				// it's a good pratice to copy the struct inside the function,
 				// so side effects are prevented if the original struct changes during the time
 				type City struct {
