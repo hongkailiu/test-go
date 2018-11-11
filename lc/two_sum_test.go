@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func Test1(t *testing.T) {
+func TestTwoSum1(t *testing.T) {
 	o := NewGomegaWithT(t)
 
 	r := twoSum(nil, 0)
@@ -14,7 +14,7 @@ func Test1(t *testing.T) {
 	o.Expect(r).To(BeNil())
 }
 
-func Test2(t *testing.T) {
+func TestTwoSum2(t *testing.T) {
 	o := NewGomegaWithT(t)
 
 	r := twoSum([]int{2, 7, 11, 15}, 9)
@@ -23,7 +23,7 @@ func Test2(t *testing.T) {
 }
 
 
-func Test3(t *testing.T) {
+func TestTwoSum3(t *testing.T) {
 	o := NewGomegaWithT(t)
 
 	r := twoSum([]int{3, 2, 4}, 6)
