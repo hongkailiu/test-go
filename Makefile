@@ -82,3 +82,7 @@ build-http:
 .PHONY : test-pb
 test-pb:
 	./script/ci/test-pb.sh
+
+.PHONY : test-lc
+test-lc:
+	./script/ci/test-lc.sh
