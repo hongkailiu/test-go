@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go test -v ./proto_buffer/unittest/
+go test -v ./probuf/unittest/
