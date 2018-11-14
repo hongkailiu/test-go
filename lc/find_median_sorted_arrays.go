@@ -19,23 +19,7 @@ func insert(nums1 []int, nums2 []int, tree *node) *node {
 	if len(nums1) == 0 && len(nums2) == 0 {
 		return tree
 	}
-	var v int
-	var flag bool
-	if len(nums1) != 0 && len(nums2) == 0 {
-		v = nums1[0]
-		flag = true
-	}
-	if len(nums1) == 0 && len(nums2) != 0 {
-		v = nums2[0]
-	}
-	if len(nums1) != 0 && len(nums2) != 0 {
-		v = nums1[0]
-		flag = true
-		if nums2[0] < nums1[0] {
-			v = nums2[0]
-			flag = false
-		}
-	}
+	v, flag := getVAndFlag(nums1, nums2)
 	newNode := &node{v, nil, nil}
 
 	if flag {
@@ -74,4 +58,25 @@ func insert(nums1 []int, nums2 []int, tree *node) *node {
 	}
 
 	panic(fmt.Sprintf("d(tree.l) < d(tree.r) occurred: %d, %d", d(tree.l), d(tree.r)))
+}
+func getVAndFlag(nums1 []int, nums2 []int) (int, bool) {
+	var v int
+	var flag bool
+	if len(nums1) != 0 && len(nums2) == 0 {
+		v = nums1[0]
+		flag = true
+	}
+	if len(nums1) == 0 && len(nums2) != 0 {
+		v = nums2[0]
+	}
+	if len(nums1) != 0 && len(nums2) != 0 {
+		v = nums1[0]
+		flag = true
+		if nums2[0] < nums1[0] {
+			v = nums2[0]
+			flag = false
+		}
+	}
+
+	return v, flag
 }
