@@ -37,23 +37,22 @@ func insert(nums1 []int, nums2 []int, tree *node) *node {
 		}
 	}
 	newNode := &node{v, nil, nil}
-	//fmt.Printf("chose v: %d\n", v)
+
+	if flag {
+		nums1 = nums1[1:]
+	} else {
+		nums2 = nums2[1:]
+	}
 
 	if tree == nil {
 		tree = newNode
-		if flag {
-			return insert(nums1[1:], nums2, tree)
-		}
-		return insert(nums1, nums2[1:], tree)
+		return insert(nums1, nums2, tree)
 	}
 
 	if tree.l == nil {
 		newNode.l = tree
 		tree = newNode
-		if flag {
-			return insert(nums1[1:], nums2, tree)
-		}
-		return insert(nums1, nums2[1:], tree)
+		return insert(nums1, nums2, tree)
 	}
 
 	p := tree
@@ -63,10 +62,7 @@ func insert(nums1 []int, nums2 []int, tree *node) *node {
 	p.r = newNode
 
 	if d(tree.l) == d(tree.r) {
-		if flag {
-			return insert(nums1[1:], nums2, tree)
-		}
-		return insert(nums1, nums2[1:], tree)
+		return insert(nums1, nums2, tree)
 	}
 
 	if d(tree.l) < d(tree.r) {
@@ -74,15 +70,8 @@ func insert(nums1 []int, nums2 []int, tree *node) *node {
 		tree.r = nil
 		r.l = tree
 		tree = r
-		if flag {
-			return insert(nums1[1:], nums2, tree)
-		}
-		return insert(nums1, nums2[1:], tree)
+		return insert(nums1, nums2, tree)
 	}
 
 	panic(fmt.Sprintf("d(tree.l) < d(tree.r) occurred: %d, %d", d(tree.l), d(tree.r)))
 }
-
-
-
-

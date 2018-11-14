@@ -19,7 +19,7 @@ func Migrate(db *gorm.DB) {
 		{
 			ID: MigrateID201811092300,
 			Migrate: func(tx *gorm.DB) error {
-				// it's a good pratice to copy the struct inside the function,
+				// it's a good practice to copy the struct inside the function,
 				// so side effects are prevented if the original struct changes during the time
 				type City struct {
 					gorm.Model
@@ -37,8 +37,6 @@ func Migrate(db *gorm.DB) {
 		{
 			ID: MigrateID201811092315,
 			Migrate: func(tx *gorm.DB) error {
-				// it's a good pratice to copy the struct inside the function,
-				// so side effects are prevented if the original struct changes during the time
 				type Order struct {
 					gorm.Model
 					Name   string

@@ -30,7 +30,6 @@ func ln2number(l *ListNode) int {
 	return l.Val + 10*ln2number(l.Next)
 }
 
-
 func TestAddTwoNumbers2(t *testing.T) {
 	o := NewGomegaWithT(t)
 

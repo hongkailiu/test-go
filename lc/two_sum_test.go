@@ -22,7 +22,6 @@ func TestTwoSum2(t *testing.T) {
 	o.Expect(r).To(Equal([]int{0, 1}))
 }
 
-
 func TestTwoSum3(t *testing.T) {
 	o := NewGomegaWithT(t)
 
