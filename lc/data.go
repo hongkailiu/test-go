@@ -1,5 +1,6 @@
 package lc
 
+// ListNode represents a listed node
 type ListNode struct {
 	Val  int
 	Next *ListNode

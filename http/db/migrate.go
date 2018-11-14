@@ -7,11 +7,15 @@ import (
 )
 
 const (
+	// MigrateID201811092300
 	MigrateID201811092300 = "201811092300"
+	// MigrateID201811092315
 	MigrateID201811092315 = "201811092315"
+	// MigrateIDCallback records the migrateID if callBack happens
 	MigrateIDCallback     = "0"
 )
 
+// Migrate migrates db
 func Migrate(db *gorm.DB) {
 	m := gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		// you migrations here
