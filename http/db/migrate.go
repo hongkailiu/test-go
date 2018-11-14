@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	// MigrateID201811092300
+	// MigrateID201811092300 is the migrateID at 201811092300
 	MigrateID201811092300 = "201811092300"
-	// MigrateID201811092315
+	// MigrateID201811092315 is the migrateID at 201811092315
 	MigrateID201811092315 = "201811092315"
 	// MigrateIDCallback records the migrateID if callBack happens
-	MigrateIDCallback     = "0"
+	MigrateIDCallback = "0"
 )
 
 // Migrate migrates db
@@ -50,10 +50,7 @@ func Migrate(db *gorm.DB) {
 				if err := tx.AutoMigrate(&Order{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Model(Order{}).AddForeignKey("city_id", "cities (id)", "RESTRICT", "RESTRICT").Error; err != nil {
-					return err
-				}
-				return nil
+				return tx.Model(Order{}).AddForeignKey("city_id", "cities (id)", "RESTRICT", "RESTRICT").Error
 			},
 			Rollback: func(tx *gorm.DB) error {
 				log.WithFields(log.Fields{"ID": MigrateID201811092315}).Warn("callback")
