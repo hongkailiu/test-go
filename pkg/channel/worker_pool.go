@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hongkailiu/test-go/lib/logger"
-	"github.com/hongkailiu/test-go/lib/util"
+	"github.com/hongkailiu/test-go/pkg/lib/logger"
+	"github.com/hongkailiu/test-go/pkg/lib/util"
 )
 
 var (

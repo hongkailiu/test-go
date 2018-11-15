@@ -16,9 +16,9 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 
-	"github.com/hongkailiu/test-go/swagger/swagger/models"
-	"github.com/hongkailiu/test-go/swagger/swagger/restapi"
-	"github.com/hongkailiu/test-go/swagger/swagger/restapi/operations"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi/operations"
 )
 
 type cliArgs struct {

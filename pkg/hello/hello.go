@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hongkailiu/test-go/stringutil"
+	"github.com/hongkailiu/test-go/pkg/stringutil"
 )
 
 func main() {
