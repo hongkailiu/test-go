@@ -14,7 +14,7 @@ script:
   - echo "${GOPATH}"
   - go version
   - ginkgo version
-  - glide --version
+#  - glide --version
 #  - glide up -v
   - make build-k8s
   - make build-oc
