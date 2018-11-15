@@ -10,12 +10,12 @@ func Example() {
 }
 
 
-func ExampleStart_Warm() {
+func ExampleStart_warm() {
 	fmt.Println("it started warm!")
 	// Output: it started warm!
 }
 
-func ExampleStart_Cold() {
+func ExampleStart_cold() {
 	fmt.Println("it started cold!")
 	// Output: it started cold!
 }
