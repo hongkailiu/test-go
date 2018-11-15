@@ -2,13 +2,18 @@ package doc_test
 
 import (
 	"fmt"
+	"github.com/hongkailiu/test-go/pkg/doc"
 )
-
 
 func Example() {
 	fmt.Println("It is pkg level")
+	// Output: It is pkg level
 }
 
+func ExampleMYNewNiceHello_canada() {
+	doc.MYNewNiceHello()
+	fmt.Println("new hello canada")
+}
 
 func ExampleStart_warm() {
 	fmt.Println("it started warm!")
