@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/hongkailiu/test-go/http/model"
+	"github.com/hongkailiu/test-go/pkg/http/model"
 	"github.com/jinzhu/gorm"
 )
 

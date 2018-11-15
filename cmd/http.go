@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hongkailiu/test-go/http"
+	"github.com/hongkailiu/test-go/pkg/http"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"

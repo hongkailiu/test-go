@@ -16,6 +16,8 @@ script:
   - ginkgo version
   - glide --version
 #  - glide up -v
+  - make build-k8s
+  - make build-oc
   - make build-flexy
   - make test-flexy
   - make code-gen

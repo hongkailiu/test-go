@@ -1,4 +1,4 @@
-package flexy
+package flexy_test
 
 import (
 	"github.com/aws/aws-sdk-go-v2/aws/endpoints"

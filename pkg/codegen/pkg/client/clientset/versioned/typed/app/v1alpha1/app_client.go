@@ -19,8 +19,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/apis/app/v1alpha1"
-	"github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned/scheme"
+	v1alpha1 "github.com/hongkailiu/test-go/pkg/codegen/pkg/apis/app/v1alpha1"
+	"github.com/hongkailiu/test-go/pkg/codegen/pkg/client/clientset/versioned/scheme"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	rest "k8s.io/client-go/rest"
 )

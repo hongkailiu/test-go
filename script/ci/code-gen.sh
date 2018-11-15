@@ -2,4 +2,4 @@
 
 set -e
 
-./codegen/hack/update-codegen.sh
+./pkg/codegen/hack/update-codegen.sh

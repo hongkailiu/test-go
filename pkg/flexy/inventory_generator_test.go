@@ -1,7 +1,7 @@
-package flexy
+package flexy_test
 
 import (
-	"github.com/hongkailiu/test-go/flexy"
+	"github.com/hongkailiu/test-go/pkg/flexy"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hongkailiu/test-go/swagger/swagger/models"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	log "github.com/sirupsen/logrus"
 )
 

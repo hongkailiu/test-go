@@ -19,7 +19,7 @@ limitations under the License.
 package versioned
 
 import (
-	appv1alpha1 "github.com/hongkailiu/test-go/codegen/pkg/client/clientset/versioned/typed/app/v1alpha1"
+	appv1alpha1 "github.com/hongkailiu/test-go/pkg/codegen/pkg/client/clientset/versioned/typed/app/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"

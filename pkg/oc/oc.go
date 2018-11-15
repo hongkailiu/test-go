@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/hongkailiu/test-go/lib/util"
+	"github.com/hongkailiu/test-go/pkg/lib/util"
 	"github.com/openshift/api/build/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
 	"io/ioutil"

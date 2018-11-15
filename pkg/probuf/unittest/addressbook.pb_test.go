@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	pb "github.com/hongkailiu/test-go/probuf/gen/proto"
+	pb "github.com/hongkailiu/test-go/pkg/probuf/gen/proto"
 	. "github.com/onsi/gomega"
 )
 

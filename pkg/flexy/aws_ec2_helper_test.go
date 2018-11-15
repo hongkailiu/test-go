@@ -1,4 +1,4 @@
-package flexy
+package flexy_test
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hongkailiu/test-go/flexy"
+	"github.com/hongkailiu/test-go/pkg/flexy"
 	log "github.com/sirupsen/logrus"
 )
 

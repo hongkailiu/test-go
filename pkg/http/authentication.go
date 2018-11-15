@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/hongkailiu/test-go/swagger/swagger/models"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 )
 
 // AuthenticationMiddleware handles if the context is not authenticated
