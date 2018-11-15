@@ -10,6 +10,8 @@ func main() {
 	fmt.Printf(stringutil.Reverse("!oG ,olleH"))
 }
 
+//NewHello does something cool.
+//
 //Deprecated: NewHello is defined here to show
 //the usage for `Deprecated` in goDoc
 //Hoevre, it does not show in goDoc because it is in main pkg.

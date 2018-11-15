@@ -5,6 +5,8 @@
 // by Hongkai Liu
 package doc
 
+//NewHello does something cool.
+//
 //Deprecated: NewHello is defined here to show
 //the usage for `Deprecated:` in goDoc.
 //
