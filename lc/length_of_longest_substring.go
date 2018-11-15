@@ -22,7 +22,7 @@ type result struct {
 func (r *result) init() {
 	r.m = make(map[rune]int)
 	for _, char := range r.input {
-		r.m[char] ++
+		r.m[char]++
 	}
 	r.subs = []string{r.input}
 }

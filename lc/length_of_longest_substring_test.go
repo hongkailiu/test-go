@@ -37,7 +37,6 @@ func TestLengthOfLongestSubstring4(t *testing.T) {
 	o.Expect(r).To(Equal(95))
 }
 
-
 func TestLengthOfLongestSubstring5(t *testing.T) {
 	o := NewGomegaWithT(t)
 
