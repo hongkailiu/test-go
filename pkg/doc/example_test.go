@@ -16,10 +16,8 @@ func ExampleStart() {
 
 func ExampleStart_Warm() {
 	fmt.Println("it started warm!")
-	// Output: it started warm!
 }
 
 func ExampleStart_Cold() {
 	fmt.Println("it started cold!")
-	// Output: it started cold!
 }
