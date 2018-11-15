@@ -7,6 +7,8 @@ import (
 
 func Example() {
 	// http://elliot.land/post/godoc-tips-tricks
+	// those Example...() functions are also tests
+	// https://blog.golang.org/examples
 	fmt.Println("It is pkg level")
 	// Output: It is pkg level
 }
