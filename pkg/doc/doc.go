@@ -3,7 +3,7 @@
 // See https://blog.golang.org/godoc-documenting-go-code
 //
 // by Hongkai Liu
-package godoc
+package doc
 
 //Deprecated: NewHello is defined here to show
 //the usage for `Deprecated:` in goDoc\

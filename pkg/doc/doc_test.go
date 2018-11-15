@@ -1,9 +1,9 @@
-package godoc_test
+package doc_test
 
 import (
 	"testing"
 
-	. "github.com/hongkailiu/test-go/pkg/godoc"
+	. "github.com/hongkailiu/test-go/pkg/doc"
 )
 
 func TestNewHello(t *testing.T) {

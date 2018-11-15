@@ -1,18 +1,18 @@
-package godoc_test
+package doc_test
 
 import (
 	"fmt"
 
-	"github.com/hongkailiu/test-go/pkg/godoc"
+	"github.com/hongkailiu/test-go/pkg/doc"
 )
 
 func ExampleNewNiceHello_Cool() {
 	//More info https://github.com/fluhus/godoc-tricks/blob/master/doc.go
-	godoc.NewNiceHello()
+	doc.NewNiceHello()
 	fmt.Println("It is cool")
 }
 
 func ExampleNewNiceHello_Warm() {
-	godoc.NewNiceHello()
+	doc.NewNiceHello()
 	fmt.Println("It is warm")
 }
