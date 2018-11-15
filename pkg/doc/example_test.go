@@ -6,6 +6,7 @@ import (
 )
 
 func Example() {
+	// http://elliot.land/post/godoc-tips-tricks
 	fmt.Println("It is pkg level")
 	// Output: It is pkg level
 }
