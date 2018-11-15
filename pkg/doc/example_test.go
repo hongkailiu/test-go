@@ -6,15 +6,15 @@ import (
 	"github.com/hongkailiu/test-go/pkg/doc"
 )
 
-func ExampleNewNiceHello_Cool() {
+func ExampleMYNewNiceHello_USA() {
 	//More info https://github.com/fluhus/godoc-tricks/blob/master/doc.go
-	doc.NewNiceHello()
-	fmt.Println("It is cool")
+	doc.MYNewNiceHello()
+	fmt.Println("It is USA")
 }
 
-func ExampleNewNiceHello_Warm() {
-	doc.NewNiceHello()
-	fmt.Println("It is warm")
+func ExampleMYNewNiceHello_Canada() {
+	doc.MYNewNiceHello()
+	fmt.Println("It is Canada")
 }
 
 func Example() {

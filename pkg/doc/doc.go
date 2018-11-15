@@ -13,8 +13,8 @@ func NewHello() error {
 	return nil
 }
 
-//NewNiceHello says hello nicely.
-func NewNiceHello() error {
+//MYNewNiceHello says hello nicely.
+func MYNewNiceHello() error {
 	return nil
 }
 

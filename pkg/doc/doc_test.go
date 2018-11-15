@@ -14,7 +14,7 @@ func TestNewHello(t *testing.T) {
 }
 
 func TestNewNiceHello(t *testing.T) {
-	err := NewNiceHello()
+	err := MYNewNiceHello()
 	if err != nil {
 		t.Errorf("error should not have occurred: %s", err.Error())
 	}
