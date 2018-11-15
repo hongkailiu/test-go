@@ -2,20 +2,8 @@ package doc_test
 
 import (
 	"fmt"
-
-	"github.com/hongkailiu/test-go/pkg/doc"
 )
 
-func ExampleMYNewNiceHello_USA() {
-	//More info https://github.com/fluhus/godoc-tricks/blob/master/doc.go
-	doc.MYNewNiceHello()
-	fmt.Println("It is USA")
-}
-
-func ExampleMYNewNiceHello_Canada() {
-	doc.MYNewNiceHello()
-	fmt.Println("It is Canada")
-}
 
 func Example() {
 	fmt.Println("It is pkg level")
