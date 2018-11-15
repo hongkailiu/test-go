@@ -43,3 +43,4 @@ jobs:
     - run: make build-http
     - run: make test-pb
     - run: make test-lc
+    - run: make test-others

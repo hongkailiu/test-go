@@ -91,3 +91,7 @@ test-lc:
 build-others:
 	go build -o ./build/hello ./pkg/hello/
 	go build -o ./build/worker_pool ./pkg/channel/
+
+.PHONY : test-others
+test-others:
+	go test -v ./pkg/hello/...
