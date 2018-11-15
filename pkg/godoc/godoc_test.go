@@ -1,4 +1,4 @@
-package doc_test
+package godoc_test
 
 import (
 	"testing"

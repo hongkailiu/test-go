@@ -1,4 +1,7 @@
-package doc
+// Package godoc shows how to use godoc.
+//
+// See https://blog.golang.org/godoc-documenting-go-code
+package godoc
 
 //Deprecated: NewHello is defined here to show
 //the usage for `Deprecated:` in goDoc\
