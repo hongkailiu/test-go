@@ -16,4 +16,4 @@
 #intellij
 *.iml
 .idea/
-build/
+/build/
