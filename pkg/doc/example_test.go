@@ -20,3 +20,8 @@ func ExampleNewNiceHello_Warm() {
 func Example() {
 	fmt.Println("It is pkg level")
 }
+
+func ExampleStart() {
+	fmt.Println("it started!")
+	// Output: dummy
+}

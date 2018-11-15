@@ -17,3 +17,7 @@ func NewHello() error {
 func NewNiceHello() error {
 	return nil
 }
+
+//Start starts something
+func Start() {
+}
