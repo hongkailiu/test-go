@@ -1,4 +1,4 @@
-package flexy_test
+package flexy
 
 import (
 	"fmt"
