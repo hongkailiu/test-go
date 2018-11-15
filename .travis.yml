@@ -17,6 +17,7 @@ script:
   - glide --version
 #  - glide up -v
   - make build-k8s
+  - ls -al /home/travis/gopath/src/github.com/hongkailiu/test-go/vendor/github.com/openshift/api/build/v1
   - make build-oc
   - make build-swagger
   - make build-others
