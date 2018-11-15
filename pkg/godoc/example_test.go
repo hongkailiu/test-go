@@ -2,6 +2,7 @@ package godoc_test
 
 import (
 	"fmt"
+
 	"github.com/hongkailiu/test-go/pkg/godoc"
 )
 
