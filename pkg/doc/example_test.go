@@ -16,3 +16,7 @@ func ExampleNewNiceHello_Warm() {
 	doc.NewNiceHello()
 	fmt.Println("It is warm")
 }
+
+func Example() {
+	fmt.Println("It is pkg level")
+}
