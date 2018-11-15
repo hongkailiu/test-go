@@ -21,7 +21,7 @@ build-swagger:
 # referencing inexistent definitions and gives us hints to where
 # to fix problems with our API in a static manner.
 validate-swagger:
-	swagger validate ./swagger/swagger/swagger.yml
+	swagger validate ./pkg/swagger/swagger/swagger.yml
 
 
 # The `gen-swagger` target depends on the `validate` target as
@@ -36,8 +36,8 @@ validate-swagger:
 # --name                the name of the application.
 gen-swagger: validate-swagger
 	swagger generate server \
-		--target=./swagger/swagger \
-		--spec=./swagger/swagger/swagger.yml \
+		--target=./pkg/swagger/swagger \
+		--spec=./pkg/swagger/swagger/swagger.yml \
 		--exclude-main \
 		--name=hello
 
@@ -86,3 +86,8 @@ test-pb:
 .PHONY : test-lc
 test-lc:
 	./script/ci/test-lc.sh
+
+.PHONY : build-others
+build-others:
+	go build -o ./build/hello ./pkg/hello/
+	go build -o ./build/worker_pool ./pkg/channel/

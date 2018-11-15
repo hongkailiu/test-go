@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go test -v ./probuf/unittest/
+go test -v ./pkg/probuf/unittest/

@@ -10,7 +10,7 @@ RUN make CGO_ENABLED=0 GOOS=linux build-http
 FROM docker.io/centos:7
 WORKDIR /
 COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/http /http
-COPY http/static /static
-COPY http/swagger /swagger
+COPY pkg/http/static /static
+COPY pkg/http/swagger /swagger
 
 CMD ["/http"]

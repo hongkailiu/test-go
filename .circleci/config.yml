@@ -22,7 +22,7 @@ jobs:
     - checkout
 
     - run: go get github.com/onsi/ginkgo/ginkgo
-    - run: curl https://glide.sh/get | sh
+    #- run: curl https://glide.sh/get | sh
     - run: cp test_files/flexy/unit.test.files/gce.json /tmp/
 
     # specify any bash command here prefixed with `run: `
@@ -30,11 +30,16 @@ jobs:
     - run: pwd
     - run: go version
     - run: ginkgo version
-    - run: glide --version
-    #  - run: glide up -v
+    #- run: glide --version
+    #- run: glide up -v
+    - run: make build-k8s
+    - run: make build-oc
+    - run: make build-swagger
+    - run: make build-others
     - run: make build-flexy
     - run: make test-flexy
     - run: make code-gen
     - run: make build-code-gen
     - run: make build-http
     - run: make test-pb
+    - run: make test-lc

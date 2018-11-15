@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-go build -o build/example ./codegen/cmd/example/
+go build -o build/example ./pkg/codegen/cmd/example/

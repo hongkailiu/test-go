@@ -7,15 +7,19 @@ go:
 
 before_install:
   - go get github.com/onsi/ginkgo/ginkgo
-  - curl https://glide.sh/get | sh
+#  - curl https://glide.sh/get | sh
   - cp test_files/flexy/unit.test.files/gce.json /tmp/
 
 script:
   - echo "${GOPATH}"
   - go version
   - ginkgo version
-  - glide --version
+#  - glide --version
 #  - glide up -v
+  - make build-k8s
+  - make build-oc
+  - make build-swagger
+  - make build-others
   - make build-flexy
   - make test-flexy
   - make code-gen
