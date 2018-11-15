@@ -1,4 +1,4 @@
-## [leetcode]()
+## [leetcode](https://leetcode.com)
 
 ```bash
 ### Run a single test
