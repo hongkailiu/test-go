@@ -15,3 +15,8 @@ func main() {
 func NewHello() error {
 	return nil
 }
+
+//NewNiceHello says hello nicely.
+func NewNiceHello() error {
+	return nil
+}
