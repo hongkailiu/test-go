@@ -23,15 +23,15 @@ func Example() {
 
 func ExampleStart() {
 	fmt.Println("it started!")
-	// Output: dummy
+	// Output: it started!
 }
 
 func ExampleStart_Warm() {
 	fmt.Println("it started warm!")
-	// Output: dummy
+	// Output: it started warm!
 }
 
 func ExampleStart_Cold() {
 	fmt.Println("it started cold!")
-	// Output: dummy
+	// Output: it started cold!
 }
