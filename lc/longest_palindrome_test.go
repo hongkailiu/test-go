@@ -32,7 +32,6 @@ func TestLongestPalindrome3(t *testing.T) {
 	o.Expect(r).Should(Equal("a"))
 }
 
-
 func TestLongestPalindrome4(t *testing.T) {
 	o := NewGomegaWithT(t)
 

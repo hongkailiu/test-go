@@ -45,7 +45,6 @@ func getPs(s string, i int) []string {
 
 	p = ""
 	if i+1 < len(s) {
-		pUint8 = s[i]
 		for j := 0; j < len(s)-i-1; j++ {
 			left := i - j
 			right := i + 1 + j
