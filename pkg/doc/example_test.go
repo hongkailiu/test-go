@@ -15,6 +15,11 @@ func ExampleMYNewNiceHello_canada() {
 	fmt.Println("new hello canada")
 }
 
+func ExampleStart() {
+	fmt.Println("it started a function!")
+	// Output: it started a function!
+}
+
 func ExampleStart_warm() {
 	fmt.Println("it started warm!")
 	// Output: it started warm!
