@@ -13,9 +13,9 @@ import (
 var _ = Describe("[Main] Flexy", func() {
 
 	var (
-		inputPath            = "../test_files/flexy/template.yaml"
-		inputInventoryFolder = "../test_files/flexy/inv"
-		outputFolder         = "../build/output/flexy/inv"
+		inputPath            = "../../test_files/flexy/template.yaml"
+		inputInventoryFolder = "../../test_files/flexy/inv"
+		outputFolder         = "../../build/output/flexy/inv"
 		cp                   flexy.CloudProvider
 	)
 

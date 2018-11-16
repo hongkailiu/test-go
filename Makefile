@@ -96,3 +96,7 @@ build-others:
 test-others:
 	go test -v ./pkg/hello/...
 	go test -v ./pkg/doc/...
+
+.PHONY : coveralls
+coveralls:
+	./script/ci/coveralls.sh

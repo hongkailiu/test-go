@@ -44,7 +44,7 @@ func getLocalIDFromToken(tokenString string, key interface{}) (string, error) {
 			return "", fmt.Errorf("found error when getLocalID(s), %s", err.Error())
 		}
 		if time.Now().Unix() > exp {
-			return "", fmt.Errorf("token is expired, %s", exp)
+			return "", fmt.Errorf("token is expired, %d", exp)
 		}
 		return localID, nil
 	}

@@ -14,7 +14,7 @@ var _ = Describe("InventoryGenerator", func() {
 	)
 
 	BeforeEach(func() {
-		inputPath = "../test_files/flexy/unit.test.files/inv"
+		inputPath = "../../test_files/flexy/unit.test.files/inv"
 		config = flexy.Config{
 			MasterGroup: []flexy.Host{
 
@@ -82,7 +82,7 @@ var _ = Describe("InventoryGenerator", func() {
 				"openshift_clusterid": "cool-id",
 			},
 		}
-		outputFolder = "../build/output/flexy/tmp"
+		outputFolder = "../../build/output/flexy/tmp"
 
 	})
 

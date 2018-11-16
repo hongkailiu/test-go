@@ -1,7 +1,7 @@
 ---
 allInOne: true
 ###
-cloudProvider: gce
+cloudProvider: dry-runner
 kubernetesClusterValue: hongkliu-ocp
 instancePrefix: hongkliu-test
 imageID : "qe-rhel-74-20180228"
