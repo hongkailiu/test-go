@@ -1,5 +1,5 @@
 hash: cae13030c0e3744062290cb7be8dbbf54017279553ca67f01989ffa73f5b7c66
-updated: 2018-11-15T11:01:11.685406647-05:00
+updated: 2018-11-19T14:58:35.316852667-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -76,17 +76,17 @@ imports:
 - name: github.com/go-gormigrate/gormigrate
   version: dcfb424b8448715735468fa2f573cce5caca178b
 - name: github.com/go-openapi/analysis
-  version: c701774f4e604d952e4e8c56dee260be696e33c3
+  version: e2f3fdbb7ed0e56e070ccbfb6fc75b288a33c014
   subpackages:
   - internal
 - name: github.com/go-openapi/errors
-  version: d9664f9fab8994271e573ed69cf2adfc09b7a800
+  version: 7a7ff1b7b8020f22574411a32f28b4d168d69237
 - name: github.com/go-openapi/jsonpointer
   version: ef5f0afec364d3b9396b7b77b43dbe26bf1f8004
 - name: github.com/go-openapi/jsonreference
   version: 8483a886a90412cd6858df4ea3483dce9c8e35a3
 - name: github.com/go-openapi/loads
-  version: 150d36912387ec2f607be674c5be309ddccc0eed
+  version: d72cd69e9468f55c6369c5481c3d011401728c72
 - name: github.com/go-openapi/runtime
   version: aadb2cc7b8862fdab251bf60a8b9d2a951c9746c
   subpackages:
@@ -102,7 +102,7 @@ imports:
 - name: github.com/go-openapi/strfmt
   version: b7bbaf9c758e8bee9311b1bb94262cd30f79dc16
 - name: github.com/go-openapi/swag
-  version: 5899d5c5e619fda5fa86e14795a835f473ca284c
+  version: 1d29f06aebd59ccdf11ae04aa0334ded96e2d909
 - name: github.com/go-openapi/validate
   version: d2eab7d93009e9215fc85b2faa2c2f2a98c2af48
 - name: github.com/go-stomp/stomp
@@ -127,7 +127,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-github
-  version: e16f49dbde5ff669ad7027145d2d4d65d0e25bee
+  version: 8a2df7d66bf48c980c70200a19ec6810214f5482
   subpackages:
   - github
 - name: github.com/google/go-querystring
@@ -205,7 +205,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/openshift/api
-  version: 8a3880e9178ebf7a6655469c7dd213ea9a378c33
+  version: 7019e79772a9bfa1ade7b231de705293b9c12401
   subpackages:
   - build/v1
 - name: github.com/openshift/client-go
@@ -215,6 +215,10 @@ imports:
   - build/clientset/versioned/typed/build/v1
 - name: github.com/peterbourgon/diskv
   version: 5f041e8faa004a95c88a202771f4cc3e991971e6
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
 - name: github.com/prometheus/client_golang
   version: 1cafe34db7fdec6022e17e00e1c1ea501022f3e4
   subpackages:
@@ -226,7 +230,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 41aa239b4cce3c56ab88fc366ae8b0a6423fa239
+  version: 1f2c4f3cd6db5fd6f68f36af6b6d5d936fd93c4e
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
@@ -249,8 +253,16 @@ imports:
   - hooks/syslog
 - name: github.com/spf13/pflag
   version: 583c0c0531f06d5278b7d917446061adc344b5cd
+- name: github.com/stretchr/objx
+  version: ef50b0de28773081167c97fc27cf29a0bf8b8c71
+- name: github.com/stretchr/testify
+  version: c679ae2cc0cb27ec3293fea7e254e47386f05d69
+  subpackages:
+  - assert
+  - mock
+  - require
 - name: github.com/ugorji/go
-  version: e5e69e061d4f7ee3a69b793cf9c1b41afe21918e
+  version: 16061014c5c789e107b7e29375b9a3e4d8527e61
   subpackages:
   - codec
 - name: golang.org/x/crypto
@@ -311,7 +323,7 @@ imports:
   subpackages:
   - rate
 - name: golang.org/x/tools
-  version: 1fdeb1692e0bf54f07926710b72fe30e350c946f
+  version: 89e258047f9bd4255fae0d48139e1d5ff0a7b8dd
   subpackages:
   - imports
 - name: google.golang.org/api
