@@ -2330,13 +2330,15 @@ func doTestMissingFields(t *testing.T, name string, h Handle) {
 	// encode missingFielderT2, decode into missingFielderT1, encode it out again, decode into new missingFielderT2, compare
 	v1 := missingFielderT2{S: "true seven eight", B: true, F: 777.0, I: -888}
 	b1 := testMarshalErr(v1, h, t, name+"-missing-enc-2")
-	// xdebugf("b1: %s", b1)
+	// xdebugf("marshal into b1: %s", b1)
 	var v2 missingFielderT1
 	testUnmarshalErr(&v2, b1, h, t, name+"-missing-dec-1")
-	// xdebugf("unmarshal worked")
+	// xdebugf("unmarshal into v2: %v", v2)
 	b2 := testMarshalErr(&v2, h, t, name+"-missing-enc-1")
+	// xdebugf("marshal into b2: %s", b2)
 	var v3 missingFielderT2
 	testUnmarshalErr(&v3, b2, h, t, name+"-missing-dec-2")
+	// xdebugf("unmarshal into v3: %v", v3)
 	testDeepEqualErr(v1, v3, t, name+"-missing-cmp-2")
 }
 
@@ -2565,7 +2567,8 @@ func TestBufioDecReader(t *testing.T) {
 	var s = strings.Repeat("01234'56789      ", 5)
 	// fmt.Printf("s: %s\n", s)
 	var r = strings.NewReader(s)
-	var br = &bufioDecReader{r: r, buf: make([]byte, 0, 13)}
+	var br = &bufioDecReader{buf: make([]byte, 0, 13)}
+	br.r = r
 	b, err := ioutil.ReadAll(br)
 	if err != nil {
 		panic(err)
@@ -2581,7 +2584,8 @@ func TestBufioDecReader(t *testing.T) {
 	// readUntil: see: 56789
 	var out []byte
 	var token byte
-	br = &bufioDecReader{r: strings.NewReader(s), buf: make([]byte, 0, 7)}
+	br = &bufioDecReader{buf: make([]byte, 0, 7)}
+	br.r = strings.NewReader(s)
 	// println()
 	for _, v2 := range [...]string{
 		`01234'`,
@@ -2593,7 +2597,8 @@ func TestBufioDecReader(t *testing.T) {
 		testDeepEqualErr(string(out), v2, t, "-")
 		// fmt.Printf("readUntil: out: `%s`\n", out)
 	}
-	br = &bufioDecReader{r: strings.NewReader(s), buf: make([]byte, 0, 7)}
+	br = &bufioDecReader{buf: make([]byte, 0, 7)}
+	br.r = strings.NewReader(s)
 	// println()
 	for range [4]struct{}{} {
 		out = br.readTo(nil, &jsonNumSet)
@@ -2610,7 +2615,8 @@ func TestBufioDecReader(t *testing.T) {
 		// fmt.Printf("readUntil: out: `%s`\n", out)
 		br.UnreadByte()
 	}
-	br = &bufioDecReader{r: strings.NewReader(s), buf: make([]byte, 0, 7)}
+	br = &bufioDecReader{buf: make([]byte, 0, 7)}
+	br.r = strings.NewReader(s)
 	// println()
 	for range [4]struct{}{} {
 		out = br.readUntil(nil, ' ')

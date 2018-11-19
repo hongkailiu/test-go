@@ -43,11 +43,15 @@ func (s *server) Initialize(ctx context.Context, params *protocol.InitializePara
 	s.initialized = true
 	return &protocol.InitializeResult{
 		Capabilities: protocol.ServerCapabilities{
-			CompletionProvider:              protocol.CompletionOptions{},
+			CompletionProvider: protocol.CompletionOptions{
+				TriggerCharacters: []string{"."},
+			},
 			DefinitionProvider:              true,
 			DocumentFormattingProvider:      true,
 			DocumentRangeFormattingProvider: true,
-			SignatureHelpProvider:           protocol.SignatureHelpOptions{},
+			SignatureHelpProvider: protocol.SignatureHelpOptions{
+				TriggerCharacters: []string{"("},
+			},
 			TextDocumentSync: protocol.TextDocumentSyncOptions{
 				Change:    float64(protocol.Full), // full contents of file sent on each update
 				OpenClose: true,
@@ -200,7 +204,7 @@ func (s *server) Definition(ctx context.Context, params *protocol.TextDocumentPo
 	if err != nil {
 		return nil, err
 	}
-	return []protocol.Location{toProtocolLocation(s.view, r)}, nil
+	return []protocol.Location{toProtocolLocation(s.view.Config.Fset, r)}, nil
 }
 
 func (s *server) TypeDefinition(context.Context, *protocol.TextDocumentPositionParams) ([]protocol.Location, error) {

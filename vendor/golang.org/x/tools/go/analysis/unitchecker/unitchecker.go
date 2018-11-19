@@ -25,11 +25,11 @@ package unitchecker
 //   so we will not get to analyze it. Yet we must in order
 //   to create base facts for, say, the fmt package for the
 //   printf checker.
-// - support JSON output, factored with multichecker.
 
 import (
 	"encoding/gob"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -41,12 +41,14 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/tools/go/analysis"
+	"golang.org/x/tools/go/analysis/internal/analysisflags"
 	"golang.org/x/tools/go/analysis/internal/facts"
 )
 
@@ -54,6 +56,7 @@ import (
 // It is provided to the tool in a JSON-encoded file
 // whose name ends with ".cfg".
 type Config struct {
+	ID                        string // e.g. "fmt [fmt.test]"
 	Compiler                  string
 	Dir                       string
 	ImportPath                string
@@ -68,25 +71,93 @@ type Config struct {
 	SucceedOnTypecheckFailure bool
 }
 
-// Main reads the *.cfg file, runs the analysis,
+// Main is the main function of a vet-like analysis tool that must be
+// invoked by a build system to analyze a single package.
+//
+// The protocol required by 'go vet -vettool=...' is that the tool must support:
+//
+//      -flags          describe flags in JSON
+//      -V=full         describe executable for build caching
+//      foo.cfg         perform separate modular analyze on the single
+//                      unit described by a JSON config file foo.cfg.
+//
+func Main(analyzers ...*analysis.Analyzer) {
+	progname := filepath.Base(os.Args[0])
+	log.SetFlags(0)
+	log.SetPrefix(progname + ": ")
+
+	if err := analysis.Validate(analyzers); err != nil {
+		log.Fatal(err)
+	}
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, `%[1]s is a tool for static analysis of Go programs.
+
+Usage of %[1]s:
+	%.16[1]s unit.cfg	# execute analysis specified by config file
+	%.16[1]s help    	# general help
+	%.16[1]s help name	# help on specific analyzer and its flags
+`, progname)
+		os.Exit(1)
+	}
+
+	analyzers = analysisflags.Parse(analyzers, true)
+
+	args := flag.Args()
+	if len(args) == 0 {
+		flag.Usage()
+	}
+	if args[0] == "help" {
+		analysisflags.Help(progname, analyzers, args[1:])
+		os.Exit(0)
+	}
+	if len(args) != 1 || !strings.HasSuffix(args[0], ".cfg") {
+		log.Fatalf("invalid command: want .cfg file (this reduced version of %s is intended to be run only by the 'go vet' command)", progname)
+	}
+	Run(args[0], analyzers)
+}
+
+// Run reads the *.cfg file, runs the analysis,
 // and calls os.Exit with an appropriate error code.
-func Main(configFile string, analyzers []*analysis.Analyzer) {
+// It assumes flags have already been set.
+func Run(configFile string, analyzers []*analysis.Analyzer) {
 	cfg, err := readConfig(configFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fset := token.NewFileSet()
-	diags, err := run(fset, cfg, analyzers)
+	results, err := run(fset, cfg, analyzers)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if !cfg.VetxOnly && len(diags) > 0 {
-		for _, diag := range diags {
-			fmt.Fprintf(os.Stderr, "%s: %s\n", fset.Position(diag.Pos), diag.Message)
+	// In VetxOnly mode, the analysis is run only for facts.
+	if !cfg.VetxOnly {
+		if analysisflags.JSON {
+			// JSON output
+			tree := make(analysisflags.JSONTree)
+			for _, res := range results {
+				tree.Add(fset, cfg.ID, res.a.Name, res.diagnostics, res.err)
+			}
+			tree.Print()
+		} else {
+			// plain text
+			exit := 0
+			for _, res := range results {
+				if res.err != nil {
+					log.Println(res.err)
+					exit = 1
+				}
+			}
+			for _, res := range results {
+				for _, diag := range res.diagnostics {
+					analysisflags.PrintPlain(fset, diag)
+					exit = 1
+				}
+			}
+			os.Exit(exit)
 		}
-		os.Exit(1)
 	}
 
 	os.Exit(0)
@@ -110,7 +181,7 @@ func readConfig(filename string) (*Config, error) {
 	return cfg, nil
 }
 
-func run(fset *token.FileSet, cfg *Config, analyzers []*analysis.Analyzer) ([]analysis.Diagnostic, error) {
+func run(fset *token.FileSet, cfg *Config, analyzers []*analysis.Analyzer) ([]result, error) {
 	// Load, parse, typecheck.
 	var files []*ast.File
 	for _, name := range cfg.GoFiles {
@@ -283,14 +354,13 @@ func run(fset *token.FileSet, cfg *Config, analyzers []*analysis.Analyzer) ([]an
 
 	execAll(analyzers)
 
-	// Return diagnostics from root analyzers.
-	var diags []analysis.Diagnostic
-	for _, a := range analyzers {
+	// Return diagnostics and errors from root analyzers.
+	results := make([]result, len(analyzers))
+	for i, a := range analyzers {
 		act := actions[a]
-		if act.err != nil {
-			return nil, act.err // some analysis failed
-		}
-		diags = append(diags, act.diagnostics...)
+		results[i].a = a
+		results[i].err = act.err
+		results[i].diagnostics = act.diagnostics
 	}
 
 	data := facts.Encode()
@@ -298,7 +368,13 @@ func run(fset *token.FileSet, cfg *Config, analyzers []*analysis.Analyzer) ([]an
 		return nil, fmt.Errorf("failed to write analysis facts: %v", err)
 	}
 
-	return diags, nil
+	return results, nil
+}
+
+type result struct {
+	a           *analysis.Analyzer
+	diagnostics []analysis.Diagnostic
+	err         error
 }
 
 type importerFunc func(path string) (*types.Package, error)
