@@ -28,6 +28,7 @@ script:
   - make test-pb
   - make test-lc
   - make test-others
+  - make gen-coverage
 
 after_success:
   - make coveralls

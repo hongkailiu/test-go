@@ -97,6 +97,11 @@ test-others:
 	go test -v ./pkg/hello/...
 	go test -v ./pkg/doc/...
 
+.PHONY : gen-coverage
+gen-coverage:
+	if [ ! -d "build" ]; then mkdir -v build; fi
+	go test -v -coverprofile build/coverage.out ./...
+
 .PHONY : coveralls
 coveralls:
 	./script/ci/coveralls.sh
