@@ -2,6 +2,7 @@ package flexy_test
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/hongkailiu/test-go/pkg/flexy"
 	. "github.com/onsi/ginkgo"
@@ -23,6 +24,10 @@ var _ = Describe("[Main] Flexy", func() {
 		It("should start flexy job", func() {
 			log.WithFields(log.Fields{"inputPath": inputPath}).Debug("loading config from path:")
 			config := flexy.OCPClusterConfig{}
+			if os.Getenv("TRAVIS") == "true" {
+				// it accepts only dry-runner on travis-ci
+				Expect(config.CloudProvider).Should(Equal(flexy.CloudProviderDryRunner))
+			}
 			Expect(flexy.LoadOCPClusterConfig(inputPath, &config)).To(BeNil())
 			log.WithFields(log.Fields{"config.CloudProvider": config.CloudProvider}).Debug("config.CloudProvider found:")
 			switch config.CloudProvider {
