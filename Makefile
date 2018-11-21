@@ -105,3 +105,8 @@ gen-coverage:
 .PHONY : coveralls
 coveralls:
 	./script/ci/coveralls.sh
+
+.PHONY : gen-http-image
+gen-http-image:
+	docker -f test_files/docker/Dockerfile.http.txt -t quay.io/hongkailiu/test-go:http-travis .
+	docker images
