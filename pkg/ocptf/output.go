@@ -30,8 +30,10 @@ type Group struct {
 }
 
 type Host struct {
-	Name   string
-	VarMap map[string]interface{}
+	Name     string
+	ID       string `json:"-"`
+	PublicIP string `json:"-"`
+	VarMap   map[string]interface{}
 }
 
 func GetListOutput(groups []Group, hosts []Host) (*ListOutput, error) {
