@@ -30,7 +30,7 @@ script:
   - make test-lc
   - make test-others
   - make gen-coverage
-  - make gen-http-image
+  - make gen-images
   - make build-ocptf
 
 after_success:
