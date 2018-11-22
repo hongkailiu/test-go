@@ -12,7 +12,7 @@ openshift_storage_glusterfs_block_image=registry.reg-aws.openshift.com:443/rhgs3
 openshift_storage_glusterfs_block_host_vol_size=200
 openshift_storage_glusterfs_block_storageclass=true
 openshift_storage_glusterfs_timeout=900
-glusterfs_devices='["/dev/nvme2n1"]'
+#glusterfs_devices='["/dev/nvme2n1"]'
 
 [glusterfs]
 
