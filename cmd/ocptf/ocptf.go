@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	FileName  = "terraform.tfstate"
+	FileName             = "terraform.tfstate"
 	TerraformTFStateFile = "terraform_tf_state_file"
 )
 
@@ -43,11 +43,12 @@ func main() {
 	}
 
 	path, err := getTerraformTFStateFile()
-	log.WithFields(log.Fields{"path": *path}).Debug("")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}
+	log.WithFields(log.Fields{"path": *path}).Debug("")
+
 	dynamic := true
 	if strings.ToLower(os.Getenv("static_inventory")) == "true" {
 		dynamic = false
@@ -67,9 +68,10 @@ func main() {
 }
 func getTerraformTFStateFile() (*string, error) {
 	path := os.Getenv(TerraformTFStateFile)
+	log.WithFields(log.Fields{"path": path}).Debug("in getTerraformTFStateFile")
 	if len(path) != 0 {
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			return nil, fmt.Errorf("file does not exist: %s", path)
+		if _, err := os.Stat(path); err != nil {
+			return nil, fmt.Errorf("orror occurred when os.Stat(path): %s", err.Error())
 		}
 		return &path, nil
 	}
