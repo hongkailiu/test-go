@@ -79,6 +79,7 @@ func load(path string) ([]Group, []Host, error) {
 
 		if strings.Contains(k, "master") {
 			mastersGroup.Hosts = append(mastersGroup.Hosts, h.Name)
+			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
 			h.VarMap["openshift_node_group_name"] = "node-config-master"
 			h.VarMap["openshift_schedulable"] = true
 		}
