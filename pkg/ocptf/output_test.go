@@ -30,8 +30,8 @@ func TestGetListOutput2(t *testing.T) {
 	o := NewGomegaWithT(t)
 
 	groups := []Group{{Name: Master,
-	Hosts: []string{"ec2-34-219-178-152.us-west-2.compute.amazonaws.com", "ec2-34-219-178-153.us-west-2.compute.amazonaws.com"},
-	Vars: map[string]interface{}{"var1": true}, Children: []string{}}}
+		Hosts: []string{"ec2-34-219-178-152.us-west-2.compute.amazonaws.com", "ec2-34-219-178-153.us-west-2.compute.amazonaws.com"},
+		Vars:  map[string]interface{}{"var1": true}, Children: []string{}}}
 
 	hosts := []Host{{Name: "ec2-34-219-178-152.us-west-2.compute.amazonaws.com", VarMap: map[string]interface{}{"var001": "value1", "var002": "value2"}},
 		{Name: "ec2-34-219-178-153.us-west-2.compute.amazonaws.com", VarMap: map[string]interface{}{}}}

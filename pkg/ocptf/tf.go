@@ -4,27 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
-
-	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
-
-	// Log as JSON instead of the default ASCII formatter.
-	//log.SetFormatter(&log.JSONFormatter{})
-
-	// Output to stdout instead of the default stderr
-	// Can be any io.Writer, see below for File example
-	log.SetOutput(os.Stdout)
-
-	// Only log the warning severity or above.
-	//log.SetLevel(log.DebugLevel)
-	log.SetLevel(log.WarnLevel)
-}
+const (
+	// VERSION of the ocptf cmd
+	VERSION = "0.0.1"
+)
 
 func LoadTFStateFile(path string) (*TFState, error) {
 	bytes, err := ioutil.ReadFile(path)
@@ -57,19 +45,19 @@ type Primary struct {
 	Attributes map[string]string
 }
 
-func Start(path string, dynamic bool) error {
+func load(path string) ([]Group, []Host, error) {
 	tfState, err := LoadTFStateFile(path)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	if len(tfState.Modules) != 1 {
-		return fmt.Errorf("len(tfState.Modules) is %d", len(tfState.Modules))
+		return nil, nil, fmt.Errorf("len(tfState.Modules) is %d", len(tfState.Modules))
 	}
 
-	osev3Group := Group{Name: "OSEv3", Vars: map[string]interface{}{}, Children:[]string{"masters", "nodes", "etcd"}}
-	mastersGroup := Group{Name: "masters", Vars: map[string]interface{}{}, Children:[]string{}}
-	nodesGroup := Group{Name: "nodes", Vars: map[string]interface{}{}, Children:[]string{}}
-	etcdGroup := Group{Name: "etcd", Vars: map[string]interface{}{}, Children:[]string{}}
+	osev3Group := Group{Name: "OSEv3", Vars: map[string]interface{}{}, Children: []string{"masters", "nodes", "etcd"}}
+	mastersGroup := Group{Name: "masters", Vars: map[string]interface{}{}, Children: []string{}}
+	nodesGroup := Group{Name: "nodes", Vars: map[string]interface{}{}, Children: []string{}}
+	etcdGroup := Group{Name: "etcd", Vars: map[string]interface{}{}, Children: []string{}}
 	var hosts []Host
 	for k, v := range tfState.Modules[0].Resources {
 		log.WithFields(log.Fields{"k": k, "v": v}).Debug("resource")
@@ -83,7 +71,7 @@ func Start(path string, dynamic bool) error {
 		if !strings.Contains(k, "master") && !strings.Contains(k, "infra") &&
 			!strings.Contains(k, "node") && !strings.Contains(k, "worker") &&
 			!strings.Contains(k, "etcd") {
-			return fmt.Errorf("malformed instance name,: %s", k)
+			return nil, nil, fmt.Errorf("malformed instance name,: %s", k)
 		}
 
 		if strings.Contains(k, "master") {
@@ -113,6 +101,16 @@ func Start(path string, dynamic bool) error {
 	log.WithFields(log.Fields{"hosts": hosts}).Debug("hosts")
 
 	groups := []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup}
+
+	return groups, hosts, nil
+}
+
+func DoList(path string, dynamic bool) error {
+	log.WithFields(log.Fields{"path": path, "dynamic": dynamic}).Debug("DoList")
+	groups, hosts, err := load(path)
+	if err != nil {
+		return err
+	}
 	listOutput, err := GetListOutput(groups, hosts)
 	if err != nil {
 		return err
@@ -120,6 +118,29 @@ func Start(path string, dynamic bool) error {
 
 	if dynamic {
 		bytes, err := json.MarshalIndent(listOutput.GroupMap, "", "  ")
+		if err != nil {
+			return err
+		}
+		jsonString := fmt.Sprintf(string(bytes))
+		log.WithFields(log.Fields{"jsonString": jsonString}).Debug("")
+		fmt.Println(jsonString)
+
+	} else {
+		return fmt.Errorf("TODO: static inv output")
+	}
+
+	return nil
+}
+
+func DoHost(path, name string, dynamic bool) error {
+	_, hosts, err := load(path)
+	if err != nil {
+		return err
+	}
+	hostOutput := GetHostOutput(name, hosts)
+
+	if dynamic {
+		bytes, err := json.MarshalIndent(hostOutput.VarMap, "", "  ")
 		if err != nil {
 			return err
 		}

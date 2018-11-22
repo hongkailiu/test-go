@@ -1,7 +1,6 @@
 package ocptf_test
 
 import (
-
 	"testing"
 
 	. "github.com/hongkailiu/test-go/pkg/ocptf"
@@ -20,7 +19,7 @@ func TestLoadTFStateFile1(t *testing.T) {
 func TestStart1(t *testing.T) {
 	o := NewGomegaWithT(t)
 
-	err := Start("../../test_files/ocpft/unit.test.files/terraform.tfstate.json", true)
+	err := DoList("../../test_files/ocpft/unit.test.files/terraform.tfstate.json", true)
 	o.Expect(err).To(BeNil())
 
 }

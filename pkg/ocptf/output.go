@@ -61,3 +61,13 @@ func GetListOutput(groups []Group, hosts []Host) (*ListOutput, error) {
 	return &listOutput, nil
 
 }
+
+func GetHostOutput(name string, hosts []Host) *HostOutput {
+	for _, h := range hosts {
+		if name == h.Name {
+			return &HostOutput{h.VarMap}
+		}
+	}
+	return &HostOutput{map[string]interface{}{}}
+
+}
