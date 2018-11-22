@@ -59,4 +59,10 @@ Use an existing image:
 [root@77c9bf718b93 /]# ansible-playbook -i /bin/ocptf -i /test-go/test_files/ocpft/inv/2.file /openshift-ansible/playbooks/prerequisites.yml -e "ansible_ssh_private_key_file=/perf.key"
 # ansible-playbook -i /bin/ocptf -i /test-go/test_files/ocpft/inv/2.file /openshift-ansible/playbooks/deploy_cluster.yml -e "ansible_ssh_private_key_file=/perf.key"
 
+### clean up
+# cd /
+[root@5f82b77cab38 /]# cd svt-case-doc/files/terraform/4_node_cluster/
+# terraform destroy -var-file="secret.tfvars" -auto-approve
+
+
 ```
