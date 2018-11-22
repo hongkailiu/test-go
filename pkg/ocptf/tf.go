@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -112,6 +113,9 @@ func load(path string) ([]Group, []Host, error) {
 	log.WithFields(log.Fields{"hosts": hosts}).Debug("hosts")
 
 	groups := []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup, glusterGroup}
+	if strings.ToLower(os.Getenv("install_ocp_gluster")) == "false" {
+		groups = []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup}
+	}
 
 	return groups, hosts, nil
 }
