@@ -57,6 +57,6 @@ Use an existing image:
 
 # cd /
 [root@77c9bf718b93 /]# ansible-playbook -i /bin/ocptf -i /test-go/test_files/ocpft/inv/2.file /openshift-ansible/playbooks/prerequisites.yml -e "ansible_ssh_private_key_file=/perf.key"
-
+# ansible-playbook -i /bin/ocptf -i /test-go/test_files/ocpft/inv/2.file /openshift-ansible/playbooks/deploy_cluster.yml -e "ansible_ssh_private_key_file=/perf.key"
 
 ```
