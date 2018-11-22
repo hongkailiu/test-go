@@ -54,7 +54,7 @@ func load(path string) ([]Group, []Host, error) {
 		return nil, nil, fmt.Errorf("len(tfState.Modules) is %d", len(tfState.Modules))
 	}
 
-	osev3Group := Group{Name: "OSEv3", Vars: map[string]interface{}{}, Children: []string{"masters", "nodes", "etcd"}}
+	osev3Group := Group{Name: "OSEv3", Vars: map[string]interface{}{}, Children: []string{"masters", "nodes", "etcd"}, Hosts: []string{}}
 	mastersGroup := Group{Name: "masters", Vars: map[string]interface{}{}, Children: []string{}}
 	nodesGroup := Group{Name: "nodes", Vars: map[string]interface{}{}, Children: []string{}}
 	etcdGroup := Group{Name: "etcd", Vars: map[string]interface{}{}, Children: []string{}}
@@ -64,6 +64,9 @@ func load(path string) ([]Group, []Host, error) {
 
 		if v.Type != "aws_instance" {
 			continue
+		}
+		if osev3Group.Vars["openshift_cloudprovider_kind"] == nil {
+			osev3Group.Vars["openshift_cloudprovider_kind"] = "aws"
 		}
 		h := Host{Name: v.Primary.Attributes["public_dns"], ID: v.Primary.ID, PublicIP: v.Primary.Attributes["public_ip"]}
 		h.VarMap = map[string]interface{}{"openshift_public_hostname": h.Name}

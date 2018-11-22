@@ -1,0 +1,10 @@
+---
+- hosts: all
+  vars:
+    ###https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-handle-python-not-having-a-python-interpreter-at-usr-bin-python-on-a-remote-machine
+    ###
+    #ansible_python_interpreter: /usr/bin/python3
+  tasks:
+  - name: print hostname
+    debug:
+      msg: "hostname: {{ inventory_hostname }}"

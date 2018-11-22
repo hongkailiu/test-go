@@ -11,6 +11,11 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
+const (
+	FileName  = "terraform.tfstate"
+	TerraformTFStateFile = "terraform_tf_state_file"
+)
+
 var (
 	app = kingpin.New("ocp-tf", "A script to read terraform tfstate file and output inventory.")
 
@@ -61,15 +66,31 @@ func main() {
 
 }
 func getTerraformTFStateFile() (*string, error) {
-	path := os.Getenv("terraform_tf_state_file")
+	path := os.Getenv(TerraformTFStateFile)
 	if len(path) != 0 {
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			return nil, fmt.Errorf("file does not exist: %s", path)
+		}
+		return &path, nil
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("error occurred when os.Getwd(): %s", err.Error())
+	}
+	path = filepath.Join(wd, FileName)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return &path, nil
 	}
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred when filepath.Abs(filepath.Dir(os.Args[0])): %s", err.Error())
 	}
-	path = filepath.Join(dir, "terraform.tfstate")
-	return &path, nil
+	path = filepath.Join(dir, FileName)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return &path, nil
+	}
+
+	return nil, fmt.Errorf("env var (%s) is not defined and no file named '%s' can be found in %s or %s", TerraformTFStateFile, FileName, wd, dir)
 }

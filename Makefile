@@ -110,3 +110,7 @@ coveralls:
 gen-http-image:
 	docker build -f test_files/docker/Dockerfile.http.txt -t quay.io/hongkailiu/test-go:http-travis .
 	docker images
+
+.PHONY : build-ocptf
+build-ocptf:
+	go build -o ./build/ocptf ./cmd/ocptf/
