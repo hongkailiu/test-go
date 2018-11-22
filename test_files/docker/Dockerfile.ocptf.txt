@@ -20,4 +20,7 @@ RUN dnf install -y unzip;\
     mv /terraform /bin/;\
     rm terraform_0.11.10_linux_amd64.zip
 
+COPY test_files/ocpft/inv /inv
+COPY test_files/ocpft/playbook /playbook
+
 CMD ["/ocptf -h"]

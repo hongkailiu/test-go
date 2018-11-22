@@ -58,6 +58,7 @@ func load(path string) ([]Group, []Host, error) {
 	mastersGroup := Group{Name: "masters", Vars: map[string]interface{}{}, Children: []string{}}
 	nodesGroup := Group{Name: "nodes", Vars: map[string]interface{}{}, Children: []string{}}
 	etcdGroup := Group{Name: "etcd", Vars: map[string]interface{}{}, Children: []string{}}
+	glusterGroup := Group{Name: "glusterfs", Vars: map[string]interface{}{}, Children: []string{}}
 	var hosts []Host
 	for k, v := range tfState.Modules[0].Resources {
 		log.WithFields(log.Fields{"k": k, "v": v}).Debug("resource")
@@ -73,7 +74,7 @@ func load(path string) ([]Group, []Host, error) {
 
 		if !strings.Contains(k, "master") && !strings.Contains(k, "infra") &&
 			!strings.Contains(k, "node") && !strings.Contains(k, "worker") &&
-			!strings.Contains(k, "etcd") {
+			!strings.Contains(k, "etcd") && !strings.Contains(k, "gluster") {
 			return nil, nil, fmt.Errorf("malformed instance name,: %s", k)
 		}
 
@@ -94,6 +95,12 @@ func load(path string) ([]Group, []Host, error) {
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
 			h.VarMap["openshift_node_group_name"] = "node-config-compute"
 		}
+		if strings.Contains(k, "gluster") {
+			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
+			glusterGroup.Hosts = append(glusterGroup.Hosts, h.Name)
+			h.VarMap["openshift_node_group_name"] = "node-config-compute"
+			//h.VarMap["glusterfs_devices"] = "'[\"/dev/nvme2n1\"]'"
+		}
 
 		hosts = append(hosts, h)
 	}
@@ -104,7 +111,7 @@ func load(path string) ([]Group, []Host, error) {
 
 	log.WithFields(log.Fields{"hosts": hosts}).Debug("hosts")
 
-	groups := []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup}
+	groups := []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup, glusterGroup}
 
 	return groups, hosts, nil
 }

@@ -1,0 +1,99 @@
+{
+  "version": 3,
+  "terraform_version": "0.11.10",
+  "serial": 4,
+  "lineage": "a733b893-26b3-423d-dc74-c16dd8f02e76",
+  "modules": [
+    {
+      "path": [
+        "root"
+      ],
+      "outputs": {},
+      "resources": {
+        "aws_instance.gluster": {
+          "type": "aws_instance",
+          "depends_on": [],
+          "primary": {
+            "id": "i-03f3a3dd4ce2b70d6",
+            "attributes": {
+              "ami": "ami-0feb1655b7868b845",
+              "arn": "arn:aws:ec2:us-west-2:925374498059:instance/i-03f3a3dd4ce2b70d6",
+              "associate_public_ip_address": "true",
+              "availability_zone": "us-west-2b",
+              "cpu_core_count": "2",
+              "cpu_threads_per_core": "2",
+              "credit_specification.#": "1",
+              "credit_specification.0.cpu_credits": "standard",
+              "disable_api_termination": "false",
+              "ebs_block_device.#": "2",
+              "ebs_block_device.2268586053.delete_on_termination": "true",
+              "ebs_block_device.2268586053.device_name": "/dev/sdb",
+              "ebs_block_device.2268586053.encrypted": "false",
+              "ebs_block_device.2268586053.iops": "210",
+              "ebs_block_device.2268586053.snapshot_id": "snap-0dedb6b64e3740e78",
+              "ebs_block_device.2268586053.volume_id": "vol-0bbebd4b7f5b1c7ab",
+              "ebs_block_device.2268586053.volume_size": "70",
+              "ebs_block_device.2268586053.volume_type": "gp2",
+              "ebs_block_device.2659407853.delete_on_termination": "true",
+              "ebs_block_device.2659407853.device_name": "/dev/sdf",
+              "ebs_block_device.2659407853.encrypted": "false",
+              "ebs_block_device.2659407853.iops": "100",
+              "ebs_block_device.2659407853.snapshot_id": "",
+              "ebs_block_device.2659407853.volume_id": "vol-040474f4d6350a616",
+              "ebs_block_device.2659407853.volume_size": "33",
+              "ebs_block_device.2659407853.volume_type": "gp2",
+              "ebs_optimized": "false",
+              "ephemeral_block_device.#": "0",
+              "get_password_data": "false",
+              "iam_instance_profile": "",
+              "id": "i-03f3a3dd4ce2b70d6",
+              "instance_state": "running",
+              "instance_type": "m5.xlarge",
+              "ipv6_addresses.#": "0",
+              "key_name": "id_rsa_perf",
+              "monitoring": "false",
+              "network_interface.#": "0",
+              "network_interface_id": "eni-015b532de8605c4b6",
+              "password_data": "",
+              "placement_group": "",
+              "primary_network_interface_id": "eni-015b532de8605c4b6",
+              "private_dns": "ip-172-31-56-112.us-west-2.compute.internal",
+              "private_ip": "172.31.56.112",
+              "public_dns": "ec2-18-236-91-205.us-west-2.compute.amazonaws.com",
+              "public_ip": "18.236.91.205",
+              "root_block_device.#": "1",
+              "root_block_device.0.delete_on_termination": "true",
+              "root_block_device.0.iops": "100",
+              "root_block_device.0.volume_id": "vol-013c76346075a0b82",
+              "root_block_device.0.volume_size": "23",
+              "root_block_device.0.volume_type": "gp2",
+              "security_groups.#": "1",
+              "security_groups.3814588639": "default",
+              "source_dest_check": "true",
+              "subnet_id": "subnet-4879292d",
+              "tags.%": "2",
+              "tags.KubernetesCluster": "hongkliu-ocp",
+              "tags.Name": "hongkliu-tf-gluster-1",
+              "tenancy": "default",
+              "volume_tags.%": "0",
+              "vpc_security_group_ids.#": "1",
+              "vpc_security_group_ids.1890758889": "sg-5c5ace38"
+            },
+            "meta": {
+              "e2bfb730-ecaa-11e6-8f88-34363bc7c4c0": {
+                "create": 600000000000,
+                "delete": 1200000000000,
+                "update": 600000000000
+              },
+              "schema_version": "1"
+            },
+            "tainted": false
+          },
+          "deposed": [],
+          "provider": "provider.aws"
+        }
+      },
+      "depends_on": []
+    }
+  ]
+}
