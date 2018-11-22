@@ -100,7 +100,7 @@ func load(path string) ([]Group, []Host, error) {
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
 			glusterGroup.Hosts = append(glusterGroup.Hosts, h.Name)
 			h.VarMap["openshift_node_group_name"] = "node-config-compute"
-			h.VarMap["glusterfs_devices"] = "'[\"/dev/nvme2n1\"]'"
+			h.VarMap["glusterfs_devices"] = `'["/dev/nvme2n1"]'`
 		}
 
 		hosts = append(hosts, h)
