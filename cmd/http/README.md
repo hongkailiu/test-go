@@ -34,6 +34,13 @@ scrape_configs:
 
 On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `storage_operation_duration_seconds`.
 
+## Postgresql
+
+```bash
+# podman run --name some-postgres -p 5432:5432 -e POSTGRES_PASSWORD=redhat -e POSTGRES_USER=redhat -e POSTGRES_DB=ttt -t -i postgres:11.0 
+
+```
+
 ## Images
 
 ```bash
