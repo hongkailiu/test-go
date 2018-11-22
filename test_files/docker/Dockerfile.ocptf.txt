@@ -9,12 +9,14 @@ RUN make CGO_ENABLED=0 GOOS=linux build-ocptf
 #https://github.com/docker-library/golang/issues/97
 FROM docker.io/fedora:29
 WORKDIR /
-COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/ocptf /ocptf
+COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/ocptf /bin/ocptf
 
 RUN dnf install -y unzip;\
     dnf install -y ansible-2.6.5-1.fc29;\
     dnf install -y git;\
     curl -LO https://releases.hashicorp.com/terraform/0.11.10/terraform_0.11.10_linux_amd64.zip; \
-    unzip terraform_0.11.10_linux_amd64.zip
+    unzip terraform_0.11.10_linux_amd64.zip; \
+    mv /terraform /bin/;\
+    rm terraform_0.11.10_linux_amd64.zip
 
 CMD ["/ocptf -h"]
