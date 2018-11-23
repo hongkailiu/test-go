@@ -37,7 +37,7 @@ type Host struct {
 	VarMap   map[string]interface{}
 }
 
-// ListOutput gets a ListOutput
+// GetListOutput gets a ListOutput
 func GetListOutput(groups []Group, hosts []Host) (*ListOutput, error) {
 	groupMap := make(map[string]interface{})
 	for _, g := range groups {
