@@ -19,9 +19,10 @@ const (
 var (
 	app = kingpin.New("ocp-tf", "A script to read terraform tfstate file and output inventory.")
 
-	_    = app.Version(ocptf.VERSION).HelpFlag.Short('h')
-	list = app.Flag("list", "List dynamic inventory.").Bool()
-	host = app.Flag("host", "List dynamic inventory for host.").String()
+	_      = app.Version(ocptf.VERSION).HelpFlag.Short('h')
+	list   = app.Flag("list", "List dynamic inventory.").Bool()
+	host   = app.Flag("host", "List dynamic inventory for host.").String()
+	static = app.Flag("static", "output static inventory.").Short('s').Default("false").Bool()
 )
 
 func init() {
@@ -34,7 +35,7 @@ func init() {
 
 func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
-	log.WithFields(log.Fields{"list": *list, "host": *host}).Debug("args")
+	log.WithFields(log.Fields{"list": *list, "host": *host, "static": *static}).Debug("args")
 
 	if !*list && len(*host) == 0 {
 		fmt.Fprintf(os.Stderr, "illegal args try '%s -h'\n", os.Args[0])
@@ -50,7 +51,7 @@ func main() {
 	log.WithFields(log.Fields{"path": *path}).Debug("")
 
 	dynamic := true
-	if strings.ToLower(os.Getenv("static_inventory")) == "true" {
+	if *static || strings.ToLower(os.Getenv("static_inventory")) == "true" {
 		dynamic = false
 	}
 	log.WithFields(log.Fields{"dynamic": dynamic}).Debug("")
