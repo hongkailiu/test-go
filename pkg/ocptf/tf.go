@@ -18,6 +18,7 @@ const (
 	VERSION = "0.0.1"
 )
 
+// LoadTFStateFile loads terraform tf state file
 func LoadTFStateFile(path string) (*TFState, error) {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -31,19 +32,23 @@ func LoadTFStateFile(path string) (*TFState, error) {
 	return &tfState, nil
 }
 
+// TFState is terraform state file content
 type TFState struct {
 	Modules []Module
 }
 
+// Module is a module in terraform state file
 type Module struct {
 	Resources map[string]Resource
 }
 
+// Resource is a resource in terraform state file
 type Resource struct {
 	Type    string
 	Primary Primary
 }
 
+// Primary is a primary in terraform state file
 type Primary struct {
 	ID         string
 	Attributes map[string]string
@@ -127,6 +132,7 @@ func load(path string) ([]Group, []Host, error) {
 	return groups, hosts, nil
 }
 
+// DoList answers `--list` flag
 func DoList(path string, dynamic bool) error {
 	log.WithFields(log.Fields{"path": path, "dynamic": dynamic}).Debug("DoList")
 	groups, hosts, err := load(path)
@@ -232,6 +238,7 @@ func getHostVarsMap(listOutput *ListOutput) (map[string]interface{}, error) {
 	return nil, nil
 }
 
+// DoHost answers `--host` flag
 func DoHost(path, name string, dynamic bool) error {
 	_, hosts, err := load(path)
 	if err != nil {

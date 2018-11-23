@@ -5,23 +5,23 @@ import (
 )
 
 const (
-	Master           = "master"
+	// UnderlineMetaKey is underline meta key, ie, _meta
 	UnderlineMetaKey = "_meta"
-	HostVarsKey      = "hostvars"
+	// HostVarsKey is host vars key, ie, hostvars
+	HostVarsKey = "hostvars"
 )
 
+// ListOutput represents output for listing inventory content
 type ListOutput struct {
 	GroupMap map[string]interface{}
 }
 
+// HostOutput represents output for listing inventory content for a host
 type HostOutput struct {
 	VarMap map[string]interface{}
 }
 
-type GroupI interface {
-	GetGroupMap() map[string]interface{}
-}
-
+// Group represent group
 type Group struct {
 	Name     string                 `json:"-"`
 	Hosts    []string               `json:"hosts"`
@@ -29,6 +29,7 @@ type Group struct {
 	Children []string               `json:"children"`
 }
 
+// Host represents host
 type Host struct {
 	Name     string
 	ID       string `json:"-"`
@@ -36,6 +37,7 @@ type Host struct {
 	VarMap   map[string]interface{}
 }
 
+// ListOutput gets a ListOutput
 func GetListOutput(groups []Group, hosts []Host) (*ListOutput, error) {
 	groupMap := make(map[string]interface{})
 	for _, g := range groups {
@@ -62,6 +64,7 @@ func GetListOutput(groups []Group, hosts []Host) (*ListOutput, error) {
 
 }
 
+// GetHostOutput gets a HostOutput
 func GetHostOutput(name string, hosts []Host) *HostOutput {
 	for _, h := range hosts {
 		if name == h.Name {
