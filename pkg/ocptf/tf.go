@@ -154,74 +154,78 @@ func DoList(path string, dynamic bool) error {
 		fmt.Println(jsonString)
 
 	} else {
-		hostVarsMap, err := getHostVarsMap(listOutput)
-		if err != nil {
-			return fmt.Errorf("error occurred when getHostVarsMap(&listOutput)")
-		}
-		var b bytes.Buffer
-		b.WriteString("###ocptf generated inventory###\n")
-		fmt.Println()
-		for k, v := range listOutput.GroupMap {
-			log.WithFields(log.Fields{"k": k, "v": v}).Debug("DoList: listOutput.GroupMap")
-			if k != UnderlineMetaKey {
-				b.WriteString(fmt.Sprintf("\n[%s]\n", k))
-				g, ok := v.(Group)
-				if !ok {
-					return fmt.Errorf("wrong format for Group: %+v", v)
-				}
-				for _, h := range g.Hosts {
-					b.WriteString(fmt.Sprintf("%s", h))
-					hValue := hostVarsMap[h]
-					varMap, ok := hValue.(map[string]interface{})
-					if !ok {
-						return fmt.Errorf("wrong format for VarMap: %+v", hValue)
-					}
-					for varK, varV := range varMap {
-						log.WithFields(log.Fields{"k": k, "varK": varK, "varV": varV, "reflect.TypeOf(varV)": reflect.TypeOf(varV)}).Debug("DoList: varMap")
-						if k == "etcd" || k == "masters" {
-							continue
-						}
-						if k == "nodes" && varK == "glusterfs_devices" {
-							continue
-						}
-						if k == "glusterfs" && varK != "glusterfs_devices" {
-							continue
-						}
-						switch varV.(type) {
-						case int:
-							b.WriteString(fmt.Sprintf(" %s=%d", varK, varV))
-						case float64:
-							b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatFloat(varV.(float64), 'f', -1, 64)))
-						case string:
-							b.WriteString(fmt.Sprintf(" %s=%s", varK, varV))
-						case bool:
-							b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatBool(varV.(bool))))
-						default:
-							return fmt.Errorf("unknown type for varV: %+v", varV)
-						}
-					}
-					b.WriteString("\n")
-				}
-				if len(g.Children) != 0 {
-					b.WriteString(fmt.Sprintf("\n[%s:children]\n", k))
-					for _, c := range g.Children {
-						b.WriteString(fmt.Sprintf("%s\n", c))
-					}
-				}
-
-				if len(g.Vars) != 0 {
-					b.WriteString(fmt.Sprintf("\n[%s:vars]\n", k))
-					for varK, varV := range g.Vars {
-						b.WriteString(fmt.Sprintf("%s=%s\n", varK, varV))
-					}
-				}
-
-			}
-		}
-		fmt.Println(fmt.Sprintf("%s\n", b.String()))
-		return nil
+		return doListStatic(listOutput)
 	}
 
+	return nil
+}
+
+func doListStatic(listOutput *ListOutput) error {
+	hostVarsMap, err := getHostVarsMap(listOutput)
+	if err != nil {
+		return fmt.Errorf("error occurred when getHostVarsMap(&listOutput)")
+	}
+	var b bytes.Buffer
+	b.WriteString("###ocptf generated inventory###\n")
+	fmt.Println()
+	for k, v := range listOutput.GroupMap {
+		log.WithFields(log.Fields{"k": k, "v": v}).Debug("DoList: listOutput.GroupMap")
+		if k != UnderlineMetaKey {
+			b.WriteString(fmt.Sprintf("\n[%s]\n", k))
+			g, ok := v.(Group)
+			if !ok {
+				return fmt.Errorf("wrong format for Group: %+v", v)
+			}
+			for _, h := range g.Hosts {
+				b.WriteString(fmt.Sprintf("%s", h))
+				hValue := hostVarsMap[h]
+				varMap, ok := hValue.(map[string]interface{})
+				if !ok {
+					return fmt.Errorf("wrong format for VarMap: %+v", hValue)
+				}
+				for varK, varV := range varMap {
+					log.WithFields(log.Fields{"k": k, "varK": varK, "varV": varV, "reflect.TypeOf(varV)": reflect.TypeOf(varV)}).Debug("DoList: varMap")
+					if k == "etcd" || k == "masters" {
+						continue
+					}
+					if k == "nodes" && varK == "glusterfs_devices" {
+						continue
+					}
+					if k == "glusterfs" && varK != "glusterfs_devices" {
+						continue
+					}
+					switch varV.(type) {
+					case int:
+						b.WriteString(fmt.Sprintf(" %s=%d", varK, varV))
+					case float64:
+						b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatFloat(varV.(float64), 'f', -1, 64)))
+					case string:
+						b.WriteString(fmt.Sprintf(" %s=%s", varK, varV))
+					case bool:
+						b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatBool(varV.(bool))))
+					default:
+						return fmt.Errorf("unknown type for varV: %+v", varV)
+					}
+				}
+				b.WriteString("\n")
+			}
+			if len(g.Children) != 0 {
+				b.WriteString(fmt.Sprintf("\n[%s:children]\n", k))
+				for _, c := range g.Children {
+					b.WriteString(fmt.Sprintf("%s\n", c))
+				}
+			}
+
+			if len(g.Vars) != 0 {
+				b.WriteString(fmt.Sprintf("\n[%s:vars]\n", k))
+				for varK, varV := range g.Vars {
+					b.WriteString(fmt.Sprintf("%s=%s\n", varK, varV))
+				}
+			}
+
+		}
+	}
+	fmt.Println(fmt.Sprintf("%s\n", b.String()))
 	return nil
 }
 
