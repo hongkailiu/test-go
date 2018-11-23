@@ -45,3 +45,18 @@ func TestMatchedBy(t *testing.T) {
 	assert.Equal(t, "Message is: bzzzz", msg)
 	theDBMock.AssertExpectations(t)
 }
+
+// for test coverage only
+func TestMatchedBy2(t *testing.T) {
+	theDBMock := mocks.DB{}
+	theDBMock.On("FetchMessage", mock.MatchedBy(func(lang string) bool { return lang[0] == 'i' })).Return("bzzzz", nil) // all of these call FetchMessage("iii"), FetchMessage("i"), FetchMessage("in") will match
+	g := service.NewGreeter(&theDBMock, "izz")
+	msg := g.Greet()
+	assert.Equal(t, "Message is: bzzzz", msg)
+	theDBMock.AssertExpectations(t)
+}
+
+func TestNewDB(t *testing.T) {
+	r := service.NewDB()
+	assert.NotNil(t, r)
+}
