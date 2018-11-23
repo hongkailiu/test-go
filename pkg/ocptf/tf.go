@@ -116,9 +116,11 @@ func load(path string) ([]Group, []Host, error) {
 	}
 
 	log.WithFields(log.Fields{"hosts": hosts}).Debug("hosts")
-
+	if strings.ToLower(os.Getenv("install_ocp_gluster")) != "false" && len(glusterGroup.Hosts) != 0 {
+		osev3Group.Children = append(osev3Group.Children, "glusterfs")
+	}
 	groups := []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup, glusterGroup}
-	if strings.ToLower(os.Getenv("install_ocp_gluster")) == "false" {
+	if strings.ToLower(os.Getenv("install_ocp_gluster")) == "false" || len(glusterGroup.Hosts) == 0 {
 		groups = []Group{osev3Group, mastersGroup, nodesGroup, etcdGroup}
 	}
 
@@ -170,15 +172,21 @@ func DoList(path string, dynamic bool) error {
 					}
 					for varK, varV := range varMap {
 						log.WithFields(log.Fields{"k": k, "varK": varK, "varV": varV, "reflect.TypeOf(varV)": reflect.TypeOf(varV)}).Debug("DoList: varMap")
+						if k == "etcd" || k == "masters" {
+							continue
+						}
+						if k == "nodes" && varK == "glusterfs_devices" {
+							continue
+						}
+						if k == "glusterfs" && varK != "glusterfs_devices" {
+							continue
+						}
 						switch varV.(type) {
 						case int:
 							b.WriteString(fmt.Sprintf(" %s=%d", varK, varV))
 						case float64:
 							b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatFloat(varV.(float64), 'f', -1, 64)))
 						case string:
-							if k == "nodes" && varK == "glusterfs_devices" {
-								break
-							}
 							b.WriteString(fmt.Sprintf(" %s=%s", varK, varV))
 						case bool:
 							b.WriteString(fmt.Sprintf(" %s=%s", varK, strconv.FormatBool(varV.(bool))))
@@ -192,7 +200,7 @@ func DoList(path string, dynamic bool) error {
 					b.WriteString(fmt.Sprintf("%s\n", c))
 				}
 				if len(g.Vars) != 0 {
-					b.WriteString(fmt.Sprintf("[%s:vars]\n", k))
+					b.WriteString(fmt.Sprintf("\n[%s:vars]\n", k))
 					for varK, varV := range g.Vars {
 						b.WriteString(fmt.Sprintf("%s=%s\n", varK, varV))
 					}
