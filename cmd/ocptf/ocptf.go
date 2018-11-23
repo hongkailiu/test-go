@@ -12,7 +12,9 @@ import (
 )
 
 const (
+	// FileName is the filename for terraform state file
 	FileName             = "terraform.tfstate"
+	// TerraformTFStateFile is the env. var. name for specifying the terraform state file
 	TerraformTFStateFile = "terraform_tf_state_file"
 )
 
