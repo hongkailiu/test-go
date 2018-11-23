@@ -8,6 +8,7 @@ type DB interface {
 	FetchDefaultMessage() (string, error)
 }
 
+// Greeter is the targeting struct for test
 type Greeter struct {
 	Database DB
 	Lang     string
@@ -35,20 +36,24 @@ func (d *db) FetchDefaultMessage() (string, error) {
 	return "default message", nil
 }
 
+// Greet returns a greeting string
 func (g Greeter) Greet() string {
 	msg, _ := g.Database.FetchMessage(g.Lang) // call Database to get the message based on the Lang
 	return "Message is: " + msg
 }
 
+// GreetInDefaultMsg returns a default greeting string
 func (g Greeter) GreetInDefaultMsg() string {
 	msg, _ := g.Database.FetchDefaultMessage() // call Database to get the default message
 	return "Message is: " + msg
 }
 
+// NewDB generates a new db
 func NewDB() DB {
 	return new(db)
 }
 
+// NewGreeter generates a new greeter
 func NewGreeter(db DB, lang string) GreeterService {
 	return Greeter{db, lang}
 }
