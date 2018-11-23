@@ -73,4 +73,20 @@ func TestMatchedBy2(t *testing.T) {
 func TestNewDB(t *testing.T) {
 	r := service.NewDB()
 	assert.NotNil(t, r)
+
+	msg, err := r.FetchDefaultMessage()
+	assert.Nil(t, err)
+	assert.Equal(t, "default message", msg)
+
+	msg, err = r.FetchMessage("en")
+	assert.Nil(t, err)
+	assert.Equal(t, "hello", msg)
+
+	msg, err = r.FetchMessage("es")
+	assert.Nil(t, err)
+	assert.Equal(t, "holla", msg)
+
+	msg, err = r.FetchMessage("un")
+	assert.Nil(t, err)
+	assert.Equal(t, "bzzzz", msg)
 }
