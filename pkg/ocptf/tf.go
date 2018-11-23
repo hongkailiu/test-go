@@ -196,9 +196,13 @@ func DoList(path string, dynamic bool) error {
 					}
 					b.WriteString("\n")
 				}
-				for _, c := range g.Children {
-					b.WriteString(fmt.Sprintf("%s\n", c))
+				if len(g.Children) != 0 {
+					b.WriteString(fmt.Sprintf("\n[%s:children]\n", k))
+					for _, c := range g.Children {
+						b.WriteString(fmt.Sprintf("%s\n", c))
+					}
 				}
+
 				if len(g.Vars) != 0 {
 					b.WriteString(fmt.Sprintf("\n[%s:vars]\n", k))
 					for varK, varV := range g.Vars {
