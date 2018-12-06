@@ -69,6 +69,7 @@ func load(path string) ([]Group, []Host, error) {
 	etcdGroup := Group{Name: "etcd", Vars: map[string]interface{}{}, Children: []string{}}
 	glusterGroup := Group{Name: "glusterfs", Vars: map[string]interface{}{}, Children: []string{}}
 	var hosts []Host
+	var firstNodeHost *Host
 	for k, v := range tfState.Modules[0].Resources {
 		log.WithFields(log.Fields{"k": k, "v": v}).Debug("resource")
 
@@ -114,6 +115,15 @@ func load(path string) ([]Group, []Host, error) {
 		}
 
 		hosts = append(hosts, h)
+		if firstNodeHost == nil && len(nodesGroup.Hosts) == 1 {
+			firstNodeHost = &h
+		}
+	}
+
+	if len(nodesGroup.Hosts) == 1 {
+		log.WithFields(log.Fields{"firstNodeHost": firstNodeHost}).Debug("===")
+		firstNodeHost.VarMap["openshift_node_group_name"] = "node-config-all-in-one"
+		osev3Group.Vars["openshift_master_default_subdomain"] = fmt.Sprintf("apps.%s.xip.io", firstNodeHost.PublicIP)
 	}
 
 	if len(etcdGroup.Hosts) == 0 {

@@ -1,11 +1,19 @@
 package ocptf_test
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/hongkailiu/test-go/pkg/ocptf"
 	. "github.com/onsi/gomega"
+	log "github.com/sirupsen/logrus"
 )
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
+}
 
 func TestLoadTFStateFile1(t *testing.T) {
 	o := NewGomegaWithT(t)
@@ -44,6 +52,14 @@ func TestStart4(t *testing.T) {
 	o := NewGomegaWithT(t)
 
 	err := DoList("../../test_files/ocpft/unit.test.files/terraform.tfstate.gfs.json", false)
+	o.Expect(err).To(BeNil())
+
+}
+
+func TestStart5(t *testing.T) {
+	o := NewGomegaWithT(t)
+
+	err := DoList("../../test_files/ocpft/unit.test.files/terraform.tfstate.all.in.one.json", false)
 	o.Expect(err).To(BeNil())
 
 }

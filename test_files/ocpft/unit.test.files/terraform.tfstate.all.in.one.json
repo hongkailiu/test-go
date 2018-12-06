@@ -1,0 +1,91 @@
+{
+  "version": 3,
+  "terraform_version": "0.11.10",
+  "serial": 2,
+  "lineage": "e16aad27-2c3a-d377-0468-585260903abc",
+  "modules": [
+    {
+      "path": [
+        "root"
+      ],
+      "outputs": {},
+      "resources": {
+        "aws_instance.master": {
+          "type": "aws_instance",
+          "depends_on": [],
+          "primary": {
+            "id": "i-01d2a34d0081c3158",
+            "attributes": {
+              "ami": "ami-0feb1655b7868b845",
+              "arn": "arn:aws:ec2:us-west-2:925374498059:instance/i-01d2a34d0081c3158",
+              "associate_public_ip_address": "true",
+              "availability_zone": "us-west-2b",
+              "cpu_core_count": "2",
+              "cpu_threads_per_core": "2",
+              "credit_specification.#": "1",
+              "credit_specification.0.cpu_credits": "standard",
+              "disable_api_termination": "false",
+              "ebs_block_device.#": "1",
+              "ebs_block_device.2268586053.delete_on_termination": "true",
+              "ebs_block_device.2268586053.device_name": "/dev/sdb",
+              "ebs_block_device.2268586053.encrypted": "false",
+              "ebs_block_device.2268586053.iops": "210",
+              "ebs_block_device.2268586053.snapshot_id": "snap-0dedb6b64e3740e78",
+              "ebs_block_device.2268586053.volume_id": "vol-0309be142b51f5875",
+              "ebs_block_device.2268586053.volume_size": "70",
+              "ebs_block_device.2268586053.volume_type": "gp2",
+              "ebs_optimized": "false",
+              "ephemeral_block_device.#": "0",
+              "get_password_data": "false",
+              "iam_instance_profile": "",
+              "id": "i-01d2a34d0081c3158",
+              "instance_state": "running",
+              "instance_type": "m5.xlarge",
+              "ipv6_addresses.#": "0",
+              "key_name": "id_rsa_perf",
+              "monitoring": "false",
+              "network_interface.#": "0",
+              "network_interface_id": "eni-05e6e41690ad4a300",
+              "password_data": "",
+              "placement_group": "",
+              "primary_network_interface_id": "eni-05e6e41690ad4a300",
+              "private_dns": "ip-172-31-22-86.us-west-2.compute.internal",
+              "private_ip": "172.31.22.86",
+              "public_dns": "ec2-34-217-70-207.us-west-2.compute.amazonaws.com",
+              "public_ip": "34.217.70.207",
+              "root_block_device.#": "1",
+              "root_block_device.0.delete_on_termination": "true",
+              "root_block_device.0.iops": "100",
+              "root_block_device.0.volume_id": "vol-0c7351b0d725b3145",
+              "root_block_device.0.volume_size": "23",
+              "root_block_device.0.volume_type": "gp2",
+              "security_groups.#": "1",
+              "security_groups.3814588639": "default",
+              "source_dest_check": "true",
+              "subnet_id": "subnet-4879292d",
+              "tags.%": "2",
+              "tags.KubernetesCluster": "hongkliu-ocp",
+              "tags.Name": "hongkliu-tf-master-1",
+              "tenancy": "default",
+              "volume_tags.%": "0",
+              "vpc_security_group_ids.#": "1",
+              "vpc_security_group_ids.1890758889": "sg-5c5ace38"
+            },
+            "meta": {
+              "e2bfb730-ecaa-11e6-8f88-34363bc7c4c0": {
+                "create": 600000000000,
+                "delete": 1200000000000,
+                "update": 600000000000
+              },
+              "schema_version": "1"
+            },
+            "tainted": false
+          },
+          "deposed": [],
+          "provider": "provider.aws"
+        }
+      },
+      "depends_on": []
+    }
+  ]
+}
