@@ -3,11 +3,14 @@
 
 package proto
 
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
+import timestamp "github.com/golang/protobuf/ptypes/timestamp"
+
 import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
-	math "math"
+	context "golang.org/x/net/context"
+	grpc "google.golang.org/grpc"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -34,7 +37,6 @@ var Person_PhoneType_name = map[int32]string{
 	1: "HOME",
 	2: "WORK",
 }
-
 var Person_PhoneType_value = map[string]int32{
 	"MOBILE": 0,
 	"HOME":   1,
@@ -44,9 +46,8 @@ var Person_PhoneType_value = map[string]int32{
 func (x Person_PhoneType) String() string {
 	return proto.EnumName(Person_PhoneType_name, int32(x))
 }
-
 func (Person_PhoneType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_60611035c6a27eb4, []int{0, 0}
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{0, 0}
 }
 
 type Person struct {
@@ -64,17 +65,16 @@ func (m *Person) Reset()         { *m = Person{} }
 func (m *Person) String() string { return proto.CompactTextString(m) }
 func (*Person) ProtoMessage()    {}
 func (*Person) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60611035c6a27eb4, []int{0}
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{0}
 }
-
 func (m *Person) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Person.Unmarshal(m, b)
 }
 func (m *Person) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Person.Marshal(b, m, deterministic)
 }
-func (m *Person) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Person.Merge(m, src)
+func (dst *Person) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Person.Merge(dst, src)
 }
 func (m *Person) XXX_Size() int {
 	return xxx_messageInfo_Person.Size(m)
@@ -132,17 +132,16 @@ func (m *Person_PhoneNumber) Reset()         { *m = Person_PhoneNumber{} }
 func (m *Person_PhoneNumber) String() string { return proto.CompactTextString(m) }
 func (*Person_PhoneNumber) ProtoMessage()    {}
 func (*Person_PhoneNumber) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60611035c6a27eb4, []int{0, 0}
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{0, 0}
 }
-
 func (m *Person_PhoneNumber) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Person_PhoneNumber.Unmarshal(m, b)
 }
 func (m *Person_PhoneNumber) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Person_PhoneNumber.Marshal(b, m, deterministic)
 }
-func (m *Person_PhoneNumber) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Person_PhoneNumber.Merge(m, src)
+func (dst *Person_PhoneNumber) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Person_PhoneNumber.Merge(dst, src)
 }
 func (m *Person_PhoneNumber) XXX_Size() int {
 	return xxx_messageInfo_Person_PhoneNumber.Size(m)
@@ -179,17 +178,16 @@ func (m *AddressBook) Reset()         { *m = AddressBook{} }
 func (m *AddressBook) String() string { return proto.CompactTextString(m) }
 func (*AddressBook) ProtoMessage()    {}
 func (*AddressBook) Descriptor() ([]byte, []int) {
-	return fileDescriptor_60611035c6a27eb4, []int{1}
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{1}
 }
-
 func (m *AddressBook) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddressBook.Unmarshal(m, b)
 }
 func (m *AddressBook) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AddressBook.Marshal(b, m, deterministic)
 }
-func (m *AddressBook) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddressBook.Merge(m, src)
+func (dst *AddressBook) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddressBook.Merge(dst, src)
 }
 func (m *AddressBook) XXX_Size() int {
 	return xxx_messageInfo_AddressBook.Size(m)
@@ -207,35 +205,193 @@ func (m *AddressBook) GetPeople() []*Person {
 	return nil
 }
 
+// The request message containing the user's name.
+type HelloRequest struct {
+	Id                   int32    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *HelloRequest) Reset()         { *m = HelloRequest{} }
+func (m *HelloRequest) String() string { return proto.CompactTextString(m) }
+func (*HelloRequest) ProtoMessage()    {}
+func (*HelloRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{2}
+}
+func (m *HelloRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HelloRequest.Unmarshal(m, b)
+}
+func (m *HelloRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HelloRequest.Marshal(b, m, deterministic)
+}
+func (dst *HelloRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HelloRequest.Merge(dst, src)
+}
+func (m *HelloRequest) XXX_Size() int {
+	return xxx_messageInfo_HelloRequest.Size(m)
+}
+func (m *HelloRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_HelloRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HelloRequest proto.InternalMessageInfo
+
+func (m *HelloRequest) GetId() int32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+// The response message containing the greetings
+type HelloReply struct {
+	Person               *Person  `protobuf:"bytes,1,opt,name=person,proto3" json:"person,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *HelloReply) Reset()         { *m = HelloReply{} }
+func (m *HelloReply) String() string { return proto.CompactTextString(m) }
+func (*HelloReply) ProtoMessage()    {}
+func (*HelloReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_addressbook_d619b0fe134bf081, []int{3}
+}
+func (m *HelloReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HelloReply.Unmarshal(m, b)
+}
+func (m *HelloReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HelloReply.Marshal(b, m, deterministic)
+}
+func (dst *HelloReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HelloReply.Merge(dst, src)
+}
+func (m *HelloReply) XXX_Size() int {
+	return xxx_messageInfo_HelloReply.Size(m)
+}
+func (m *HelloReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_HelloReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HelloReply proto.InternalMessageInfo
+
+func (m *HelloReply) GetPerson() *Person {
+	if m != nil {
+		return m.Person
+	}
+	return nil
+}
+
 func init() {
-	proto.RegisterEnum("proto.Person_PhoneType", Person_PhoneType_name, Person_PhoneType_value)
 	proto.RegisterType((*Person)(nil), "proto.Person")
 	proto.RegisterType((*Person_PhoneNumber)(nil), "proto.Person.PhoneNumber")
 	proto.RegisterType((*AddressBook)(nil), "proto.AddressBook")
+	proto.RegisterType((*HelloRequest)(nil), "proto.HelloRequest")
+	proto.RegisterType((*HelloReply)(nil), "proto.HelloReply")
+	proto.RegisterEnum("proto.Person_PhoneType", Person_PhoneType_name, Person_PhoneType_value)
 }
 
-func init() { proto.RegisterFile("proto/addressbook.proto", fileDescriptor_60611035c6a27eb4) }
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
 
-var fileDescriptor_60611035c6a27eb4 = []byte{
-	// 309 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x90, 0x41, 0x4b, 0xc3, 0x40,
-	0x10, 0x85, 0x4d, 0x9a, 0x04, 0x3b, 0xd1, 0x52, 0x06, 0xb1, 0xb1, 0x17, 0x43, 0x41, 0x08, 0x14,
-	0x52, 0xac, 0x5e, 0x3d, 0x58, 0x28, 0x28, 0x5a, 0x5b, 0x96, 0x8a, 0x47, 0x49, 0xc8, 0x58, 0x43,
-	0x93, 0xec, 0x92, 0xdd, 0x1e, 0xfa, 0xc3, 0xfc, 0x7f, 0x92, 0xdd, 0x54, 0x14, 0x3c, 0x65, 0xe6,
-	0xcd, 0xc7, 0xcb, 0xdb, 0x07, 0x03, 0x51, 0x73, 0xc5, 0x27, 0x49, 0x96, 0xd5, 0x24, 0x65, 0xca,
-	0xf9, 0x36, 0xd6, 0x0a, 0xba, 0xfa, 0x33, 0xbc, 0xdc, 0x70, 0xbe, 0x29, 0x68, 0xa2, 0xb7, 0x74,
-	0xf7, 0x31, 0x51, 0x79, 0x49, 0x52, 0x25, 0xa5, 0x30, 0xdc, 0xe8, 0xcb, 0x06, 0x6f, 0x45, 0xb5,
-	0xe4, 0x15, 0x22, 0x38, 0x55, 0x52, 0x52, 0x60, 0x85, 0x56, 0xd4, 0x65, 0x7a, 0xc6, 0x1e, 0xd8,
-	0x79, 0x16, 0xd8, 0xa1, 0x15, 0xb9, 0xcc, 0xce, 0x33, 0x3c, 0x03, 0x97, 0xca, 0x24, 0x2f, 0x82,
-	0x8e, 0x86, 0xcc, 0x82, 0xd7, 0xe0, 0x89, 0x4f, 0x5e, 0x91, 0x0c, 0x9c, 0xb0, 0x13, 0xf9, 0xd3,
-	0x0b, 0x63, 0x1e, 0x1b, 0xe3, 0x78, 0xd5, 0xdc, 0x5e, 0x76, 0x65, 0x4a, 0x35, 0x6b, 0x41, 0xbc,
-	0x83, 0x93, 0x22, 0x91, 0xea, 0x7d, 0x27, 0xb2, 0x44, 0x51, 0x16, 0xb8, 0xa1, 0x15, 0xf9, 0xd3,
-	0x61, 0x6c, 0xf2, 0xc6, 0x87, 0xbc, 0xf1, 0xfa, 0x90, 0x97, 0xf9, 0x0d, 0xff, 0x6a, 0xf0, 0x21,
-	0x03, 0xff, 0x97, 0x2b, 0x9e, 0x83, 0x57, 0xe9, 0xa9, 0x0d, 0xdf, 0x6e, 0x38, 0x06, 0x47, 0xed,
-	0x05, 0xe9, 0x07, 0xf4, 0xa6, 0x83, 0x7f, 0x62, 0xad, 0xf7, 0x82, 0x98, 0x86, 0x46, 0x63, 0xe8,
-	0xfe, 0x48, 0x08, 0xe0, 0x2d, 0x96, 0xb3, 0xc7, 0xe7, 0x79, 0xff, 0x08, 0x8f, 0xc1, 0x79, 0x58,
-	0x2e, 0xe6, 0x7d, 0xab, 0x99, 0xde, 0x96, 0xec, 0xa9, 0x6f, 0x8f, 0x6e, 0xc1, 0xbf, 0x37, 0xa5,
-	0xcf, 0x38, 0xdf, 0xe2, 0x15, 0x78, 0x82, 0xb8, 0x28, 0x9a, 0xf6, 0x9a, 0x06, 0x4e, 0xff, 0xfc,
-	0x8a, 0xb5, 0xc7, 0xd4, 0xd3, 0xea, 0xcd, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0xcf, 0x24, 0x5e,
-	0xce, 0xb7, 0x01, 0x00, 0x00,
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// HelloServiceClient is the client API for HelloService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type HelloServiceClient interface {
+	GetPerson(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
+}
+
+type helloServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewHelloServiceClient(cc *grpc.ClientConn) HelloServiceClient {
+	return &helloServiceClient{cc}
+}
+
+func (c *helloServiceClient) GetPerson(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+	out := new(HelloReply)
+	err := c.cc.Invoke(ctx, "/proto.HelloService/GetPerson", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// HelloServiceServer is the server API for HelloService service.
+type HelloServiceServer interface {
+	GetPerson(context.Context, *HelloRequest) (*HelloReply, error)
+}
+
+func RegisterHelloServiceServer(s *grpc.Server, srv HelloServiceServer) {
+	s.RegisterService(&_HelloService_serviceDesc, srv)
+}
+
+func _HelloService_GetPerson_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HelloRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HelloServiceServer).GetPerson(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.HelloService/GetPerson",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HelloServiceServer).GetPerson(ctx, req.(*HelloRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _HelloService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "proto.HelloService",
+	HandlerType: (*HelloServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPerson",
+			Handler:    _HelloService_GetPerson_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/addressbook.proto",
+}
+
+func init() {
+	proto.RegisterFile("proto/addressbook.proto", fileDescriptor_addressbook_d619b0fe134bf081)
+}
+
+var fileDescriptor_addressbook_d619b0fe134bf081 = []byte{
+	// 375 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x51, 0xd1, 0xaa, 0xd3, 0x40,
+	0x10, 0xbd, 0xc9, 0x4d, 0x82, 0x9d, 0x5c, 0x2f, 0x75, 0x15, 0x6f, 0xcc, 0x83, 0x86, 0x80, 0x10,
+	0xb8, 0x90, 0x62, 0xaa, 0x8f, 0x3e, 0x58, 0x28, 0x56, 0xb4, 0xb6, 0xac, 0x15, 0x1f, 0x25, 0x31,
+	0x63, 0x0d, 0xdd, 0x64, 0xd7, 0x64, 0x23, 0xe4, 0xc3, 0xfc, 0x3f, 0xc9, 0xee, 0x56, 0x5a, 0xe8,
+	0xd3, 0xce, 0x9c, 0x39, 0x73, 0xe6, 0xe4, 0x04, 0xee, 0x44, 0xcb, 0x25, 0x9f, 0xe5, 0x65, 0xd9,
+	0x62, 0xd7, 0x15, 0x9c, 0x1f, 0x52, 0x85, 0x10, 0x57, 0x3d, 0xe1, 0x8b, 0x3d, 0xe7, 0x7b, 0x86,
+	0x33, 0xd5, 0x15, 0xfd, 0xcf, 0x99, 0xac, 0x6a, 0xec, 0x64, 0x5e, 0x0b, 0xcd, 0x8b, 0xff, 0xda,
+	0xe0, 0x6d, 0xb1, 0xed, 0x78, 0x43, 0x08, 0x38, 0x4d, 0x5e, 0x63, 0x60, 0x45, 0x56, 0x32, 0xa1,
+	0xaa, 0x26, 0xb7, 0x60, 0x57, 0x65, 0x60, 0x47, 0x56, 0xe2, 0x52, 0xbb, 0x2a, 0xc9, 0x13, 0x70,
+	0xb1, 0xce, 0x2b, 0x16, 0x5c, 0x2b, 0x92, 0x6e, 0xc8, 0x2b, 0xf0, 0xc4, 0x2f, 0xde, 0x60, 0x17,
+	0x38, 0xd1, 0x75, 0xe2, 0x67, 0xcf, 0xb4, 0x78, 0xaa, 0x85, 0xd3, 0xed, 0x38, 0xfb, 0xdc, 0xd7,
+	0x05, 0xb6, 0xd4, 0x10, 0xc9, 0x5b, 0xb8, 0x61, 0x79, 0x27, 0xbf, 0xf7, 0xa2, 0xcc, 0x25, 0x96,
+	0x81, 0x1b, 0x59, 0x89, 0x9f, 0x85, 0xa9, 0xf6, 0x9b, 0x1e, 0xfd, 0xa6, 0xbb, 0xa3, 0x5f, 0xea,
+	0x8f, 0xfc, 0xaf, 0x9a, 0x1e, 0x52, 0xf0, 0x4f, 0x54, 0xc9, 0x53, 0xf0, 0x1a, 0x55, 0x19, 0xf3,
+	0xa6, 0x23, 0xf7, 0xe0, 0xc8, 0x41, 0xa0, 0xfa, 0x80, 0xdb, 0xec, 0xee, 0x82, 0xad, 0xdd, 0x20,
+	0x90, 0x2a, 0x52, 0x7c, 0x0f, 0x93, 0xff, 0x10, 0x01, 0xf0, 0xd6, 0x9b, 0xc5, 0x87, 0x4f, 0xcb,
+	0xe9, 0x15, 0x79, 0x00, 0xce, 0x6a, 0xb3, 0x5e, 0x4e, 0xad, 0xb1, 0xfa, 0xb6, 0xa1, 0x1f, 0xa7,
+	0x76, 0xfc, 0x1a, 0xfc, 0x77, 0x3a, 0xf4, 0x05, 0xe7, 0x07, 0xf2, 0x12, 0x3c, 0x81, 0x5c, 0xb0,
+	0x31, 0xbd, 0x31, 0x81, 0x87, 0x67, 0xa7, 0xa8, 0x19, 0xc6, 0xcf, 0xe1, 0x66, 0x85, 0x8c, 0x71,
+	0x8a, 0xbf, 0x7b, 0xec, 0xa4, 0x89, 0xd7, 0x3a, 0xc6, 0x1b, 0xcf, 0x01, 0xcc, 0x5c, 0xb0, 0x41,
+	0x8b, 0x8e, 0xfb, 0x8a, 0x71, 0x49, 0x74, 0x7c, 0xb3, 0xa5, 0x11, 0xfd, 0x82, 0xed, 0x9f, 0xea,
+	0x07, 0x92, 0x37, 0x30, 0x79, 0x8f, 0xd2, 0xfc, 0xd4, 0xc7, 0x66, 0xe7, 0xf4, 0x6c, 0xf8, 0xe8,
+	0x1c, 0x14, 0x6c, 0x88, 0xaf, 0x0a, 0x4f, 0x61, 0xf3, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x25,
+	0xdd, 0x1b, 0xee, 0x53, 0x02, 0x00, 0x00,
 }

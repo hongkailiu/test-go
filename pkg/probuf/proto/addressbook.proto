@@ -29,3 +29,16 @@ message AddressBook {
   repeated Person people = 1;
 }
 
+service HelloService {
+  rpc GetPerson (HelloRequest) returns (HelloReply) {}
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  int32 id = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  Person person = 1;
+}

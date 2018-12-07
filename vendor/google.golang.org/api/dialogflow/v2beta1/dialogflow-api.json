@@ -815,7 +815,7 @@
                               ],
                               "parameters": {
                                 "name": {
-                                  "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`. The `Context ID` is\nalways converted to lowercase. If `Environment ID` is not specified, we\nassume default 'draft' environment. If `User ID` is not specified, we\nassume default '-' user.",
+                                  "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.\n\nThe `Context ID` is always converted to lowercase, may only contain\ncharacters in a-zA-Z0-9_-% and may be at most 250 bytes long.\n\nIf `Environment ID` is not specified, we assume default 'draft'\nenvironment. If `User ID` is not specified, we assume default '-' user.",
                                   "location": "path",
                                   "pattern": "^projects/[^/]+/agent/environments/[^/]+/users/[^/]+/sessions/[^/]+/contexts/[^/]+$",
                                   "required": true,
@@ -1400,6 +1400,41 @@
                     "https://www.googleapis.com/auth/cloud-platform",
                     "https://www.googleapis.com/auth/dialogflow"
                   ]
+                },
+                "patch": {
+                  "description": "Updates the specified knowledge base.",
+                  "flatPath": "v2beta1/projects/{projectsId}/agent/knowledgeBases/{knowledgeBasesId}",
+                  "httpMethod": "PATCH",
+                  "id": "dialogflow.projects.agent.knowledgeBases.patch",
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "parameters": {
+                    "name": {
+                      "description": "The knowledge base resource name.\nThe name must be empty when creating a knowledge base.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base ID\u003e`.",
+                      "location": "path",
+                      "pattern": "^projects/[^/]+/agent/knowledgeBases/[^/]+$",
+                      "required": true,
+                      "type": "string"
+                    },
+                    "updateMask": {
+                      "description": "Optional. Not specified means `update all`.\nCurrently, only `display_name` can be updated, an InvalidArgument will be\nreturned for attempting to update other fields.",
+                      "format": "google-fieldmask",
+                      "location": "query",
+                      "type": "string"
+                    }
+                  },
+                  "path": "v2beta1/{+name}",
+                  "request": {
+                    "$ref": "GoogleCloudDialogflowV2beta1KnowledgeBase"
+                  },
+                  "response": {
+                    "$ref": "GoogleCloudDialogflowV2beta1KnowledgeBase"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform",
+                    "https://www.googleapis.com/auth/dialogflow"
+                  ]
                 }
               },
               "resources": {
@@ -1517,6 +1552,70 @@
                       "path": "v2beta1/{+parent}/documents",
                       "response": {
                         "$ref": "GoogleCloudDialogflowV2beta1ListDocumentsResponse"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform",
+                        "https://www.googleapis.com/auth/dialogflow"
+                      ]
+                    },
+                    "patch": {
+                      "description": "Updates the specified document.\nOperation \u003cresponse: Document,\n           metadata: KnowledgeOperationMetadata\u003e",
+                      "flatPath": "v2beta1/projects/{projectsId}/agent/knowledgeBases/{knowledgeBasesId}/documents/{documentsId}",
+                      "httpMethod": "PATCH",
+                      "id": "dialogflow.projects.agent.knowledgeBases.documents.patch",
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "parameters": {
+                        "name": {
+                          "description": "The document resource name.\nThe name must be empty when creating a document.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base\nID\u003e/documents/\u003cDocument ID\u003e`.",
+                          "location": "path",
+                          "pattern": "^projects/[^/]+/agent/knowledgeBases/[^/]+/documents/[^/]+$",
+                          "required": true,
+                          "type": "string"
+                        },
+                        "updateMask": {
+                          "description": "Optional. Not specified means `update all`.\nCurrently, only `display_name` can be updated, an InvalidArgument will be\nreturned for attempting to update other fields.",
+                          "format": "google-fieldmask",
+                          "location": "query",
+                          "type": "string"
+                        }
+                      },
+                      "path": "v2beta1/{+name}",
+                      "request": {
+                        "$ref": "GoogleCloudDialogflowV2beta1Document"
+                      },
+                      "response": {
+                        "$ref": "GoogleLongrunningOperation"
+                      },
+                      "scopes": [
+                        "https://www.googleapis.com/auth/cloud-platform",
+                        "https://www.googleapis.com/auth/dialogflow"
+                      ]
+                    },
+                    "reload": {
+                      "description": "Reloads the specified document from its specified source, content_uri or\ncontent. The previously loaded content of the document will be deleted.\nNote: Even when the content of the document has not changed, there still\nmay be side effects because of internal implementation changes.\nOperation \u003cresponse: Document,\n           metadata: KnowledgeOperationMetadata\u003e",
+                      "flatPath": "v2beta1/projects/{projectsId}/agent/knowledgeBases/{knowledgeBasesId}/documents/{documentsId}:reload",
+                      "httpMethod": "POST",
+                      "id": "dialogflow.projects.agent.knowledgeBases.documents.reload",
+                      "parameterOrder": [
+                        "name"
+                      ],
+                      "parameters": {
+                        "name": {
+                          "description": "The name of the document to reload.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base\nID\u003e/documents/\u003cDocument ID\u003e`",
+                          "location": "path",
+                          "pattern": "^projects/[^/]+/agent/knowledgeBases/[^/]+/documents/[^/]+$",
+                          "required": true,
+                          "type": "string"
+                        }
+                      },
+                      "path": "v2beta1/{+name}:reload",
+                      "request": {
+                        "$ref": "GoogleCloudDialogflowV2beta1ReloadDocumentRequest"
+                      },
+                      "response": {
+                        "$ref": "GoogleLongrunningOperation"
                       },
                       "scopes": [
                         "https://www.googleapis.com/auth/cloud-platform",
@@ -1716,7 +1815,7 @@
                       ],
                       "parameters": {
                         "name": {
-                          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`. The `Context ID` is\nalways converted to lowercase. If `Environment ID` is not specified, we\nassume default 'draft' environment. If `User ID` is not specified, we\nassume default '-' user.",
+                          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.\n\nThe `Context ID` is always converted to lowercase, may only contain\ncharacters in a-zA-Z0-9_-% and may be at most 250 bytes long.\n\nIf `Environment ID` is not specified, we assume default 'draft'\nenvironment. If `User ID` is not specified, we assume default '-' user.",
                           "location": "path",
                           "pattern": "^projects/[^/]+/agent/sessions/[^/]+/contexts/[^/]+$",
                           "required": true,
@@ -2068,7 +2167,7 @@
                           ],
                           "parameters": {
                             "name": {
-                              "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`. The `Context ID` is\nalways converted to lowercase. If `Environment ID` is not specified, we\nassume default 'draft' environment. If `User ID` is not specified, we\nassume default '-' user.",
+                              "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.\n\nThe `Context ID` is always converted to lowercase, may only contain\ncharacters in a-zA-Z0-9_-% and may be at most 250 bytes long.\n\nIf `Environment ID` is not specified, we assume default 'draft'\nenvironment. If `User ID` is not specified, we assume default '-' user.",
                               "location": "path",
                               "pattern": "^projects/[^/]+/environments/[^/]+/users/[^/]+/conversations/[^/]+/contexts/[^/]+$",
                               "required": true,
@@ -2225,6 +2324,41 @@
                 "https://www.googleapis.com/auth/cloud-platform",
                 "https://www.googleapis.com/auth/dialogflow"
               ]
+            },
+            "patch": {
+              "description": "Updates the specified knowledge base.",
+              "flatPath": "v2beta1/projects/{projectsId}/knowledgeBases/{knowledgeBasesId}",
+              "httpMethod": "PATCH",
+              "id": "dialogflow.projects.knowledgeBases.patch",
+              "parameterOrder": [
+                "name"
+              ],
+              "parameters": {
+                "name": {
+                  "description": "The knowledge base resource name.\nThe name must be empty when creating a knowledge base.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base ID\u003e`.",
+                  "location": "path",
+                  "pattern": "^projects/[^/]+/knowledgeBases/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                },
+                "updateMask": {
+                  "description": "Optional. Not specified means `update all`.\nCurrently, only `display_name` can be updated, an InvalidArgument will be\nreturned for attempting to update other fields.",
+                  "format": "google-fieldmask",
+                  "location": "query",
+                  "type": "string"
+                }
+              },
+              "path": "v2beta1/{+name}",
+              "request": {
+                "$ref": "GoogleCloudDialogflowV2beta1KnowledgeBase"
+              },
+              "response": {
+                "$ref": "GoogleCloudDialogflowV2beta1KnowledgeBase"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-platform",
+                "https://www.googleapis.com/auth/dialogflow"
+              ]
             }
           },
           "resources": {
@@ -2347,6 +2481,70 @@
                     "https://www.googleapis.com/auth/cloud-platform",
                     "https://www.googleapis.com/auth/dialogflow"
                   ]
+                },
+                "patch": {
+                  "description": "Updates the specified document.\nOperation \u003cresponse: Document,\n           metadata: KnowledgeOperationMetadata\u003e",
+                  "flatPath": "v2beta1/projects/{projectsId}/knowledgeBases/{knowledgeBasesId}/documents/{documentsId}",
+                  "httpMethod": "PATCH",
+                  "id": "dialogflow.projects.knowledgeBases.documents.patch",
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "parameters": {
+                    "name": {
+                      "description": "The document resource name.\nThe name must be empty when creating a document.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base\nID\u003e/documents/\u003cDocument ID\u003e`.",
+                      "location": "path",
+                      "pattern": "^projects/[^/]+/knowledgeBases/[^/]+/documents/[^/]+$",
+                      "required": true,
+                      "type": "string"
+                    },
+                    "updateMask": {
+                      "description": "Optional. Not specified means `update all`.\nCurrently, only `display_name` can be updated, an InvalidArgument will be\nreturned for attempting to update other fields.",
+                      "format": "google-fieldmask",
+                      "location": "query",
+                      "type": "string"
+                    }
+                  },
+                  "path": "v2beta1/{+name}",
+                  "request": {
+                    "$ref": "GoogleCloudDialogflowV2beta1Document"
+                  },
+                  "response": {
+                    "$ref": "GoogleLongrunningOperation"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform",
+                    "https://www.googleapis.com/auth/dialogflow"
+                  ]
+                },
+                "reload": {
+                  "description": "Reloads the specified document from its specified source, content_uri or\ncontent. The previously loaded content of the document will be deleted.\nNote: Even when the content of the document has not changed, there still\nmay be side effects because of internal implementation changes.\nOperation \u003cresponse: Document,\n           metadata: KnowledgeOperationMetadata\u003e",
+                  "flatPath": "v2beta1/projects/{projectsId}/knowledgeBases/{knowledgeBasesId}/documents/{documentsId}:reload",
+                  "httpMethod": "POST",
+                  "id": "dialogflow.projects.knowledgeBases.documents.reload",
+                  "parameterOrder": [
+                    "name"
+                  ],
+                  "parameters": {
+                    "name": {
+                      "description": "The name of the document to reload.\nFormat: `projects/\u003cProject ID\u003e/knowledgeBases/\u003cKnowledge Base\nID\u003e/documents/\u003cDocument ID\u003e`",
+                      "location": "path",
+                      "pattern": "^projects/[^/]+/knowledgeBases/[^/]+/documents/[^/]+$",
+                      "required": true,
+                      "type": "string"
+                    }
+                  },
+                  "path": "v2beta1/{+name}:reload",
+                  "request": {
+                    "$ref": "GoogleCloudDialogflowV2beta1ReloadDocumentRequest"
+                  },
+                  "response": {
+                    "$ref": "GoogleLongrunningOperation"
+                  },
+                  "scopes": [
+                    "https://www.googleapis.com/auth/cloud-platform",
+                    "https://www.googleapis.com/auth/dialogflow"
+                  ]
                 }
               }
             }
@@ -2385,7 +2583,7 @@
       }
     }
   },
-  "revision": "20181022",
+  "revision": "20181130",
   "rootUrl": "https://dialogflow.googleapis.com/",
   "schemas": {
     "GoogleCloudDialogflowV2BatchUpdateEntityTypesResponse": {
@@ -2426,7 +2624,7 @@
           "type": "integer"
         },
         "name": {
-          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.",
+          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.\n\nThe `Context ID` is always converted to lowercase, may only contain\ncharacters in [a-zA-Z0-9_-%] and may be at most 250 bytes long.",
           "type": "string"
         },
         "parameters": {
@@ -2645,7 +2843,7 @@
           "type": "string"
         },
         "priority": {
-          "description": "Optional. The priority of this intent. Higher numbers represent higher\npriorities. Zero or negative numbers mean that the intent is disabled.",
+          "description": "Optional. The priority of this intent. Higher numbers represent higher\npriorities. If this is zero or unspecified, we use the default\npriority 500000.\n\nNegative numbers mean that the intent is disabled.",
           "format": "int32",
           "type": "integer"
         },
@@ -3608,7 +3806,7 @@
           "type": "integer"
         },
         "name": {
-          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`. The `Context ID` is\nalways converted to lowercase. If `Environment ID` is not specified, we\nassume default 'draft' environment. If `User ID` is not specified, we\nassume default '-' user.",
+          "description": "Required. The unique identifier of the context. Format:\n`projects/\u003cProject ID\u003e/agent/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`,\nor `projects/\u003cProject ID\u003e/agent/environments/\u003cEnvironment ID\u003e/users/\u003cUser\nID\u003e/sessions/\u003cSession ID\u003e/contexts/\u003cContext ID\u003e`.\n\nThe `Context ID` is always converted to lowercase, may only contain\ncharacters in a-zA-Z0-9_-% and may be at most 250 bytes long.\n\nIf `Environment ID` is not specified, we assume default 'draft'\nenvironment. If `User ID` is not specified, we assume default '-' user.",
           "type": "string"
         },
         "parameters": {
@@ -4091,7 +4289,7 @@
           "type": "string"
         },
         "priority": {
-          "description": "Optional. The priority of this intent. Higher numbers represent higher\npriorities. Zero or negative numbers mean that the intent is disabled.",
+          "description": "Optional. The priority of this intent. Higher numbers represent higher\npriorities. If this is zero or unspecified, we use the default\npriority 500000.\n\nNegative numbers mean that the intent is disabled.",
           "format": "int32",
           "type": "integer"
         },
@@ -5118,6 +5316,12 @@
           "type": "string"
         }
       },
+      "type": "object"
+    },
+    "GoogleCloudDialogflowV2beta1ReloadDocumentRequest": {
+      "description": "Request message for Documents.ReloadDocument.",
+      "id": "GoogleCloudDialogflowV2beta1ReloadDocumentRequest",
+      "properties": {},
       "type": "object"
     },
     "GoogleCloudDialogflowV2beta1RestoreAgentRequest": {
