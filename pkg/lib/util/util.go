@@ -2,6 +2,7 @@ package util
 
 import (
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -15,4 +16,13 @@ func PanicIfError(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+// Getenv returns value of env. var if it is defined; defaultValue otherwise.
+func Getenv(key, defaultValue string) string {
+	result := os.Getenv(key)
+	if result == "" {
+		return defaultValue
+	}
+	return result
 }

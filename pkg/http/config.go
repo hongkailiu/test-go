@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/securecookie"
+	"github.com/hongkailiu/test-go/pkg/lib/util"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,11 +29,12 @@ func loadConfig() *config {
 	} else {
 		config.sessionKey = newSessionKey
 	}
-	config.ghClientID = os.Getenv("gh_client_id")
-	config.ghClientSecret = os.Getenv("gh_client_secret")
-	config.ggClientID = os.Getenv("gg_client_id")
-	config.ggClientSecret = os.Getenv("gg_client_secret")
-	config.ggRedirectURL = os.Getenv("gg_redirect_url")
+
+	config.ghClientID = util.Getenv("gh_client_id", "gh_client_id")
+	config.ghClientSecret = util.Getenv("gh_client_secret", "gh_client_secret")
+	config.ggClientID = util.Getenv("gg_client_id", "gg_client_id")
+	config.ggClientSecret = util.Getenv("gg_client_secret", "gg_client_secret")
+	config.ggRedirectURL = util.Getenv("gg_redirect_url", "gg_redirect_url")
 
 	if config.ggRedirectURL == "" {
 		config.ggRedirectURL = "http://127.0.0.1:8080/google_oauth_cb"
@@ -41,10 +43,7 @@ func loadConfig() *config {
 }
 
 func getSessionKey() ([]byte, error) {
-	key := os.Getenv("session_key")
-	if key == "" {
-		return nil, fmt.Errorf("env. var. session_key not found")
-	}
+	key := util.Getenv("session_key", "session_key")
 	trimKey := strings.TrimSuffix(strings.TrimPrefix(key, "["), "]")
 	bytes := strings.Split(trimKey, " ")
 	if len(bytes) != 32 {
