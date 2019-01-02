@@ -70,6 +70,11 @@ func load(path string) ([]Group, []Host, error) {
 	glusterGroup := Group{Name: "glusterfs", Vars: map[string]interface{}{}, Children: []string{}}
 	var hosts []Host
 	var firstNodeHost *Host
+	var crio = false
+	if strings.ToLower(os.Getenv("crio")) == "true" {
+		crio = true
+	}
+
 	for k, v := range tfState.Modules[0].Resources {
 		log.WithFields(log.Fields{"k": k, "v": v}).Debug("resource")
 
@@ -91,26 +96,26 @@ func load(path string) ([]Group, []Host, error) {
 		if strings.Contains(k, "master") {
 			mastersGroup.Hosts = append(mastersGroup.Hosts, h.Name)
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
-			h.VarMap["openshift_node_group_name"] = "node-config-master"
+			h.VarMap["openshift_node_group_name"] = getOpenshiftNodeGroupName("node-config-master", crio)
 			h.VarMap["openshift_schedulable"] = true
 		}
 		if strings.Contains(k, "infra") {
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
-			h.VarMap["openshift_node_group_name"] = "node-config-infra"
+			h.VarMap["openshift_node_group_name"] = getOpenshiftNodeGroupName("node-config-infra", crio)
 			if osev3Group.Vars["openshift_master_default_subdomain"] == nil {
 				osev3Group.Vars["openshift_master_default_subdomain"] = fmt.Sprintf("apps.%s.xip.io", h.PublicIP)
 			}
 		}
 		if strings.Contains(k, "worker") || strings.Contains(k, "node") {
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
-			h.VarMap["openshift_node_group_name"] = "node-config-compute"
+			h.VarMap["openshift_node_group_name"] = getOpenshiftNodeGroupName("node-config-compute", crio)
 			//h.VarMap["k001"] = 23
 			//h.VarMap["k002"] = 23.23
 		}
 		if strings.Contains(k, "gluster") {
 			nodesGroup.Hosts = append(nodesGroup.Hosts, h.Name)
 			glusterGroup.Hosts = append(glusterGroup.Hosts, h.Name)
-			h.VarMap["openshift_node_group_name"] = "node-config-compute"
+			h.VarMap["openshift_node_group_name"] = getOpenshiftNodeGroupName("node-config-compute", crio)
 			h.VarMap["glusterfs_devices"] = `'["/dev/nvme2n1"]'`
 		}
 
@@ -122,7 +127,7 @@ func load(path string) ([]Group, []Host, error) {
 
 	if len(nodesGroup.Hosts) == 1 {
 		log.WithFields(log.Fields{"firstNodeHost": firstNodeHost}).Debug("===")
-		firstNodeHost.VarMap["openshift_node_group_name"] = "node-config-all-in-one"
+		firstNodeHost.VarMap["openshift_node_group_name"] = getOpenshiftNodeGroupName("node-config-all-in-one", crio)
 		osev3Group.Vars["openshift_master_default_subdomain"] = fmt.Sprintf("apps.%s.xip.io", firstNodeHost.PublicIP)
 	}
 
@@ -140,6 +145,13 @@ func load(path string) ([]Group, []Host, error) {
 	}
 
 	return groups, hosts, nil
+}
+
+func getOpenshiftNodeGroupName(name string, crio bool) string {
+	if crio {
+		return fmt.Sprintf("%s-crio", name)
+	}
+	return name
 }
 
 // DoList answers `--list` flag
