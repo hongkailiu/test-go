@@ -22,7 +22,7 @@ script:
 #  - make test-flexy
 #  - make code-gen
 #  - make build-code-gen
-#  - make build-http
+  - make build-http
 #  - make test-pb
   - make test-lc
 #  - make test-others
