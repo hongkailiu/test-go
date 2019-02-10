@@ -7,7 +7,6 @@ go:
 
 before_install:
   - go get github.com/onsi/ginkgo/ginkgo
-#  - curl https://glide.sh/get | sh
   - cp test_files/flexy/unit.test.files/gce.json /tmp/
 
 script:
@@ -15,23 +14,21 @@ script:
   - go version
   - ginkgo version
   - docker --version
-#  - glide --version
-#  - glide up -v
-  - make build-k8s
-  - make build-oc
-  - make build-swagger
-  - make build-others
-  - make build-flexy
-  - make test-flexy
-  - make code-gen
-  - make build-code-gen
-  - make build-http
-  - make test-pb
+#  - make build-k8s
+#  - make build-oc
+#  - make build-swagger
+#  - make build-others
+#  - make build-flexy
+#  - make test-flexy
+#  - make code-gen
+#  - make build-code-gen
+#  - make build-http
+#  - make test-pb
   - make test-lc
-  - make test-others
-  - make gen-coverage
-  - make gen-images
-  - make build-ocptf
+#  - make test-others
+#  - make gen-coverage
+#  - make gen-images
+#  - make build-ocptf
 
 after_success:
   - make coveralls
