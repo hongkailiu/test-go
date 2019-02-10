@@ -38,7 +38,7 @@ func formatForMan(wr io.Writer, s string) {
 
 func writeManPageOptions(wr io.Writer, grp *Group) {
 	grp.eachGroup(func(group *Group) {
-		if !group.showInHelp() {
+		if group.Hidden || len(group.options) == 0 {
 			return
 		}
 
@@ -54,7 +54,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 		}
 
 		for _, opt := range group.options {
-			if !opt.showInHelp() {
+			if !opt.canCli() || opt.Hidden {
 				continue
 			}
 
@@ -83,11 +83,11 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 
 			if len(opt.Default) != 0 {
 				fmt.Fprintf(wr, " <default: \\fI%s\\fR>", manQuote(strings.Join(quoteV(opt.Default), ", ")))
-			} else if len(opt.EnvKeyWithNamespace()) != 0 {
+			} else if len(opt.EnvDefaultKey) != 0 {
 				if runtime.GOOS == "windows" {
-					fmt.Fprintf(wr, " <default: \\fI%%%s%%\\fR>", manQuote(opt.EnvKeyWithNamespace()))
+					fmt.Fprintf(wr, " <default: \\fI%%%s%%\\fR>", manQuote(opt.EnvDefaultKey))
 				} else {
-					fmt.Fprintf(wr, " <default: \\fI$%s\\fR>", manQuote(opt.EnvKeyWithNamespace()))
+					fmt.Fprintf(wr, " <default: \\fI$%s\\fR>", manQuote(opt.EnvDefaultKey))
 				}
 			}
 
@@ -148,12 +148,12 @@ func writeManPageCommand(wr io.Writer, name string, root *Command, command *Comm
 	var usage string
 	if us, ok := command.data.(Usage); ok {
 		usage = us.Usage()
-	} else if command.hasHelpOptions() {
+	} else if command.hasCliOptions() {
 		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
 	}
 
 	var pre string
-	if root.hasHelpOptions() {
+	if root.hasCliOptions() {
 		pre = fmt.Sprintf("%s [OPTIONS] %s", root.Name, command.Name)
 	} else {
 		pre = fmt.Sprintf("%s %s", root.Name, command.Name)
