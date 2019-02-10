@@ -28,7 +28,7 @@ script:
 #  - make test-others
 #  - make gen-coverage
 #  - make gen-images
-#  - make build-ocptf
+  - make build-ocptf
 
 after_success:
   - make coveralls
