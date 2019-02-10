@@ -6,9 +6,6 @@
 # required = ["github.com/user/thing/cmd/thing"]
 # ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
 #
-[[constraint]]
-  name = "k8s.io/client-go"
-  version = "kubernetes-1.12.1"
 #
 # [[constraint]]
 #   name = "github.com/user/project2"
@@ -28,3 +25,17 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "k8s.io/client-go"
+  version = "kubernetes-1.12.1"
+
+[[constraint]]
+  name = "github.com/aws/aws-sdk-go-v2"
+  version = "0.7.0"
+
+###hit the problem for pkg/flexy
+###https://github.com/golang/dep/issues/1799#issuecomment-381190029
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"

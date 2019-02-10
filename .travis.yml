@@ -18,8 +18,8 @@ script:
   - make build-oc
 #  - make build-swagger
 #  - make build-others
-#  - make build-flexy
-#  - make test-flexy
+  - make build-flexy
+  - make test-flexy
 #  - make code-gen
 #  - make build-code-gen
   - make build-http
