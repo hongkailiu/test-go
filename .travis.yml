@@ -14,8 +14,8 @@ script:
   - go version
   - ginkgo version
   - docker --version
-#  - make build-k8s
-#  - make build-oc
+  - make build-k8s
+  - make build-oc
 #  - make build-swagger
 #  - make build-others
 #  - make build-flexy
