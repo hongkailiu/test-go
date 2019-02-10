@@ -20,8 +20,8 @@ script:
   - make build-others
   - make build-flexy
   - make test-flexy
-#  - make code-gen
-#  - make build-code-gen
+  - make code-gen
+  - make build-code-gen
   - make build-http
 #  - make test-pb
   - make test-lc
