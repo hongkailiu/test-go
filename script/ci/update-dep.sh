@@ -1,4 +1,5 @@
 #!/bin/bash
 
 
-glide update --strip-vendor
+#glide update --strip-vendor
+dep ensure
