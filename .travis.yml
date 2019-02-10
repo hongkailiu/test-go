@@ -23,9 +23,9 @@ script:
   - make code-gen
   - make build-code-gen
   - make build-http
-#  - make test-pb
+  - make test-pb
   - make test-lc
-#  - make test-others
+  - make test-others
 #  - make gen-coverage
 #  - make gen-images
   - make build-ocptf
