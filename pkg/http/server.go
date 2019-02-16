@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -110,7 +111,13 @@ func Run() {
 
 	r.GET("/", func(c *gin.Context) {
 		infoP := getInfo()
-		c.JSON(http.StatusOK, *infoP)
+		contentType := c.ContentType()
+		log.WithFields(log.Fields{"c.ContentType()": contentType}).Debug("root path")
+		if strings.Contains(contentType, "yaml") {
+			c.YAML(http.StatusOK, *infoP)
+		} else {
+			c.JSON(http.StatusOK, *infoP)
+		}
 	})
 
 	r.GET("/metrics", func(c *gin.Context) {
