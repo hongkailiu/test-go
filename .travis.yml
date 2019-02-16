@@ -29,6 +29,7 @@ script:
   - make gen-coverage
   - make gen-images
   - make build-ocptf
+  - make build-ocpsanity
 
 after_success:
   - make coveralls

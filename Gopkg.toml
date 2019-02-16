@@ -39,3 +39,7 @@
   go-tests = true
   unused-packages = true
 
+
+[[constraint]]
+  name = "github.com/openshift/client-go"
+  version = "3.9.0"

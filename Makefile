@@ -115,3 +115,7 @@ gen-images:
 .PHONY : build-ocptf
 build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
+
+.PHONY : build-ocpsanity
+build-ocpsanity:
+	go build -o ./build/ocpsanity ./cmd/ocpsanity/

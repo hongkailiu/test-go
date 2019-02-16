@@ -601,19 +601,24 @@
   version = "v1.4.3"
 
 [[projects]]
-  digest = "1:ee49f5d3fab9b29b3922d7239ff0b163fa12811bc2aeb8100fbed207a8fd70ea"
+  digest = "1:38962d419c88079bb33a9120d0c760d432cafcdec448614363e3310f30dd815d"
   name = "github.com/openshift/api"
-  packages = ["build/v1"]
+  packages = [
+    "build/v1",
+    "project/v1",
+  ]
   pruneopts = "UT"
   revision = "0d921e363e951d89f583292c60d013c318df64dc"
   version = "v3.9.0"
 
 [[projects]]
-  digest = "1:c9fc6ea72769c276f3c7b42fff2fcd73dd767e14b58533c88e7074cc554057e7"
+  digest = "1:b7c706c2a5444f469ef380d9881415eb2fb5938ec2debeba172a9a3b161eb811"
   name = "github.com/openshift/client-go"
   packages = [
     "build/clientset/versioned/scheme",
     "build/clientset/versioned/typed/build/v1",
+    "project/clientset/versioned/scheme",
+    "project/clientset/versioned/typed/project/v1",
   ]
   pruneopts = "UT"
   revision = "1fa528d3be060e4c7178eb69e76d37cf7e699e3c"
@@ -1209,6 +1214,7 @@
     "github.com/onsi/gomega",
     "github.com/openshift/api/build/v1",
     "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1",
+    "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/satori/go.uuid",

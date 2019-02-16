@@ -26,3 +26,10 @@ func Getenv(key, defaultValue string) string {
 	}
 	return result
 }
+
+func HomeDir() string {
+	if h := os.Getenv("HOME"); h != "" {
+		return h
+	}
+	return os.Getenv("USERPROFILE") // windows
+}
