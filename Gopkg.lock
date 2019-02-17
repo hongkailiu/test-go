@@ -601,9 +601,10 @@
   version = "v1.4.3"
 
 [[projects]]
-  digest = "1:38962d419c88079bb33a9120d0c760d432cafcdec448614363e3310f30dd815d"
+  digest = "1:c9588b8098125fb0c77b2943f4c31bd01856095241755f6abb183015d7ff2f7f"
   name = "github.com/openshift/api"
   packages = [
+    "apps/v1",
     "build/v1",
     "project/v1",
   ]
@@ -612,9 +613,11 @@
   version = "v3.9.0"
 
 [[projects]]
-  digest = "1:b7c706c2a5444f469ef380d9881415eb2fb5938ec2debeba172a9a3b161eb811"
+  digest = "1:3413060c5c2acc7eb659b15829ed9a368887e081a9cf477fff625a2fa7ee2a6d"
   name = "github.com/openshift/client-go"
   packages = [
+    "apps/clientset/versioned/scheme",
+    "apps/clientset/versioned/typed/apps/v1",
     "build/clientset/versioned/scheme",
     "build/clientset/versioned/typed/build/v1",
     "project/clientset/versioned/scheme",
@@ -1213,6 +1216,7 @@
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/openshift/api/build/v1",
+    "github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1",
     "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1",
     "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1",
     "github.com/prometheus/client_golang/prometheus",
