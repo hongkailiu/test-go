@@ -10,6 +10,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	// VERSION of the ocptf cmd
+	VERSION = "0.0.6"
+)
+
 var (
 	oc *ocutil.CLI
 )

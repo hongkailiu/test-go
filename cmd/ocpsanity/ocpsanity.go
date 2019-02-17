@@ -8,14 +8,13 @@ import (
 
 	"github.com/hongkailiu/test-go/pkg/lib/util"
 	"github.com/hongkailiu/test-go/pkg/ocpsanity"
-	"github.com/hongkailiu/test-go/pkg/ocptf"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
 	app = kingpin.New("ocp-sanity", "A script to check sanity of OCP installation.")
-	_   = app.Version(ocptf.VERSION).HelpFlag.Short('h')
+	_   = app.Version(ocpsanity.VERSION).HelpFlag.Short('h')
 )
 
 func init() {

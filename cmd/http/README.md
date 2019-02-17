@@ -48,3 +48,10 @@ $ buildah bud --format=docker -f test_files/docker/Dockerfile.http.txt -t quay.i
 $ buildah push --creds=hongkailiu d58cbf2a06aa docker://quay.io/hongkailiu/test-go:http-0.0.1
 
 ```
+
+## Deployment
+
+```
+$ curl https://web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com
+
+```
