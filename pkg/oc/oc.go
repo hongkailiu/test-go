@@ -3,19 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
+
 	"github.com/hongkailiu/test-go/pkg/lib/util"
 	"github.com/openshift/api/build/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
-	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"os"
-	"path/filepath"
-	"strconv"
-	"time"
 )
 
 func main() {

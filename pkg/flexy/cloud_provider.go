@@ -2,14 +2,14 @@ package flexy
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"google.golang.org/api/compute/v1"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/api/compute/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 const (

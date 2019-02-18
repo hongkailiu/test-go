@@ -1,10 +1,11 @@
 package logger
 
 import (
+	"os"
+
 	"github.com/sirupsen/logrus"
 	lSyslog "github.com/sirupsen/logrus/hooks/syslog"
 	"log/syslog"
-	"os"
 )
 
 // Logger with syslog hook
