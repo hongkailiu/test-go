@@ -6,13 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hongkailiu/test-go/pkg/lib/logger"
 	"github.com/hongkailiu/test-go/pkg/lib/util"
+	log "github.com/sirupsen/logrus"
 )
 
-var (
-	log = logger.Logger
-)
 
 func worker(index int, linkChan chan job, resultChan chan result, wg *sync.WaitGroup) {
 	// Decreasing internal counter for wait-group as soon as goroutine finishes
