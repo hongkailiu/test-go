@@ -697,6 +697,14 @@
   revision = "f8d8b3f739bd91a7c0462cb55235ef63c79c9abc"
 
 [[projects]]
+  digest = "1:1a23fdd843129ef761ffe7651bc5fe7c5b09fbe933e92783ab06cc11c37b7b37"
+  name = "github.com/rifflock/lfshook"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b9218ef580f59a2e72dad1aa33d660150445d05a"
+  version = "v2.4"
+
+[[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
   name = "github.com/satori/go.uuid"
   packages = ["."]
@@ -1221,6 +1229,7 @@
     "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
+    "github.com/rifflock/lfshook",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/sirupsen/logrus/hooks/syslog",
@@ -1237,6 +1246,7 @@
     "google.golang.org/grpc/reflection",
     "gopkg.in/alecthomas/kingpin.v2",
     "gopkg.in/yaml.v2",
+    "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/labels",

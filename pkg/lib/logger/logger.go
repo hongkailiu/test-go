@@ -1,6 +1,6 @@
 package logger
 
-import (
+/*import (
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -23,4 +23,35 @@ func init() {
 	}
 
 	Logger.Hooks.Add(hook)
+}*/
+
+import (
+	"github.com/rifflock/lfshook"
+	"github.com/sirupsen/logrus"
+)
+
+var (
+	logger *logrus.Logger
+)
+
+func NewLogger(logFilePath string) *logrus.Logger {
+	if logger != nil {
+		return logger
+	}
+
+	pathMap := lfshook.PathMap{
+		logrus.InfoLevel:  logFilePath,
+		logrus.ErrorLevel: logFilePath,
+	}
+
+	logger = logrus.New()
+
+	logger.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+
+	logger.Hooks.Add(lfshook.NewHook(
+		pathMap,
+		//&logrus.JSONFormatter{},
+		&logrus.TextFormatter{},
+	))
+	return logger
 }

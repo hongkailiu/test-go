@@ -1,10 +1,12 @@
 package ocpsanity
 
 import (
-	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/hongkailiu/test-go/pkg/lib/logger"
 	"github.com/hongkailiu/test-go/pkg/ocutil"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +18,9 @@ const (
 )
 
 var (
-	oc *ocutil.CLI
+	oc  *ocutil.CLI
+	LogFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
+	log = logger.NewLogger(LogFilePath)
 )
 
 // SanitySummary represents sanity summary
@@ -59,7 +63,7 @@ func StartSanityCheck(configPath string) error {
 	for _, project := range projectList.Items {
 		projectSummary := ProjectSummary{}
 		projectSummary.ProjectName = project.Name
-		log.WithFields(log.Fields{"name": project.Name}).Info("Handle project")
+		log.WithFields(logrus.Fields{"name": project.Name}).Info("Handle project")
 
 		err := handleDeployConfig(project.Name, &projectSummary)
 		if err != nil {
@@ -93,7 +97,7 @@ func StartSanityCheck(configPath string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("--- sanitySummary --- \n%s\n", string(bytes))
+	log.Infof("--- sanitySummary --- \n%s\n", string(bytes))
 
 	return nil
 }
@@ -106,12 +110,12 @@ func handleDeployConfig(projectName string, projectSummary *ProjectSummary) erro
 	projectSummary.DCTotal = len(deployConfigList.Items)
 	for _, dc := range deployConfigList.Items {
 		if dc.Spec.Replicas != dc.Status.Replicas {
-			log.WithFields(log.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
 				"dc.Status.Replicas": dc.Status.Replicas}).
 				Warn("Handle deploymentconfig.apps.openshift.io: Replicas not satisfied")
 			projectSummary.DCReplicaNotSatisfied++
 		} else {
-			log.WithFields(log.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
 				"dc.Status.Replicas": dc.Status.Replicas}).
 				Info("Handle deploymentconfig.apps.openshift.io")
 		}
@@ -127,12 +131,12 @@ func handleDeployment(projectName string, projectSummary *ProjectSummary) error 
 	projectSummary.DeployTotal = len(deploymentList.Items)
 	for _, d := range deploymentList.Items {
 		if *d.Spec.Replicas != d.Status.Replicas {
-			log.WithFields(log.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
 				"d.Status.Replicas": d.Status.Replicas}).
 				Warn("Handle deployment: Replicas not satisfied")
 			projectSummary.DeployReplicaNotSatisfied++
 		} else {
-			log.WithFields(log.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
 				"d.Status.Replicas": d.Status.Replicas}).
 				Info("Handle deployment")
 		}
@@ -148,12 +152,12 @@ func handleSTS(projectName string, projectSummary *ProjectSummary) error {
 	projectSummary.STSTotal = len(statefulSetList.Items)
 	for _, ss := range statefulSetList.Items {
 		if *ss.Spec.Replicas != ss.Status.Replicas {
-			log.WithFields(log.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
 				"ss.Status.Replicas": ss.Status.Replicas}).
 				Warn("Handle sts: Replicas not satisfied")
 			projectSummary.STSReplicaNotSatisfied++
 		} else {
-			log.WithFields(log.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
+			log.WithFields(logrus.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
 				"ss.Status.Replicas": ss.Status.Replicas}).
 				Info("Handle sts")
 		}
@@ -169,13 +173,13 @@ func handleDS(projectName string, projectSummary *ProjectSummary) error {
 	projectSummary.DSTotal = len(daemonSetList.Items)
 	for _, ds := range daemonSetList.Items {
 		if ds.Status.DesiredNumberScheduled != ds.Status.CurrentNumberScheduled {
-			log.WithFields(log.Fields{"project": projectName, "ds": ds.Name,
+			log.WithFields(logrus.Fields{"project": projectName, "ds": ds.Name,
 				"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
 				"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
 				Warn("Handle daemon set: Not scheduled")
 			projectSummary.DSDesireNotSatisfied++
 		} else {
-			log.WithFields(log.Fields{"project": projectName, "ds": ds.Name,
+			log.WithFields(logrus.Fields{"project": projectName, "ds": ds.Name,
 				"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
 				"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
 				Info("Handle daemon set")
@@ -192,26 +196,26 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 	projectSummary.PodTotal = len(PodList.Items)
 	for _, pod := range PodList.Items {
 		if pod.Status.Phase == corev1.PodSucceeded {
-			log.WithFields(log.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase}).
+			log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase}).
 				Info("Handle pod: Succeeded")
 			projectSummary.PodSucceeded++
 			break
 		}
 		if pod.Status.Phase != corev1.PodRunning {
-			log.WithFields(log.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase,
+			log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase,
 				"pod.Status.Reason": pod.Status.Reason}).
 				Warn("Handle pod: Not Running")
 			projectSummary.PodNotRunning++
 		} else {
 			for _, cs := range pod.Status.ContainerStatuses {
 				if !cs.Ready {
-					log.WithFields(log.Fields{"project": projectName, "pod": pod.Name,
+					log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name,
 						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
 						"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
 						Warn("Handle pod: Not Ready")
 					projectSummary.ContainerNotReady++
 				} else {
-					log.WithFields(log.Fields{"project": projectName, "pod": pod.Name,
+					log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name,
 						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
 						"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
 						Info("Handle pod")
