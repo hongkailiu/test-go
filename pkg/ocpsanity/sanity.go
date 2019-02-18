@@ -19,11 +19,13 @@ var (
 	oc *ocutil.CLI
 )
 
+// SanitySummary represents sanity summary
 type SanitySummary struct {
 	ProjectTotal       int              `yaml:"projectTotal"`
 	ProjectSummaryList []ProjectSummary `yaml:"projectSummaryList"`
 }
 
+// ProjectSummary represents project summary
 type ProjectSummary struct {
 	ProjectName               string `yaml:"projectName"`
 	DCTotal                   int    `yaml:"dcTotal"`
@@ -56,11 +58,11 @@ func StartSanityCheck(configPath string) error {
 		projectSummary := ProjectSummary{}
 		projectSummary.ProjectName = project.Name
 		log.WithFields(log.Fields{"name": project.Name}).Info("Handle project")
+
 		deployConfigList, err := oc.DeployConfigClient().DeploymentConfigs(project.Name).List(metav1.ListOptions{})
 		if err != nil {
 			return err
 		}
-
 		projectSummary.DCTotal = len(deployConfigList.Items)
 		for _, dc := range deployConfigList.Items {
 			if dc.Spec.Replicas != dc.Status.Replicas {
