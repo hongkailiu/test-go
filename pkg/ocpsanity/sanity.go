@@ -38,6 +38,7 @@ type ProjectSummary struct {
 	DSDesireNotSatisfied      int    `yaml:"dsDesireNotSatisfied"`
 
 	PodTotal          int `yaml:"podTotal"`
+	PodSucceeded      int `yaml:"podSucceeded"`
 	PodNotRunning     int `yaml:"podNotRunning"`
 	ContainerNotReady int `yaml:"containerNotReady"`
 }
@@ -177,7 +178,7 @@ func handleDS(projectName string, projectSummary *ProjectSummary) error {
 			log.WithFields(log.Fields{"project": projectName, "ds": ds.Name,
 				"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
 				"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
-				Warn("Handle daemon set")
+				Info("Handle daemon set")
 		}
 	}
 	return nil
@@ -190,6 +191,12 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 	}
 	projectSummary.PodTotal = len(PodList.Items)
 	for _, pod := range PodList.Items {
+		if pod.Status.Phase == corev1.PodSucceeded {
+			log.WithFields(log.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase}).
+				Info("Handle pod: Succeeded")
+			projectSummary.PodSucceeded++
+			break
+		}
 		if pod.Status.Phase != corev1.PodRunning {
 			log.WithFields(log.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase,
 				"pod.Status.Reason": pod.Status.Reason}).
