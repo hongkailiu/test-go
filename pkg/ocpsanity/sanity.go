@@ -42,6 +42,7 @@ type ProjectSummary struct {
 	ContainerNotReady int `yaml:"containerNotReady"`
 }
 
+// StartSanityCheck starts sanity check on OCP installation
 func StartSanityCheck(configPath string) error {
 	oc = ocutil.NewCLI(configPath)
 
