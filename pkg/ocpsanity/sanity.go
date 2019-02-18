@@ -12,7 +12,7 @@ import (
 
 const (
 	// VERSION of the ocptf cmd
-	VERSION = "0.0.6"
+	VERSION = "0.0.8"
 )
 
 var (
