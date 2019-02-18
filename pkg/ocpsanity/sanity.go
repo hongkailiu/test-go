@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	oc          *ocutil.CLI
+	oc *ocutil.CLI
 	// LogFilePath is the log file path
 	LogFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
 	log         = logger.NewLogger(LogFilePath)
