@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/jinzhu/gorm"
+	// init postgres pkg
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 

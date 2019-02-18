@@ -27,6 +27,7 @@ func Getenv(key, defaultValue string) string {
 	return result
 }
 
+// HomeDir returns home dir
 func HomeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
