@@ -34,6 +34,12 @@ var (
 	logger *logrus.Logger
 )
 
+// NewLogger returns a logrus logger which writes both on standard error and a file
+// https://github.com/Sirupsen/logrus/issues/230
+// if we do not need the color on terminal, the following will work as described here
+// https://github.com/Sirupsen/logrus/issues/230#issuecomment-381639138
+// mw := io.MultiWriter(os.Stdout, logFile)
+// logrus.SetOutput(mw)
 func NewLogger(logFilePath string) *logrus.Logger {
 	if logger != nil {
 		return logger
