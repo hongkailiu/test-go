@@ -59,108 +59,29 @@ func StartSanityCheck(configPath string) error {
 		projectSummary.ProjectName = project.Name
 		log.WithFields(log.Fields{"name": project.Name}).Info("Handle project")
 
-		deployConfigList, err := oc.DeployConfigClient().DeploymentConfigs(project.Name).List(metav1.ListOptions{})
+		err := handleDeployConfig(project.Name, &projectSummary)
 		if err != nil {
 			return err
 		}
-		projectSummary.DCTotal = len(deployConfigList.Items)
-		for _, dc := range deployConfigList.Items {
-			if dc.Spec.Replicas != dc.Status.Replicas {
-				log.WithFields(log.Fields{"project": project.Name, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
-					"dc.Status.Replicas": dc.Status.Replicas}).
-					Warn("Handle deploymentconfig.apps.openshift.io: Replicas not satisfied")
-				projectSummary.DCReplicaNotSatisfied++
-			} else {
-				log.WithFields(log.Fields{"project": project.Name, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
-					"dc.Status.Replicas": dc.Status.Replicas}).
-					Info("Handle deploymentconfig.apps.openshift.io")
-			}
-		}
 
-		deploymentList, err := oc.K8SClientSet().AppsV1().Deployments(project.Name).List(metav1.ListOptions{})
+		err = handleDeployment(project.Name, &projectSummary)
 		if err != nil {
 			return err
 		}
-		projectSummary.DeployTotal = len(deploymentList.Items)
-		for _, d := range deploymentList.Items {
-			if *d.Spec.Replicas != d.Status.Replicas {
-				log.WithFields(log.Fields{"project": project.Name, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
-					"d.Status.Replicas": d.Status.Replicas}).
-					Warn("Handle deployment: Replicas not satisfied")
-				projectSummary.DeployReplicaNotSatisfied++
-			} else {
-				log.WithFields(log.Fields{"project": project.Name, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
-					"d.Status.Replicas": d.Status.Replicas}).
-					Info("Handle deployment")
-			}
-		}
 
-		statefulSetList, err := oc.K8SClientSet().AppsV1().StatefulSets(project.Name).List(metav1.ListOptions{})
+		err = handleSTS(project.Name, &projectSummary)
 		if err != nil {
 			return err
 		}
-		projectSummary.STSTotal = len(statefulSetList.Items)
-		for _, ss := range statefulSetList.Items {
-			if *ss.Spec.Replicas != ss.Status.Replicas {
-				log.WithFields(log.Fields{"project": project.Name, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
-					"ss.Status.Replicas": ss.Status.Replicas}).
-					Warn("Handle sts: Replicas not satisfied")
-				projectSummary.STSReplicaNotSatisfied++
-			} else {
-				log.WithFields(log.Fields{"project": project.Name, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
-					"ss.Status.Replicas": ss.Status.Replicas}).
-					Info("Handle sts")
-			}
-		}
 
-		daemonSetList, err := oc.K8SClientSet().AppsV1().DaemonSets(project.Name).List(metav1.ListOptions{})
+		err = handleDS(project.Name, &projectSummary)
 		if err != nil {
 			return err
 		}
-		projectSummary.DSTotal = len(daemonSetList.Items)
-		for _, ds := range daemonSetList.Items {
-			if ds.Status.DesiredNumberScheduled != ds.Status.CurrentNumberScheduled {
-				log.WithFields(log.Fields{"project": project.Name, "ds": ds.Name,
-					"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
-					"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
-					Warn("Handle daemon set: Not scheduled")
-				projectSummary.DSDesireNotSatisfied++
-			} else {
-				log.WithFields(log.Fields{"project": project.Name, "ds": ds.Name,
-					"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
-					"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
-					Warn("Handle daemon set")
-			}
-		}
 
-		PodList, err := oc.K8SClientSet().CoreV1().Pods(project.Name).List(metav1.ListOptions{})
+		err = handlePod(project.Name, &projectSummary)
 		if err != nil {
 			return err
-		}
-		projectSummary.PodTotal = len(PodList.Items)
-		for _, pod := range PodList.Items {
-			if pod.Status.Phase != corev1.PodRunning {
-				log.WithFields(log.Fields{"project": project.Name, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase,
-					"pod.Status.Reason": pod.Status.Reason}).
-					Warn("Handle pod: Not Running")
-				projectSummary.PodNotRunning++
-			} else {
-				for _, cs := range pod.Status.ContainerStatuses {
-					if !cs.Ready {
-						log.WithFields(log.Fields{"project": project.Name, "pod": pod.Name,
-							"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
-							"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
-							Warn("Handle pod: Not Ready")
-						projectSummary.ContainerNotReady++
-					} else {
-						log.WithFields(log.Fields{"project": project.Name, "pod": pod.Name,
-							"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
-							"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
-							Info("Handle pod")
-					}
-				}
-
-			}
 		}
 
 		sanitySummary.ProjectSummaryList = append(sanitySummary.ProjectSummaryList, projectSummary)
@@ -172,5 +93,124 @@ func StartSanityCheck(configPath string) error {
 	}
 	fmt.Printf("--- sanitySummary --- \n%s\n", string(bytes))
 
+	return nil
+}
+
+func handleDeployConfig(projectName string, projectSummary *ProjectSummary) error {
+	deployConfigList, err := oc.DeployConfigClient().DeploymentConfigs(projectName).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	projectSummary.DCTotal = len(deployConfigList.Items)
+	for _, dc := range deployConfigList.Items {
+		if dc.Spec.Replicas != dc.Status.Replicas {
+			log.WithFields(log.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
+				"dc.Status.Replicas": dc.Status.Replicas}).
+				Warn("Handle deploymentconfig.apps.openshift.io: Replicas not satisfied")
+			projectSummary.DCReplicaNotSatisfied++
+		} else {
+			log.WithFields(log.Fields{"project": projectName, "dc": dc.Name, "dc.Spec.Replicas": dc.Spec.Replicas,
+				"dc.Status.Replicas": dc.Status.Replicas}).
+				Info("Handle deploymentconfig.apps.openshift.io")
+		}
+	}
+	return nil
+}
+
+func handleDeployment(projectName string, projectSummary *ProjectSummary) error {
+	deploymentList, err := oc.K8SClientSet().AppsV1().Deployments(projectName).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	projectSummary.DeployTotal = len(deploymentList.Items)
+	for _, d := range deploymentList.Items {
+		if *d.Spec.Replicas != d.Status.Replicas {
+			log.WithFields(log.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
+				"d.Status.Replicas": d.Status.Replicas}).
+				Warn("Handle deployment: Replicas not satisfied")
+			projectSummary.DeployReplicaNotSatisfied++
+		} else {
+			log.WithFields(log.Fields{"project": projectName, "dc": d.Name, "d.Spec.Replicas": *d.Spec.Replicas,
+				"d.Status.Replicas": d.Status.Replicas}).
+				Info("Handle deployment")
+		}
+	}
+	return nil
+}
+
+func handleSTS(projectName string, projectSummary *ProjectSummary) error {
+	statefulSetList, err := oc.K8SClientSet().AppsV1().StatefulSets(projectName).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	projectSummary.STSTotal = len(statefulSetList.Items)
+	for _, ss := range statefulSetList.Items {
+		if *ss.Spec.Replicas != ss.Status.Replicas {
+			log.WithFields(log.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
+				"ss.Status.Replicas": ss.Status.Replicas}).
+				Warn("Handle sts: Replicas not satisfied")
+			projectSummary.STSReplicaNotSatisfied++
+		} else {
+			log.WithFields(log.Fields{"project": projectName, "ss": ss.Name, "ss.Spec.Replicas": *ss.Spec.Replicas,
+				"ss.Status.Replicas": ss.Status.Replicas}).
+				Info("Handle sts")
+		}
+	}
+	return nil
+}
+
+func handleDS(projectName string, projectSummary *ProjectSummary) error {
+	daemonSetList, err := oc.K8SClientSet().AppsV1().DaemonSets(projectName).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	projectSummary.DSTotal = len(daemonSetList.Items)
+	for _, ds := range daemonSetList.Items {
+		if ds.Status.DesiredNumberScheduled != ds.Status.CurrentNumberScheduled {
+			log.WithFields(log.Fields{"project": projectName, "ds": ds.Name,
+				"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
+				"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
+				Warn("Handle daemon set: Not scheduled")
+			projectSummary.DSDesireNotSatisfied++
+		} else {
+			log.WithFields(log.Fields{"project": projectName, "ds": ds.Name,
+				"ds.Status.DesiredNumberScheduled": ds.Status.DesiredNumberScheduled,
+				"ds.Status.CurrentNumberScheduled": ds.Status.CurrentNumberScheduled}).
+				Warn("Handle daemon set")
+		}
+	}
+	return nil
+}
+
+func handlePod(projectName string, projectSummary *ProjectSummary) error {
+	PodList, err := oc.K8SClientSet().CoreV1().Pods(projectName).List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	projectSummary.PodTotal = len(PodList.Items)
+	for _, pod := range PodList.Items {
+		if pod.Status.Phase != corev1.PodRunning {
+			log.WithFields(log.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase,
+				"pod.Status.Reason": pod.Status.Reason}).
+				Warn("Handle pod: Not Running")
+			projectSummary.PodNotRunning++
+		} else {
+			for _, cs := range pod.Status.ContainerStatuses {
+				if !cs.Ready {
+					log.WithFields(log.Fields{"project": projectName, "pod": pod.Name,
+						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
+						"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
+						Warn("Handle pod: Not Ready")
+					projectSummary.ContainerNotReady++
+				} else {
+					log.WithFields(log.Fields{"project": projectName, "pod": pod.Name,
+						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
+						"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
+						Info("Handle pod")
+				}
+			}
+
+		}
+	}
 	return nil
 }
