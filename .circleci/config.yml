@@ -6,7 +6,6 @@ jobs:
   build:
     docker:
     # specify the version
-    - image: circleci/golang:1.10
     - image: circleci/golang:1.11
 
     # Specify service dependencies here if necessary
@@ -23,16 +22,14 @@ jobs:
     - checkout
 
     - run: go get github.com/onsi/ginkgo/ginkgo
-    #- run: curl https://glide.sh/get | sh
     - run: cp test_files/flexy/unit.test.files/gce.json /tmp/
 
     # specify any bash command here prefixed with `run: `
-    - run: echo "${GOPATH}"
     - run: pwd
+    - run: echo "${GOPATH}"
     - run: go version
     - run: ginkgo version
-    #- run: glide --version
-    #- run: glide up -v
+    - run: docker version
     - run: make build-k8s
     - run: make build-oc
     - run: make build-swagger
