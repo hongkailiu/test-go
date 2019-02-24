@@ -11,7 +11,7 @@ jobs:
       - checkout
       - setup_remote_docker
 
-      - run: make ci-all
+      - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" ci-all
 
   build-golong-111:
     docker:
@@ -21,7 +21,7 @@ jobs:
       - checkout
       - setup_remote_docker
 
-      - run: make ci-all
+      - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" ci-all
   #https://github.com/CircleCI-Public/circleci-dockerfiles/tree/master/golang/images
   build-golong-latest:
     docker:
@@ -31,7 +31,7 @@ jobs:
     - checkout
     - setup_remote_docker
 
-    - run: make ci-all
+    - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" ci-all
 
 workflows:
   version: 2

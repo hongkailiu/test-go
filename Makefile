@@ -160,4 +160,4 @@ ci-package:
 	ls -al ./build/*.tar.gz
 
 .PHONY : ci-all
-ci-all: ci-install ci-before-script ci-script ci-package
+ci-all: ci-install ci-before-script ci-script ci-package coveralls
