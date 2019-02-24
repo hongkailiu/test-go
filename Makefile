@@ -132,8 +132,12 @@ ci-before-script:
 	ginkgo version
 	docker version
 
+
+CI_SCRIPT_DEPS := build-k8s
+CI_SCRIPT_DEPS += build-oc
+
 .PHONY : ci-script
-ci-script: build-k8s
+ci-script: $(CI_SCRIPT_DEPS)
 
 .PHONY : ci-all
 ci-all: ci-install ci-before-script ci-script
