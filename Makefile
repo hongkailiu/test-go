@@ -131,6 +131,7 @@ ci-before-script:
 	go version
 	ginkgo version
 	docker version
+	make --version
 
 CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
