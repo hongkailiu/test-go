@@ -132,9 +132,22 @@ ci-before-script:
 	ginkgo version
 	docker version
 
-
 CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
+CI_SCRIPT_DEPS += build-swagger
+CI_SCRIPT_DEPS += build-others
+CI_SCRIPT_DEPS += build-flexy
+CI_SCRIPT_DEPS += test-flexy
+CI_SCRIPT_DEPS += code-gen
+CI_SCRIPT_DEPS += build-code-gen
+CI_SCRIPT_DEPS += build-http
+CI_SCRIPT_DEPS += test-pb
+CI_SCRIPT_DEPS += test-lc
+CI_SCRIPT_DEPS += test-others
+CI_SCRIPT_DEPS += gen-coverage
+CI_SCRIPT_DEPS += gen-images
+CI_SCRIPT_DEPS += build-ocptf
+CI_SCRIPT_DEPS += build-ocpsanity
 
 .PHONY : ci-script
 ci-script: $(CI_SCRIPT_DEPS)
