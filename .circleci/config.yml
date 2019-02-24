@@ -22,10 +22,10 @@ jobs:
       - setup_remote_docker
 
       - run: make ci-all
-
-  build-golong-master:
+  #https://github.com/CircleCI-Public/circleci-dockerfiles/tree/master/golang/images
+  build-golong-latest:
     docker:
-    - image: circleci/golang:latest
+    - image: circleci/golang:1.12rc1
     working_directory: /go/src/github.com/hongkailiu/test-go
     steps:
     - checkout
@@ -39,4 +39,4 @@ workflows:
     jobs:
       - build-golong-110
       - build-golong-111
-      - build-golong-master
+      - build-golong-latest
