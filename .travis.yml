@@ -5,32 +5,8 @@ go:
   - "1.11.x"
   - master
 
-before_install:
-  - go get github.com/onsi/ginkgo/ginkgo
-  - cp test_files/flexy/unit.test.files/gce.json /tmp/
-
 script:
-  - echo "${GOPATH}"
-  - go version
-  - ginkgo version
-  - docker --version
-  - make build-k8s
-  - make build-oc
-  - make build-swagger
-  - make build-others
-  - make build-flexy
-  - make test-flexy
-  - make code-gen
-  - make build-code-gen
-  - make build-http
-  - make test-pb
-  - make test-lc
-  - make test-others
-  - make gen-coverage
-  - make gen-images
-  - make build-ocptf
-  - make build-ocpsanity
+  - make CI="${CI}" TRAVIS="${TRAVIS}" ci-all
 
 after_success:
-  - make coveralls
   - make RELEASE=${RELEASE} GH_TOKEN=${GH_TOKEN} TRAVIS="${TRAVIS}" TRAVIS_BUILD_NUMBER="${TRAVIS_BUILD_NUMBER}" TRAVIS_BUILD_ID="${TRAVIS_BUILD_ID}" TRAVIS_JOB_NUMBER="${TRAVIS_JOB_NUMBER}" release-flexy
