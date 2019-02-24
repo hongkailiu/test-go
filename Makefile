@@ -119,3 +119,21 @@ build-ocptf:
 .PHONY : build-ocpsanity
 build-ocpsanity:
 	go build -o ./build/ocpsanity ./cmd/ocpsanity/
+
+.PHONY : ci-install
+ci-install:
+	go get github.com/onsi/ginkgo/ginkgo
+	cp test_files/flexy/unit.test.files/gce.json /tmp/
+
+.PHONY : ci-before-script
+ci-before-script:
+	echo "${GOPATH}"
+	go version
+	ginkgo version
+	docker version
+
+.PHONY : ci-script
+ci-script: build-k8s
+
+.PHONY : ci-all
+ci-all: ci-install ci-before-script ci-script
