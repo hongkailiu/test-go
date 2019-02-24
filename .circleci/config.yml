@@ -39,4 +39,4 @@ workflows:
     jobs:
       - build-golong-110
       - build-golong-111
-      - build-golong-latest
+      - build-golong-master
