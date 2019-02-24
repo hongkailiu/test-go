@@ -3,7 +3,7 @@
 # Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
-  build-golong-110:
+  build-golang-110:
     docker:
       - image: circleci/golang:1.10
     working_directory: /go/src/github.com/hongkailiu/test-go
@@ -13,7 +13,7 @@ jobs:
 
       - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" COVERALLS_TOKEN="${COVERALLS_TOKEN}" ci-all
 
-  build-golong-111:
+  build-golang-111:
     docker:
       - image: circleci/golang:1.11
     working_directory: /go/src/github.com/hongkailiu/test-go
@@ -23,7 +23,7 @@ jobs:
 
       - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" COVERALLS_TOKEN="${COVERALLS_TOKEN}" ci-all
   #https://github.com/CircleCI-Public/circleci-dockerfiles/tree/master/golang/images
-  build-golong-latest:
+  build-golang-latest:
     docker:
     - image: circleci/golang:1.12rc1
     working_directory: /go/src/github.com/hongkailiu/test-go
@@ -37,6 +37,6 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build-golong-110
-      - build-golong-111
-      - build-golong-latest
+      - build-golang-110
+      - build-golang-111
+      - build-golang-latest
