@@ -127,7 +127,7 @@ ci-install:
 
 .PHONY : ci-before-script
 ci-before-script:
-	echo "GOPATH: ${GOPATH}"
+	echo "GOPATH: $${GOPATH}"
 	go version
 	ginkgo version
 	docker version
