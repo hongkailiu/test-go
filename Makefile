@@ -153,5 +153,11 @@ CI_SCRIPT_DEPS += build-ocpsanity
 .PHONY : ci-script
 ci-script: $(CI_SCRIPT_DEPS)
 
+.PHONY : ci-package
+ci-package:
+	./script/ci/package-ocptf.sh
+	./script/ci/package-ocpsanity.sh
+	ls -al ./build/*.tar.gz
+
 .PHONY : ci-all
-ci-all: ci-install ci-before-script ci-script
+ci-all: ci-install ci-before-script ci-script ci-package
