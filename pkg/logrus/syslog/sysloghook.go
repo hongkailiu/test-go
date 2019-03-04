@@ -8,7 +8,6 @@ import (
 	lSyslog "github.com/sirupsen/logrus/hooks/syslog"
 )
 
-
 // Logger with syslog hook
 var Logger = logrus.New()
 

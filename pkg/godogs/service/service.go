@@ -15,9 +15,8 @@ func (s *myLoginService) Login(username, password string) string {
 	fmt.Println(fmt.Sprintf("This is %s.", s.name))
 	if username == "username" && password == "password" {
 		return "OK"
-	} else {
-		return "NOT-OK"
 	}
+	return "NOT-OK"
 }
 
 // NewService returns a LoginService object

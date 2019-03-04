@@ -52,8 +52,6 @@ func iUserUsernameAndPasswordAsInputOfTheService(username, password string) erro
 func theServiceReturns(arg1 string) error {
 	if loginResult == arg1 {
 		return nil
-	} else {
-		return fmt.Errorf("loginResult is not \"OK\": %s", loginResult)
 	}
-
+	return fmt.Errorf("loginResult is not \"OK\": %s", loginResult)
 }
