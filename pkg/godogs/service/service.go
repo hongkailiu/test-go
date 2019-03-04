@@ -2,15 +2,16 @@ package service
 
 import "fmt"
 
+// LoginService represents login services
 type LoginService interface {
 	Login(username, password string) string
 }
 
-type MyLoginService struct {
+type myLoginService struct {
 	name string
 }
 
-func (s *MyLoginService) Login(username, password string) string {
+func (s *myLoginService) Login(username, password string) string {
 	fmt.Println(fmt.Sprintf("This is %s.", s.name))
 	if username == "username" && password == "password" {
 		return "OK"
@@ -19,6 +20,7 @@ func (s *MyLoginService) Login(username, password string) string {
 	}
 }
 
+// NewService returns a LoginService object
 func NewService() LoginService {
-	return &MyLoginService{name: "cool login service"}
+	return &myLoginService{name: "cool login service"}
 }
