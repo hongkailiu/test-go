@@ -3,10 +3,11 @@ package service
 import (
 	"flag"
 	"fmt"
-	"github.com/DATA-DOG/godog"
-	"github.com/DATA-DOG/godog/colors"
 	"os"
 	"testing"
+
+	"github.com/DATA-DOG/godog"
+	"github.com/DATA-DOG/godog/colors"
 )
 
 var (
@@ -40,7 +41,7 @@ func TestMain(m *testing.M) {
 func FeatureContext(s *godog.Suite) {
 
 	s.Step(`^I user username "([^"]*)" and password "([^"]*)" as input of the service$`, iUserUsernameAndPasswordAsInputOfTheService)
-	s.Step(`^the service returns "([^"]*)"$`, theReserviceReturns)
+	s.Step(`^the service returns "([^"]*)"$`, theServiceReturns)
 }
 
 func iUserUsernameAndPasswordAsInputOfTheService(username, password string) error {
@@ -48,7 +49,7 @@ func iUserUsernameAndPasswordAsInputOfTheService(username, password string) erro
 	return nil
 }
 
-func theReserviceReturns(arg1 string) error {
+func theServiceReturns(arg1 string) error {
 	if loginResult == arg1 {
 		return nil
 	} else {
