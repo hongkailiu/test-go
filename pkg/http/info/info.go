@@ -19,7 +19,7 @@ type Info struct {
 	Now     time.Time `json:"now"`
 }
 
-// getInfo returns the required information
+// GetInfo returns the required information
 func GetInfo() *Info {
 
 	i := Info{}
