@@ -124,8 +124,9 @@ build-ocpsanity:
 ci-install:
 	go get github.com/onsi/ginkgo/ginkgo
 	cp test_files/flexy/unit.test.files/gce.json /tmp/
-	###install bazel
-	###
+	@echo "install bazel ..."
+	./script/ci/install-bazel.sh
+
 
 .PHONY : ci-before-script
 ci-before-script:
@@ -135,6 +136,7 @@ ci-before-script:
 	docker version
 	make --version
 	java -version
+	bazel version
 
 CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
