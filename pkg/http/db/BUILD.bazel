@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "migrate.go",
+        "postgresql.go",
+        "service.go",
+    ],
+    importpath = "github.com/hongkailiu/test-go/pkg/http/db",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/http/model:go_default_library",
+        "//vendor/github.com/go-gormigrate/gormigrate:go_default_library",
+        "//vendor/github.com/jinzhu/gorm:go_default_library",
+        "//vendor/github.com/jinzhu/gorm/dialects/postgres:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+    ],
+)

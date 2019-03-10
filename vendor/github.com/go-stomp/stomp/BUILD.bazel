@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ack.go",
+        "conn.go",
+        "conn_options.go",
+        "errors.go",
+        "id.go",
+        "message.go",
+        "send_options.go",
+        "stomp.go",
+        "subscribe_options.go",
+        "subscription.go",
+        "transaction.go",
+        "validator.go",
+        "version.go",
+    ],
+    importmap = "github.com/hongkailiu/test-go/vendor/github.com/go-stomp/stomp",
+    importpath = "github.com/go-stomp/stomp",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/go-stomp/stomp/frame:go_default_library"],
+)

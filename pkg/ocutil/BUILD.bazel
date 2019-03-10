@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["util.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/ocutil",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/lib/util:go_default_library",
+        "//vendor/github.com/openshift/client-go/apps/clientset/versioned/typed/apps/v1:go_default_library",
+        "//vendor/github.com/openshift/client-go/project/clientset/versioned/typed/project/v1:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/client-go/rest:go_default_library",
+        "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
+    ],
+)

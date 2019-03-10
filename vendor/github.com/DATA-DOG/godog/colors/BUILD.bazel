@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "ansi_others.go",
+        "ansi_windows.go",
+        "colors.go",
+        "no_colors.go",
+        "writer.go",
+    ],
+    importmap = "github.com/hongkailiu/test-go/vendor/github.com/DATA-DOG/godog/colors",
+    importpath = "github.com/DATA-DOG/godog/colors",
+    visibility = ["//visibility:public"],
+)

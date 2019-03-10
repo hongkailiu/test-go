@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["sanity.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/ocpsanity",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/lib/logger:go_default_library",
+        "//pkg/ocutil:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+        "//vendor/gopkg.in/yaml.v2:go_default_library",
+        "//vendor/k8s.io/api/core/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+    ],
+)

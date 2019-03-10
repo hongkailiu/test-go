@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/swagger",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/swagger/swagger/models:go_default_library",
+        "//pkg/swagger/swagger/restapi:go_default_library",
+        "//pkg/swagger/swagger/restapi/operations:go_default_library",
+        "//vendor/github.com/alexflint/go-arg:go_default_library",
+        "//vendor/github.com/go-openapi/loads:go_default_library",
+        "//vendor/github.com/go-openapi/runtime/middleware:go_default_library",
+        "//vendor/github.com/go-openapi/swag:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "swagger",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
