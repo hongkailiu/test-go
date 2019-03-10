@@ -120,6 +120,10 @@ build-ocptf:
 build-ocpsanity:
 	go build -o ./build/ocpsanity ./cmd/ocpsanity/
 
+.PHONY : bazel-build
+bazel-build:
+	bazel build //cmd/...
+
 .PHONY : ci-install
 ci-install:
 	go get github.com/onsi/ginkgo/ginkgo
@@ -154,6 +158,7 @@ CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += gen-images
 CI_SCRIPT_DEPS += build-ocptf
 CI_SCRIPT_DEPS += build-ocpsanity
+CI_SCRIPT_DEPS += bazel-build
 
 .PHONY : ci-script
 ci-script: $(CI_SCRIPT_DEPS)
