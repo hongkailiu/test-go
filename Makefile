@@ -123,6 +123,9 @@ build-ocpsanity:
 .PHONY : bazel-build
 bazel-build:
 	bazel build //cmd/...
+	### ignore those package: seems bazel needs test file and target file are in the same pkg
+	### however, it is not the case for those 2 pkgs
+	bazel test -- //... -//pkg/flexy/... -//pkg/ocptf/...
 
 .PHONY : ci-install
 ci-install:
