@@ -17,9 +17,9 @@ fi
 
 if [[ "${CIRCLECI:-false}" == "true" ]]; then
   echo "bazel on circle-ci ..."
-  ##echo "bazel is skipped on circle-ci because of resource issue"
-  echo "bazel build ..."
-  bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
+  echo "bazel build is skipped on circle-ci because of resource issue"
+  #echo "bazel build ..."
+  #bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
   echo "bazel test ..."
   bazel test -- //... -//pkg/flexy/... -//pkg/ocptf/...
   exit 0
