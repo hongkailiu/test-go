@@ -6,7 +6,6 @@ jobs:
   build-golang-110:
     docker:
       - image: circleci/golang:1.10
-    resource_class: xlarge
     working_directory: /go/src/github.com/hongkailiu/test-go
     steps:
       - checkout
@@ -17,7 +16,6 @@ jobs:
   build-golang-111:
     docker:
       - image: circleci/golang:1.11
-    resource_class: xlarge
     working_directory: /go/src/github.com/hongkailiu/test-go
     steps:
       - checkout
@@ -28,7 +26,6 @@ jobs:
   build-golang-latest:
     docker:
     - image: circleci/golang:1.12rc1
-    resource_class: xlarge
     working_directory: /go/src/github.com/hongkailiu/test-go
     steps:
     - checkout
