@@ -7,7 +7,8 @@ RUN make CGO_ENABLED=0 GOOS=linux build-http
 
 #FROM alpine:3.6
 #https://github.com/docker-library/golang/issues/97
-FROM docker.io/centos:7
+#FROM docker.io/centos:7
+FROM registry.access.redhat.com/rhel7-minimal:7.6-154
 WORKDIR /
 COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/http /http
 COPY pkg/http/static /static
