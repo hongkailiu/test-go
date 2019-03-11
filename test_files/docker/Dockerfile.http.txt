@@ -5,9 +5,14 @@ WORKDIR /go/src/github.com/hongkailiu/test-go/
 RUN make CGO_ENABLED=0 GOOS=linux build-http
 
 
-#FROM alpine:3.6
+FROM alpine:3.6
 #https://github.com/docker-library/golang/issues/97
-FROM docker.io/centos:7
+#FROM docker.io/centos:7
+RUN set -ex \
+	&& apk add --no-cache --virtual .build-deps \
+		bash \
+		ca-certificates \
+	&& apk del .build-deps
 WORKDIR /
 COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/http /http
 COPY pkg/http/static /static
