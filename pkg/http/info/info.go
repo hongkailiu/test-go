@@ -9,7 +9,7 @@ import (
 
 const (
 	// VERSION of the http cmd
-	VERSION = "0.0.17"
+	VERSION = "0.0.11"
 )
 
 // Info represents information
