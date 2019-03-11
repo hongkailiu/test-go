@@ -122,10 +122,7 @@ build-ocpsanity:
 
 .PHONY : bazel-build
 bazel-build:
-	bazel build --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
-	### ignore those package: seems bazel needs test file and target file are in the same pkg
-	### however, it is not the case for those 2 pkgs
-	bazel test -- //... -//pkg/flexy/... -//pkg/ocptf/...
+	./script/ci/bazel-all.sh
 
 .PHONY : ci-install
 ci-install:
