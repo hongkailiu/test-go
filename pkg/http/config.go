@@ -43,7 +43,7 @@ func loadConfig() *config {
 }
 
 func getSessionKey() ([]byte, error) {
-	key := util.Getenv("session_key", "session_key")
+	key := util.Getenv("session_key", "[116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116 116]")
 	trimKey := strings.TrimSuffix(strings.TrimPrefix(key, "["), "]")
 	bytes := strings.Split(trimKey, " ")
 	if len(bytes) != 32 {
@@ -58,7 +58,7 @@ func getSessionKey() ([]byte, error) {
 		}
 		result = append(result, byte(i))
 	}
-	log.WithFields(log.Fields{"result": result}).Warnf("got secret from env. var. session_key")
+	log.WithFields(log.Fields{"result": result}).Infof("got secret from env. var. session_key")
 	return result, nil
 }
 
