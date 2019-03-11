@@ -120,10 +120,17 @@ build-ocptf:
 build-ocpsanity:
 	go build -o ./build/ocpsanity ./cmd/ocpsanity/
 
+.PHONY : bazel-build
+bazel-build:
+	./script/ci/bazel-all.sh
+
 .PHONY : ci-install
 ci-install:
 	go get github.com/onsi/ginkgo/ginkgo
 	cp test_files/flexy/unit.test.files/gce.json /tmp/
+	@echo "install bazel ..."
+	./script/ci/install-bazel.sh
+
 
 .PHONY : ci-before-script
 ci-before-script:
@@ -132,6 +139,8 @@ ci-before-script:
 	ginkgo version
 	docker version
 	make --version
+	java -version
+	bazel version
 
 CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
@@ -149,6 +158,7 @@ CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += gen-images
 CI_SCRIPT_DEPS += build-ocptf
 CI_SCRIPT_DEPS += build-ocpsanity
+CI_SCRIPT_DEPS += bazel-build
 
 .PHONY : ci-script
 ci-script: $(CI_SCRIPT_DEPS)

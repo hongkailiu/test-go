@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "encode.go",
+        "fields.go",
+        "header_encoder.go",
+        "host.go",
+        "host_prefix.go",
+        "idempotency.go",
+        "jsonvalue.go",
+        "metadata.go",
+        "path_replace.go",
+        "query_encoder.go",
+        "target.go",
+        "unmarshal.go",
+        "value.go",
+    ],
+    importmap = "github.com/hongkailiu/test-go/vendor/github.com/aws/aws-sdk-go-v2/private/protocol",
+    importpath = "github.com/aws/aws-sdk-go-v2/private/protocol",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/aws/aws-sdk-go-v2/aws:go_default_library"],
+)

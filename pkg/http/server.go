@@ -27,35 +27,7 @@ import (
 )
 
 var (
-	appConfig = loadConfig()
-
-	// You must register the app at https://github.com/settings/applications
-	// Set callback to http://127.0.0.1:7000/github_oauth_cb
-	// Set ClientId and ClientSecret to
-	oauthConfGitHub = &oauth2.Config{
-		ClientID:     appConfig.ghClientID,
-		ClientSecret: appConfig.ghClientSecret,
-		// select level of access you want from https://developer.github.com/v3/oauth/#scopes
-		Scopes:   []string{"read:user", "user:email"},
-		Endpoint: githuboauth.Endpoint,
-	}
-
-	//https://console.developers.google.com/apis/dashboard
-	oauthConfGoogle = &oauth2.Config{
-		ClientID:     appConfig.ggClientID,
-		ClientSecret: appConfig.ggClientSecret,
-		RedirectURL:  appConfig.ggRedirectURL,
-		Scopes:       []string{"profile", "email"},
-		Endpoint:     google.Endpoint,
-	}
-
-	githubLogin = login{oauthConfGitHub, gitHubUserProvider{}}
-	googleLogin = login{oauthConfGoogle, googleUserProvider{}}
-
-	appDBConfig = loadDBConfig()
-	appDBString = appDBConfig.getDBString()
-
-	dbService *db.Service
+	appConfig *config
 )
 
 // PrometheusLogger intercepts all http requests and logging the path
@@ -70,6 +42,36 @@ func PrometheusLogger() gin.HandlerFunc {
 
 // Run starts the http server
 func Run() {
+
+	appConfig = loadConfig()
+
+	// You must register the app at https://github.com/settings/applications
+	// Set callback to http://127.0.0.1:7000/github_oauth_cb
+	// Set ClientId and ClientSecret to
+	oauthConfGitHub := &oauth2.Config{
+		ClientID:     appConfig.ghClientID,
+		ClientSecret: appConfig.ghClientSecret,
+		// select level of access you want from https://developer.github.com/v3/oauth/#scopes
+		Scopes:   []string{"read:user", "user:email"},
+		Endpoint: githuboauth.Endpoint,
+	}
+
+	//https://console.developers.google.com/apis/dashboard
+	oauthConfGoogle := &oauth2.Config{
+		ClientID:     appConfig.ggClientID,
+		ClientSecret: appConfig.ggClientSecret,
+		RedirectURL:  appConfig.ggRedirectURL,
+		Scopes:       []string{"profile", "email"},
+		Endpoint:     google.Endpoint,
+	}
+
+	githubLogin := login{oauthConfGitHub, gitHubUserProvider{}}
+	googleLogin := login{oauthConfGoogle, googleUserProvider{}}
+
+	appDBConfig := loadDBConfig()
+	appDBString := appDBConfig.getDBString()
+
+	//dbService *db.Service
 
 	log.WithFields(log.Fields{"ClientID": oauthConfGitHub.ClientID, "ClientSecret": oauthConfGitHub.ClientSecret}).Debug("oauthConfGitHub")
 	log.WithFields(log.Fields{"ClientID": oauthConfGoogle.ClientID, "ClientSecret": oauthConfGoogle.ClientSecret, "RedirectURL": oauthConfGoogle.RedirectURL}).Debug("oauthConfGoogle")
@@ -87,7 +89,7 @@ func Run() {
 	if err == nil {
 		db.Migrate(appDB)
 	}
-	dbService = db.New(appDB)
+	dbService := db.New(appDB)
 
 	prometheusRegister()
 

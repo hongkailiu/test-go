@@ -17,3 +17,10 @@
 *.iml
 .idea/
 /build/
+
+/bazel-bin/
+/bazel-genfiles/
+/bazel-out/
+/bazel-test-go/
+/bazel-testlogs/
+

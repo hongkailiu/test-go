@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["logger.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/lib/logger",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/rifflock/lfshook:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+    ],
+)

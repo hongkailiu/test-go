@@ -1,0 +1,34 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "get_hostname.go",
+        "get_hostname_parameters.go",
+        "get_hostname_responses.go",
+        "get_hostname_urlbuilder.go",
+        "get_user_user_id.go",
+        "get_user_user_id_parameters.go",
+        "get_user_user_id_responses.go",
+        "get_user_user_id_urlbuilder.go",
+        "get_users.go",
+        "get_users_parameters.go",
+        "get_users_responses.go",
+        "get_users_urlbuilder.go",
+        "hello_api.go",
+    ],
+    importpath = "github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi/operations",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/swagger/swagger/models:go_default_library",
+        "//vendor/github.com/go-openapi/errors:go_default_library",
+        "//vendor/github.com/go-openapi/loads:go_default_library",
+        "//vendor/github.com/go-openapi/runtime:go_default_library",
+        "//vendor/github.com/go-openapi/runtime/middleware:go_default_library",
+        "//vendor/github.com/go-openapi/runtime/security:go_default_library",
+        "//vendor/github.com/go-openapi/spec:go_default_library",
+        "//vendor/github.com/go-openapi/strfmt:go_default_library",
+        "//vendor/github.com/go-openapi/swag:go_default_library",
+        "//vendor/github.com/go-openapi/validate:go_default_library",
+    ],
+)

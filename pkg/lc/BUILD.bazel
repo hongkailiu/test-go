@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "add_two_numbers.go",
+        "data.go",
+        "find_median_sorted_arrays.go",
+        "length_of_longest_substring.go",
+        "longest_palindrome.go",
+        "two_sum.go",
+        "util.go",
+    ],
+    importpath = "github.com/hongkailiu/test-go/pkg/lc",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "add_two_numbers_test.go",
+        "find_median_sorted_arrays_test.go",
+        "length_of_longest_substring_test.go",
+        "longest_palindrome_test.go",
+        "two_sum_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = ["//vendor/github.com/onsi/gomega:go_default_library"],
+)

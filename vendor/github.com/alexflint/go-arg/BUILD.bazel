@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "parse.go",
+        "usage.go",
+    ],
+    importmap = "github.com/hongkailiu/test-go/vendor/github.com/alexflint/go-arg",
+    importpath = "github.com/alexflint/go-arg",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/alexflint/go-scalar:go_default_library"],
+)

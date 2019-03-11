@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["cookie.go"],
+    importmap = "github.com/hongkailiu/test-go/vendor/github.com/gin-contrib/sessions/cookie",
+    importpath = "github.com/gin-contrib/sessions/cookie",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/gin-contrib/sessions:go_default_library",
+        "//vendor/github.com/gorilla/sessions:go_default_library",
+    ],
+)
