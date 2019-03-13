@@ -8,8 +8,8 @@ build-oc:
 
 .PHONY : update-dep
 update-dep:
-	./script/ci/update-dep.sh
-
+	dep ensure
+	bazel run //:gazelle
 
 .PHONY : build-swagger
 build-swagger:
