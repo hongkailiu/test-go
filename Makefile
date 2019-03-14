@@ -124,6 +124,10 @@ build-ocpsanity:
 bazel-build:
 	./script/ci/bazel-all.sh
 
+.PHONY : build-testctl
+build-testctl:
+	go build -o ./build/testctl ./cmd/testctl/
+
 .PHONY : ci-install
 ci-install:
 	go get github.com/onsi/ginkgo/ginkgo
@@ -158,6 +162,7 @@ CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += gen-images
 CI_SCRIPT_DEPS += build-ocptf
 CI_SCRIPT_DEPS += build-ocpsanity
+CI_SCRIPT_DEPS += build-testctl
 CI_SCRIPT_DEPS += bazel-build
 
 .PHONY : ci-script
