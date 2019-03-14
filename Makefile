@@ -8,8 +8,8 @@ build-oc:
 
 .PHONY : update-dep
 update-dep:
-	./script/ci/update-dep.sh
-
+	dep ensure
+	bazel run //:gazelle
 
 .PHONY : build-swagger
 build-swagger:
@@ -75,10 +75,6 @@ code-gen:
 build-code-gen:
 	./script/ci/build-code-gen.sh
 
-.PHONY : build-http
-build-http:
-	./script/ci/build-http.sh
-
 .PHONY : test-pb
 test-pb:
 	./script/ci/test-pb.sh
@@ -116,13 +112,13 @@ gen-images:
 build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
-.PHONY : build-ocpsanity
-build-ocpsanity:
-	go build -o ./build/ocpsanity ./cmd/ocpsanity/
-
 .PHONY : bazel-build
 bazel-build:
 	./script/ci/bazel-all.sh
+
+.PHONY : build-testctl
+build-testctl:
+	go build -o ./build/testctl ./cmd/testctl/
 
 .PHONY : ci-install
 ci-install:
@@ -150,14 +146,13 @@ CI_SCRIPT_DEPS += build-flexy
 CI_SCRIPT_DEPS += test-flexy
 CI_SCRIPT_DEPS += code-gen
 CI_SCRIPT_DEPS += build-code-gen
-CI_SCRIPT_DEPS += build-http
 CI_SCRIPT_DEPS += test-pb
 CI_SCRIPT_DEPS += test-lc
 CI_SCRIPT_DEPS += test-others
 CI_SCRIPT_DEPS += gen-coverage
+CI_SCRIPT_DEPS += build-testctl
 CI_SCRIPT_DEPS += gen-images
 CI_SCRIPT_DEPS += build-ocptf
-CI_SCRIPT_DEPS += build-ocpsanity
 CI_SCRIPT_DEPS += bazel-build
 
 .PHONY : ci-script
@@ -166,7 +161,6 @@ ci-script: $(CI_SCRIPT_DEPS)
 .PHONY : ci-package
 ci-package:
 	./script/ci/package-ocptf.sh
-	./script/ci/package-ocpsanity.sh
 	ls -al ./build/*.tar.gz
 
 .PHONY : ci-all
