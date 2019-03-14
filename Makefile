@@ -162,7 +162,6 @@ ci-script: $(CI_SCRIPT_DEPS)
 
 .PHONY : ci-package
 ci-package:
-	./script/ci/package-testctl.sh
 	./script/ci/package-ocptf.sh
 	ls -al ./build/*.tar.gz
 
