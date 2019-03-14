@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/flags"
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/http"
+	"github.com/hongkailiu/test-go/pkg/testctl/cmd/ocpsanity"
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/version"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +28,7 @@ func NewDefaultTestctlCommand() *cobra.Command {
 	cmd.AddCommand(version.NewCmdVersion())
 
 	cmd.AddCommand(http.NewCmdHTTP(f))
+	cmd.AddCommand(ocpsanity.NewCmdOCPSanity(f))
 
 	return cmd
 }

@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hongkailiu/test-go/pkg/lib/logger"
 	"github.com/hongkailiu/test-go/pkg/ocutil"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -21,7 +20,7 @@ var (
 	oc *ocutil.CLI
 	// LogFilePath is the log file path
 	LogFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
-	log         = logger.NewLogger(LogFilePath)
+	log         *logrus.Entry
 )
 
 // SanitySummary represents sanity summary
@@ -49,7 +48,9 @@ type ProjectSummary struct {
 }
 
 // StartSanityCheck starts sanity check on OCP installation
-func StartSanityCheck(configPath string) error {
+func StartSanityCheck(configPath string, logger *logrus.Entry) error {
+	log = logger
+	log.Debug("debug testing ... ignore this line")
 	oc = ocutil.NewCLI(configPath)
 
 	sanitySummary := SanitySummary{ProjectTotal: 0, ProjectSummaryList: []ProjectSummary{}}

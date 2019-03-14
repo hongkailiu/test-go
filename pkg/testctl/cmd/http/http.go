@@ -35,6 +35,7 @@ func NewCmdHTTP(f *flags.Flags) *cobra.Command {
 		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(f)
+			http.Run()
 		},
 	})
 
@@ -80,6 +81,4 @@ func setup(f *flags.Flags) {
 	if f.Verbose {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
-
-	http.Run()
 }
