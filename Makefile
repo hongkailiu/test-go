@@ -104,7 +104,7 @@ coveralls:
 
 .PHONY : gen-images
 gen-images:
-	docker build -f test_files/docker/Dockerfile.http.txt -t quay.io/hongkailiu/test-go:http-travis .
+	docker build -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-travis .
 	docker build -f test_files/docker/Dockerfile.ocptf.txt -t quay.io/hongkailiu/test-go:ocptf-travis .
 	docker images
 
@@ -160,6 +160,7 @@ ci-script: $(CI_SCRIPT_DEPS)
 
 .PHONY : ci-package
 ci-package:
+	./script/ci/package-testctl.sh
 	./script/ci/package-ocptf.sh
 	ls -al ./build/*.tar.gz
 
