@@ -119,6 +119,8 @@ bazel-build:
 .PHONY : build-testctl
 build-testctl:
 	go build -o ./build/testctl ./cmd/testctl/
+	cp -rv pkg/http/static build/
+	cp -rv pkg/http/swagger build/
 
 .PHONY : ci-install
 ci-install:
