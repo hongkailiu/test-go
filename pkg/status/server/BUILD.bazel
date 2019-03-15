@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["server.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/status/server",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/gorilla/websocket:go_default_library",
+        "//vendor/github.com/robfig/cron:go_default_library",
+        "//vendor/gopkg.in/resty.v1:go_default_library",
+    ],
+)

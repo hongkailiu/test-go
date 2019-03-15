@@ -407,6 +407,14 @@
   version = "v1.1.3"
 
 [[projects]]
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "master"
   digest = "1:b4395b2a4566c24459af3d04009b39cc21762fc77ec7bf7a1aa905c91e8f018d"
   name = "github.com/gregjones/httpcache"
@@ -725,6 +733,14 @@
   version = "v2.4"
 
 [[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/robfig/cron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
+
+[[projects]]
   digest = "1:274f67cb6fed9588ea2521ecdac05a6d62a8c51c074c1fccc6a49a40ba80e925"
   name = "github.com/satori/go.uuid"
   packages = ["."]
@@ -796,7 +812,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a868390fac511cedfc6155739b808ce7cb9c5f63ff7653e9b10f3c6a5af676a8"
+  digest = "1:3871b18dfe76a46e3e184b7dcbfac27c0d5a5df2a620b03d7073c93df1d7fca2"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -810,6 +826,7 @@
     "idna",
     "internal/timeseries",
     "netutil",
+    "publicsuffix",
     "trace",
   ]
   pruneopts = "UT"
@@ -1000,6 +1017,14 @@
   pruneopts = "UT"
   revision = "d2d2541c53f18d2a059457998ce2876cc8e67cbf"
   version = "v0.9.1"
+
+[[projects]]
+  digest = "1:41206f4d0410803e64cfb203f665330c3183988408cb532b56305a816a87bd99"
+  name = "gopkg.in/resty.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "fa5875c0caa5c260ab78acec5a244215a730247f"
+  version = "v1.12.0"
 
 [[projects]]
   branch = "v1"
@@ -1248,6 +1273,7 @@
     "github.com/google/go-github/github",
     "github.com/google/uuid",
     "github.com/gorilla/securecookie",
+    "github.com/gorilla/websocket",
     "github.com/jessevdk/go-flags",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/postgres",
@@ -1260,6 +1286,7 @@
     "github.com/prometheus/client_golang/prometheus",
     "github.com/prometheus/client_golang/prometheus/promhttp",
     "github.com/rifflock/lfshook",
+    "github.com/robfig/cron",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/sirupsen/logrus/hooks/syslog",
@@ -1276,6 +1303,7 @@
     "google.golang.org/grpc",
     "google.golang.org/grpc/reflection",
     "gopkg.in/alecthomas/kingpin.v2",
+    "gopkg.in/resty.v1",
     "gopkg.in/yaml.v2",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",

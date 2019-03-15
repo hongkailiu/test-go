@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hongkailiu/test-go/pkg/http"
+	status "github.com/hongkailiu/test-go/pkg/status/server"
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/flags"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -45,6 +46,15 @@ func NewCmdHTTP(f *flags.Flags) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(http.GetSecret(32))
+		},
+	})
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "status",
+		Short: "Get http status",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			status.Start()
 		},
 	})
 	return cmd

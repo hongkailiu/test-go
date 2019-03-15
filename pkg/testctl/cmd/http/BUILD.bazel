@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/http:go_default_library",
+        "//pkg/status/server:go_default_library",
         "//pkg/testctl/cmd/flags:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
