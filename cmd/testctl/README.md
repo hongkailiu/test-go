@@ -88,4 +88,6 @@ Use the binary in the docker image:
 ### run directly
 # podman run --rm -it -v "/root/.kube/config:/root/.kube/config:ro,z" quay.io/hongkailiu/test-go:testctl-0.0.3-71e8cd9c /testctl ocpsanity
 
+$ podman run --rm -it -v "${HOME}/.kube/config:/root/.kube/config:ro,z" quay.io/hongkailiu/test-go:testctl-0.0.3-71e8cd9c /testctl ocpsanity
+
 ```
