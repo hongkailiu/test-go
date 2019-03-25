@@ -86,8 +86,7 @@ Use the binary in the docker image:
 / # ./testctl ocpsanity
 
 ### run directly
-# podman run --rm -it -v "/root/.kube/config:/root/.kube/config:ro,z" quay.io/hongkailiu/test-go:testctl-0.0.3-71e8cd9c /testctl ocpsanity
-
-$ podman run --rm -it -v "${HOME}/.kube/config:/root/.kube/config:ro,z" quay.io/hongkailiu/test-go:testctl-0.0.3-71e8cd9c /testctl ocpsanity
+# image_tag=testctl-0.0.6-83ce61e2
+$ podman run --rm -it -v "${HOME}/.kube/config:/root/.kube/config:ro,z" quay.io/hongkailiu/test-go:${image_tag} /testctl ocpsanity
 
 ```
