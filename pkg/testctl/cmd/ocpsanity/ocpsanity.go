@@ -57,7 +57,7 @@ func newLogger(f *flags.Flags) *logrus.Entry {
 
 	logger.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 
-	logger.SetLevel(logrus.InfoLevel)
+	logger.SetLevel(logrus.WarnLevel)
 	if f.Verbose {
 		logger.SetLevel(logrus.DebugLevel)
 	}

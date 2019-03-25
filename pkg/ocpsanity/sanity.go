@@ -222,8 +222,18 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 						"cs.ContainerID": cs.ContainerID, "cs.Ready": cs.Ready}).
 						Info("Handle pod")
 				}
+				if cs.RestartCount != 0 {
+					log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name,
+						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
+						"cs.ContainerID": cs.ContainerID, "cs.RestartCount": cs.RestartCount}).
+						Warn("Handle pod: Restart")
+				} else {
+					log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name,
+						"pod.Status.Phase": pod.Status.Phase, "cs.Name": cs.Name,
+						"cs.ContainerID": cs.ContainerID, "cs.RestartCount": cs.RestartCount}).
+						Info("Handle pod")
+				}
 			}
-
 		}
 	}
 	return nil
