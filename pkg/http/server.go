@@ -1,11 +1,15 @@
 package http
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -238,7 +242,38 @@ func Run() {
 
 	// By default it serves on :8080 unless a
 	// PORT environment variable was defined.
-	r.Run()
+	//r.Run()
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8080"
+	}
+	log.WithFields(log.Fields{"port": port}).Debug("use port")
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: r,
+	}
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sig
+		log.Info("http server is shutting down...")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatal("error at server shutdown:", err)
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.WithError(err).Fatal("Server exited.")
+	}
+
+	log.Info("Server exited.")
 }
 
 func getKeyInSession(c *gin.Context, key string) *string {
