@@ -246,7 +246,7 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 }
 
 // https://pocketgophers.com/handling-errors-in-defer/
-func printContainerLog(projectName string, podName string, container string) (returnedRrr error) {
+func printContainerLog(projectName string, podName string, container string) (returnedErr error) {
 	// https://stackoverflow.com/questions/53852530/how-to-get-logs-from-kubernetes-using-golang
 	logOptions := &corev1.PodLogOptions{
 		Container: container,
@@ -258,7 +258,7 @@ func printContainerLog(projectName string, podName string, container string) (re
 	defer func() {
 		err := readCloser.Close()
 		if err != nil {
-			returnedRrr = err
+			returnedErr = err
 		}
 	}()
 	buf := new(bytes.Buffer)
