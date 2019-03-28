@@ -1,8 +1,8 @@
 package ocpsanity
 
 import (
-	"os"
-	"path/filepath"
+	"bytes"
+	"io"
 
 	"github.com/hongkailiu/test-go/pkg/ocutil"
 	"github.com/sirupsen/logrus"
@@ -19,8 +19,8 @@ const (
 var (
 	oc *ocutil.CLI
 	// LogFilePath is the log file path
-	LogFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
-	log         *logrus.Entry
+	// LogFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
+	log *logrus.Entry
 )
 
 // SanitySummary represents sanity summary
@@ -197,6 +197,12 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 	}
 	projectSummary.PodTotal = len(PodList.Items)
 	for _, pod := range PodList.Items {
+		for _, c := range pod.Spec.Containers {
+			err := printContainerLog(projectName, pod.Name, c.Name)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 		if pod.Status.Phase == corev1.PodSucceeded {
 			log.WithFields(logrus.Fields{"project": projectName, "pod": pod.Name, "pod.Status.Phase": pod.Status.Phase}).
 				Info("Handle pod: Succeeded")
@@ -236,5 +242,35 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 			}
 		}
 	}
+	return nil
+}
+
+// https://pocketgophers.com/handling-errors-in-defer/
+func printContainerLog(projectName string, podName string, container string) (returnedRrr error) {
+	// https://stackoverflow.com/questions/53852530/how-to-get-logs-from-kubernetes-using-golang
+	logOptions := &corev1.PodLogOptions{
+		Container: container,
+	}
+	readCloser, err := oc.K8SClientSet().CoreV1().Pods(projectName).GetLogs(podName, logOptions).Stream()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := readCloser.Close()
+		if err != nil {
+			returnedRrr = err
+		}
+	}()
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, readCloser)
+	if err != nil {
+		return err
+	}
+	logString := buf.String()
+
+	log.WithFields(logrus.Fields{"project": projectName, "podName": podName,}).
+		Infof("pod log: begin\n%s", logString)
+	log.WithFields(logrus.Fields{"project": projectName, "podName": podName,}).
+		Infof("pod log: end")
 	return nil
 }
