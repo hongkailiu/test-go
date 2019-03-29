@@ -41,7 +41,7 @@ On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `stor
 ## Images
 
 ```bash
-$ buildah bud --format=docker -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-0.0.1 .
+$ buildah bud --label "version=$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go"  --format=docker -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-0.0.1 .
 $ buildah push --creds=hongkailiu d58cbf2a06aa docker://quay.io/hongkailiu/test-go:testctl-0.0.1
 
 ```
