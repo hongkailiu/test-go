@@ -44,6 +44,12 @@ On Prometheus UI: check on metrics `http_requests_total`, `random_number`, `stor
 $ buildah bud --label "version=$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go"  --format=docker -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-0.0.1 .
 $ buildah push --creds=hongkailiu d58cbf2a06aa docker://quay.io/hongkailiu/test-go:testctl-0.0.1
 
+$ skopeo inspect docker://quay.io/hongkailiu/test-go:testctl-0.0.8 | jq -r .Labels
+{
+  "url": "https://github.com/hongkailiu/test-go",
+  "version": "0.0.11-57-gf8dec948"
+}
+
 ```
 
 ## Deployment
