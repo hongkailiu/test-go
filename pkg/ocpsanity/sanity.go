@@ -48,7 +48,7 @@ type ProjectSummary struct {
 }
 
 // StartSanityCheck starts sanity check on OCP installation
-func StartSanityCheck(configPath string, logger *logrus.Entry) error {
+func StartSanityCheck(configPath string, logger *logrus.Entry, containLogs bool) error {
 	log = logger
 	log.Debug("debug testing ... ignore this line")
 	oc = ocutil.NewCLI(configPath)
@@ -87,7 +87,7 @@ func StartSanityCheck(configPath string, logger *logrus.Entry) error {
 			return err
 		}
 
-		err = handlePod(project.Name, &projectSummary)
+		err = handlePod(project.Name, &projectSummary, containLogs)
 		if err != nil {
 			return err
 		}
@@ -190,7 +190,7 @@ func handleDS(projectName string, projectSummary *ProjectSummary) error {
 	return nil
 }
 
-func handlePod(projectName string, projectSummary *ProjectSummary) error {
+func handlePod(projectName string, projectSummary *ProjectSummary, containLogs bool) error {
 	PodList, err := oc.K8SClientSet().CoreV1().Pods(projectName).List(metav1.ListOptions{})
 	if err != nil {
 		return err
@@ -198,9 +198,11 @@ func handlePod(projectName string, projectSummary *ProjectSummary) error {
 	projectSummary.PodTotal = len(PodList.Items)
 	for _, pod := range PodList.Items {
 		for _, c := range pod.Spec.Containers {
-			err := printContainerLog(projectName, pod.Name, c.Name)
-			if err != nil {
-				log.Fatal(err)
+			if containLogs {
+				err := printContainerLog(projectName, pod.Name, c.Name)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
 		if pod.Status.Phase == corev1.PodSucceeded {

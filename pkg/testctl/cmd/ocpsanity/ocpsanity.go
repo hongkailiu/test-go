@@ -21,6 +21,7 @@ testctl sanity`
 
 	logFilePath = filepath.Join(os.TempDir(), "ocpsanity.log")
 	logger      *logrus.Entry
+	containLogs bool
 )
 
 func NewCmdOCPSanity(f *flags.Flags) *cobra.Command {
@@ -28,19 +29,24 @@ func NewCmdOCPSanity(f *flags.Flags) *cobra.Command {
 		Use:     "ocpsanity",
 		Short:   "OCP sanity check",
 		Example: example,
-		Args:    cobra.NoArgs,
+		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			if containLogs && !f.Verbose {
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", "use \"-v\" to show container logs.")
+				os.Exit(1)
+			}
 			logger = newLogger(f)
 			logger.WithFields(logrus.Fields{"logFilePath": logFilePath}).Info("logging to file")
 			logger.WithFields(logrus.Fields{"startTime": time.Now().Format(time.RFC3339)}).Info("Starting OCP sanity check")
 			err := sanityCheck()
 			logger.WithFields(logrus.Fields{"endTime": time.Now().Format(time.RFC3339)}).Info("Finishing OCP sanity check")
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+				_, _ = fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 				os.Exit(1)
 			}
 		},
 	}
+	cmd.Flags().BoolVarP(&containLogs, "containerLogs", "l", false, "show container logs, -v as well")
 	return cmd
 }
 
@@ -72,7 +78,7 @@ func newLogger(f *flags.Flags) *logrus.Entry {
 }
 
 func sanityCheck() error {
-	return ocpsanity.StartSanityCheck(getConfigPath(), logger)
+	return ocpsanity.StartSanityCheck(getConfigPath(), logger, containLogs)
 }
 
 func getConfigPath() string {
