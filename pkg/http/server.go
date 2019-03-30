@@ -47,6 +47,7 @@ func PrometheusLogger() gin.HandlerFunc {
 
 // Run starts the http server
 func Run(isPPROFEnabled bool) {
+	log.WithFields(log.Fields{"isPPROFEnabled": isPPROFEnabled}).Info("Run with args")
 
 	appConfig = loadConfig()
 
