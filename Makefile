@@ -116,11 +116,15 @@ build-ocptf:
 bazel-build:
 	./script/ci/bazel-all.sh
 
+build_version := $(shell git describe --tags --always --dirty)
+
 .PHONY : build-testctl
 build-testctl:
+	sed -i -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/cmd.go
 	go build -o ./build/testctl ./cmd/testctl/
 	cp -rv pkg/http/static build/
 	cp -rv pkg/http/swagger build/
+	git checkout ./pkg/testctl/cmd/cmd.go
 
 .PHONY : ci-install
 ci-install:

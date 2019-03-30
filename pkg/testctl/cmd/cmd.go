@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	VERSION = "0.0.1"
+	VERSION = "{buildVersion}"
 )
 
 // NewDefaultTestctlCommand creates the `testctl` command with default arguments
