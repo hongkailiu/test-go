@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/hongkailiu/test-go/pkg/testctl/cmd",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/testctl/cmd/flags:go_default_library",
+        "//pkg/testctl/cmd/config:go_default_library",
         "//pkg/testctl/cmd/http:go_default_library",
         "//pkg/testctl/cmd/ocpsanity:go_default_library",
         "//pkg/testctl/cmd/version:go_default_library",
