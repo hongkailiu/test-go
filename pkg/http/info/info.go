@@ -7,11 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	// VERSION of the http cmd
-	VERSION = "0.0.19"
-)
-
 // Info represents information
 type Info struct {
 	Version string    `json:"version"`
@@ -20,10 +15,10 @@ type Info struct {
 }
 
 // GetInfo returns the required information
-func GetInfo() *Info {
+func GetInfo(version string) *Info {
 
 	i := Info{}
-	i.Version = VERSION
+	i.Version = version
 	i.Ips = getIps()
 	i.Now = time.Now()
 	return &i

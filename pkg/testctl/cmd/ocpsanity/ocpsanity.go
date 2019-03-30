@@ -8,7 +8,7 @@ import (
 
 	"github.com/hongkailiu/test-go/pkg/lib/util"
 	"github.com/hongkailiu/test-go/pkg/ocpsanity"
-	"github.com/hongkailiu/test-go/pkg/testctl/cmd/flags"
+	"github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,18 +24,18 @@ testctl sanity`
 	containLogs bool
 )
 
-func NewCmdOCPSanity(f *flags.Flags) *cobra.Command {
+func NewCmdOCPSanity(c *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "ocpsanity",
 		Short:   "OCP sanity check",
 		Example: example,
 		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			if containLogs && !f.Verbose {
+			if containLogs && !c.Verbose {
 				_, _ = fmt.Fprintf(os.Stderr, "%s\n", "use \"-v\" to show container logs.")
 				os.Exit(1)
 			}
-			logger = newLogger(f)
+			logger = newLogger(c)
 			logger.WithFields(logrus.Fields{"logFilePath": logFilePath}).Info("logging to file")
 			logger.WithFields(logrus.Fields{"startTime": time.Now().Format(time.RFC3339)}).Info("Starting OCP sanity check")
 			err := sanityCheck()
@@ -50,7 +50,7 @@ func NewCmdOCPSanity(f *flags.Flags) *cobra.Command {
 	return cmd
 }
 
-func newLogger(f *flags.Flags) *logrus.Entry {
+func newLogger(c *config.Config) *logrus.Entry {
 	pathMap := lfshook.PathMap{
 		logrus.DebugLevel: logFilePath,
 		logrus.InfoLevel:  logFilePath,
@@ -64,7 +64,7 @@ func newLogger(f *flags.Flags) *logrus.Entry {
 	logger.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 
 	logger.SetLevel(logrus.WarnLevel)
-	if f.Verbose {
+	if c.Verbose {
 		logger.SetLevel(logrus.DebugLevel)
 	}
 

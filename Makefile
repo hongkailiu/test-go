@@ -120,11 +120,11 @@ build_version := $(shell git describe --tags --always --dirty)
 
 .PHONY : build-testctl
 build-testctl:
-	sed -i -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/cmd.go
+	sed -i -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/config/version.go
 	go build -o ./build/testctl ./cmd/testctl/
 	cp -rv pkg/http/static build/
 	cp -rv pkg/http/swagger build/
-	git checkout ./pkg/testctl/cmd/cmd.go
+	git checkout ./pkg/testctl/cmd/config/version.go
 
 .PHONY : ci-install
 ci-install:

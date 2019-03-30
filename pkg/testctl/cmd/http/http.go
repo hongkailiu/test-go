@@ -6,7 +6,7 @@ import (
 
 	"github.com/hongkailiu/test-go/pkg/http"
 	status "github.com/hongkailiu/test-go/pkg/status/server"
-	"github.com/hongkailiu/test-go/pkg/testctl/cmd/flags"
+	"github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -18,10 +18,13 @@ testctl http start
 
 # Get http secret
 testctl http getSecret`
-	pprof bool
 )
 
-func NewCmdHTTP(f *flags.Flags) *cobra.Command {
+func NewCmdHTTP(c *config.Config) *cobra.Command {
+	hc := &config.HttpConfig{
+		Config: *c,
+		Version: config.VERSION,
+	}
 	cmd := &cobra.Command{
 		Use:     "http",
 		Short:   "HTTP server",
@@ -36,11 +39,11 @@ func NewCmdHTTP(f *flags.Flags) *cobra.Command {
 		Example: "testctl http start",
 		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			setup(f)
-			http.Run(pprof)
+			setup(c)
+			http.Run(hc)
 		},
 	}
-	startCmd.Flags().BoolVarP(&pprof, "pprof", "p", false, "enable pprof, see https://golang.org/pkg/net/http/pprof/")
+	startCmd.Flags().BoolVarP(&hc.PProf, "pprof", "p", false, "enable pprof, see https://golang.org/pkg/net/http/pprof/")
 	cmd.AddCommand(startCmd)
 
 	cmd.AddCommand(&cobra.Command{
@@ -77,7 +80,7 @@ func (f *formatter) Format(e *logrus.Entry) ([]byte, error) {
 	return f.lf.Format(e)
 }
 
-func setup(f *flags.Flags) {
+func setup(c *config.Config) {
 	//https://github.com/sirupsen/logrus/pull/653#issuecomment-454467900
 	logrus.SetFormatter(&formatter{
 		fields: logrus.Fields{
@@ -91,7 +94,7 @@ func setup(f *flags.Flags) {
 
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.WarnLevel)
-	if f.Verbose {
+	if c.Verbose {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 }

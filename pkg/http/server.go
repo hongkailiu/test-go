@@ -23,6 +23,7 @@ import (
 	"github.com/hongkailiu/test-go/pkg/http/model"
 	"github.com/hongkailiu/test-go/pkg/random"
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
+	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -46,8 +47,8 @@ func PrometheusLogger() gin.HandlerFunc {
 }
 
 // Run starts the http server
-func Run(isPPROFEnabled bool) {
-	log.WithFields(log.Fields{"isPPROFEnabled": isPPROFEnabled}).Info("Run with args")
+func Run(hc *cmdconfig.HttpConfig) {
+	log.WithFields(log.Fields{"hc.PProf": hc.PProf}).Info("Run with args")
 
 	appConfig = loadConfig()
 
@@ -119,7 +120,7 @@ func Run(isPPROFEnabled bool) {
 	r.Use(sessions.Sessions("my_session", store))
 
 	r.GET("/", func(c *gin.Context) {
-		infoP := info.GetInfo()
+		infoP := info.GetInfo(hc.Version)
 		contentType := c.ContentType()
 		log.WithFields(log.Fields{"c.ContentType()": contentType}).Debug("root path")
 		if strings.Contains(contentType, "yaml") {
@@ -244,7 +245,7 @@ func Run(isPPROFEnabled bool) {
 
 	// https://github.com/gin-contrib/pprof
 	// default is "debug/pprof"
-	if isPPROFEnabled {
+	if hc.PProf {
 		pprof.Register(r)
 	}
 
