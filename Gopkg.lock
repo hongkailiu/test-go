@@ -143,6 +143,14 @@
   version = "v0.3.3"
 
 [[projects]]
+  digest = "1:ff4526425d0375a16b07c1d6953f5d47167177aa6e6140f7da5b8575b23ebc12"
+  name = "github.com/gin-contrib/pprof"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ab91463bf09f9cd673b9901e67d07a7b43ada031"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   digest = "1:80dfb0d0a95b78f845d21d59f01738a0720c3a2cb4f2e4de3db52a2c0d3519e2"
   name = "github.com/gin-contrib/sessions"
@@ -1252,6 +1260,7 @@
     "github.com/aws/aws-sdk-go-v2/aws/external",
     "github.com/aws/aws-sdk-go-v2/service/ec2",
     "github.com/dgrijalva/jwt-go",
+    "github.com/gin-contrib/pprof",
     "github.com/gin-contrib/sessions",
     "github.com/gin-contrib/sessions/cookie",
     "github.com/gin-gonic/gin",

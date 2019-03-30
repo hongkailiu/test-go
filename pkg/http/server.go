@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -45,7 +46,7 @@ func PrometheusLogger() gin.HandlerFunc {
 }
 
 // Run starts the http server
-func Run() {
+func Run(isPPROFEnabled bool) {
 
 	appConfig = loadConfig()
 
@@ -239,6 +240,12 @@ func Run() {
 		log.WithFields(log.Fields{"tokenString": tokenString}).Debug("generated token")
 		c.JSON(200, gin.H{"token": tokenString})
 	})
+
+	// https://github.com/gin-contrib/pprof
+	// default is "debug/pprof"
+	if isPPROFEnabled {
+		pprof.Register(r)
+	}
 
 	// By default it serves on :8080 unless a
 	// PORT environment variable was defined.

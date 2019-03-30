@@ -21,6 +21,7 @@ go_library(
         "//pkg/random:go_default_library",
         "//pkg/swagger/swagger/models:go_default_library",
         "//vendor/github.com/dgrijalva/jwt-go:go_default_library",
+        "//vendor/github.com/gin-contrib/pprof:go_default_library",
         "//vendor/github.com/gin-contrib/sessions:go_default_library",
         "//vendor/github.com/gin-contrib/sessions/cookie:go_default_library",
         "//vendor/github.com/gin-gonic/gin:go_default_library",

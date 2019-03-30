@@ -18,6 +18,7 @@ testctl http start
 
 # Get http secret
 testctl http getSecret`
+	pprof bool
 )
 
 func NewCmdHTTP(f *flags.Flags) *cobra.Command {
@@ -29,16 +30,18 @@ func NewCmdHTTP(f *flags.Flags) *cobra.Command {
 		Args:    cobra.NoArgs,
 	}
 
-	cmd.AddCommand(&cobra.Command{
+	startCmd := &cobra.Command{
 		Use:     "start",
 		Short:   "Start HTTP server",
 		Example: "testctl http start",
-		Args:    cobra.NoArgs,
+		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(f)
-			http.Run()
+			http.Run(pprof)
 		},
-	})
+	}
+	startCmd.Flags().BoolVarP(&pprof, "pprof", "p", false, "enable pprof, see https://golang.org/pkg/net/http/pprof/")
+	cmd.AddCommand(startCmd)
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "getSecret",
