@@ -56,6 +56,7 @@ $ skopeo inspect docker://quay.io/hongkailiu/test-go:testctl-0.0.8 | jq -r .Labe
 ## Deployment
 
 ```
+### openshift console: https://console.starter-us-east-2a.openshift.com/console/catalog
 $ curl https://web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com
 
 ```
