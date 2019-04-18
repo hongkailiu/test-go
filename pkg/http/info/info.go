@@ -19,12 +19,12 @@ func GetInfo(version string) *Info {
 
 	i := Info{}
 	i.Version = version
-	i.Ips = getIps()
+	i.Ips = getIPs()
 	i.Now = time.Now()
 	return &i
 }
 
-func getIps() []string {
+func getIPs() []string {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		log.Error(err.Error())
@@ -45,7 +45,9 @@ func getIps() []string {
 			case *net.IPAddr:
 				ip = v.IP
 			}
-			result = append(result, ip.String())
+			if len(ip) != 0 {
+				result = append(result, ip.String())
+			}
 		}
 	}
 	return result

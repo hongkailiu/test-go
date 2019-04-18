@@ -18,6 +18,7 @@ type config struct {
 	ggClientID     string
 	ggClientSecret string
 	ggRedirectURL  string
+	hostname       string
 }
 
 func loadConfig() *config {
@@ -35,6 +36,7 @@ func loadConfig() *config {
 	config.ggClientID = util.Getenv("gg_client_id", "gg_client_id")
 	config.ggClientSecret = util.Getenv("gg_client_secret", "gg_client_secret")
 	config.ggRedirectURL = util.Getenv("gg_redirect_url", "gg_redirect_url")
+	config.hostname = util.Getenv("HOSTNAME", "unknown")
 
 	if config.ggRedirectURL == "" {
 		config.ggRedirectURL = "http://127.0.0.1:8080/google_oauth_cb"

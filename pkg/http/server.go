@@ -42,7 +42,7 @@ func PrometheusLogger() gin.HandlerFunc {
 		log.WithFields(log.Fields{
 			"c.Request.URL.Path": c.Request.URL.Path,
 		}).Debug("prometheus logger detected path visited")
-		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path}).Inc()
+		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path, "hostname": appConfig.hostname}).Inc()
 	}
 }
 
@@ -85,7 +85,13 @@ func Run(hc *cmdconfig.HttpConfig) {
 
 	log.WithFields(log.Fields{"appDBString": appDBString}).Debug("Using this db")
 	appDB, err := db.OpenPostgres(appDBString)
-	defer appDB.Close()
+	defer func() {
+		err := appDB.Close()
+		if err != nil {
+			log.Fatal("error at appDB.Close():", err)
+		}
+	}()
+
 	appDB.LogMode(true)
 
 	if err != nil {
@@ -161,9 +167,13 @@ func Run(hc *cmdconfig.HttpConfig) {
 
 	r.GET("/logout", func(c *gin.Context) {
 		session := sessions.Default(c)
+		username := session.Get("username")
 		session.Delete("username")
 		session.Delete("localID")
-		session.Save()
+		err := session.Save()
+		if err != nil {
+			log.WithError(err).Errorf("error when user %s logout.", username)
+		}
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	})
 
@@ -171,7 +181,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 		for {
 			n := random.GetRandom(1000)
 			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
-			randomNumber.With(prometheus.Labels{"key": "value"}).Set(float64(n))
+			randomNumber.With(prometheus.Labels{"key": "value", "hostname": appConfig.hostname}).Set(float64(n))
 			time.Sleep(10 * time.Second)
 		}
 	}()
@@ -182,7 +192,8 @@ func Run(hc *cmdconfig.HttpConfig) {
 			log.WithFields(log.Fields{
 				"n": n,
 			}).Debug("generated fake storageOperationMetric")
-			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hongkailiu.tk/aws-ebs", "operation_name": "volume_provision"}).Observe(float64(n))
+			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hliu.ca/aws-ebs",
+				"operation_name": "volume_provision", "hostname": appConfig.hostname}).Observe(float64(n))
 			time.Sleep(100 * time.Second)
 		}
 	}()
