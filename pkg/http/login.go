@@ -85,12 +85,12 @@ func (l login) getCallbackHandler() gin.HandlerFunc {
 		}
 
 		u, err := l.userProvider.getUser(l.config.Client(context.TODO(), token))
-		u.setLocalID()
 		if err != nil {
 			log.Errorf("l.userProvider.getUser() failed with '%s'", err)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
+		u.setLocalID()
 		log.Debugf("Logged in as user: %v", u)
 		saveDataInSession(c, *u)
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
