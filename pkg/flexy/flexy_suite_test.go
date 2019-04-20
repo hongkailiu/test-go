@@ -1,6 +1,7 @@
 package flexy_test
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 )
@@ -46,7 +46,7 @@ func TestFlexy(t *testing.T) {
 		if err != nil {
 			Fail(err.Error())
 		}
-		client := conf.Client(oauth2.NoContext)
+		client := conf.Client(context.TODO())
 
 		computeService, err = compute.New(client)
 		if err != nil {

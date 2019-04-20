@@ -77,14 +77,14 @@ func (l login) getCallbackHandler() gin.HandlerFunc {
 		}
 
 		code := r.FormValue("code")
-		token, err := l.config.Exchange(oauth2.NoContext, code)
+		token, err := l.config.Exchange(context.TODO(), code)
 		if err != nil {
 			log.Errorf("oauthConf.Exchange() failed with '%s'", err)
 			c.Redirect(http.StatusTemporaryRedirect, "/console")
 			return
 		}
 
-		u, err := l.userProvider.getUser(l.config.Client(oauth2.NoContext, token))
+		u, err := l.userProvider.getUser(l.config.Client(context.TODO(), token))
 		u.setLocalID()
 		if err != nil {
 			log.Errorf("l.userProvider.getUser() failed with '%s'", err)
