@@ -36,13 +36,22 @@ var (
 	appConfig *config
 )
 
-// PrometheusLogger intercepts all http requests and logging the path
-func PrometheusLogger() gin.HandlerFunc {
+// PrometheusMiddleware intercepts all http requests and logging the path
+func PrometheusMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log.WithFields(log.Fields{
-			"c.Request.URL.Path": c.Request.URL.Path,
-		}).Debug("prometheus logger detected path visited")
-		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path, "hostname": appConfig.hostname}).Inc()
+		t := time.Now()
+		log.WithFields(log.Fields{"c.Request.URL.Path": c.Request.URL.Path}).
+			Debug("prometheus middleware detected path visited")
+		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path, "hostname": appConfig.hostname, "method": c.Request.Method}).Inc()
+		// before request
+		c.Next()
+		// after request
+		latency := time.Since(t)
+		log.WithFields(log.Fields{"c.Request.URL.Path": c.Request.URL.Path, "c.Writer.Status()": c.Writer.Status(), "latency": latency}).
+			Debug("prometheus middleware calculated latency")
+		httpRequestDuration.With(
+			prometheus.Labels{"path": c.Request.URL.Path, "hostname": appConfig.hostname, "method": c.Request.Method, "status": strconv.Itoa(c.Writer.Status())}).
+			Observe(latency.Seconds())
 	}
 }
 
@@ -117,7 +126,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	r.Use(gin.Recovery())
 
-	r.Use(PrometheusLogger())
+	r.Use(PrometheusMiddleware())
 
 	// sessions and cookies are from github.com/gin-contrib
 	// which uses implementation from github.com/gorilla/

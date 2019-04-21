@@ -9,9 +9,18 @@ var (
 	httpRequestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
-			Help: "How many HTTP requests processed, partitioned by status code and HTTP method.",
+			Help: "How many HTTP requests processed.",
 		},
-		[]string{"path", "hostname"},
+		[]string{"path", "hostname", "method"},
+	)
+
+	httpRequestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "http_request_duration_seconds",
+			Help:    "http request duration seconds",
+			Buckets: []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10},
+		},
+		[]string{"path", "hostname", "method", "status"},
 	)
 
 	randomNumber = prometheus.NewGaugeVec(
@@ -35,6 +44,7 @@ var (
 func prometheusRegister() {
 	log.WithFields(log.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
 	prometheus.MustRegister(httpRequestsTotal)
+	prometheus.MustRegister(httpRequestDuration)
 	prometheus.MustRegister(randomNumber)
 	prometheus.MustRegister(storageOperationMetric)
 }
