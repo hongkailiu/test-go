@@ -190,14 +190,14 @@ oc-deploy-testctl:
 ifeq ($(oc_server),$(expected_oc_server))
 	@echo "server match!"
 else
-	@echo "server do NOT match: exiting"
+	@echo "server do NOT match: exiting ..."
 	@echo "expected_oc_server: $(expected_oc_server)"
 	false
 endif
 ifeq ($(oc_user),$(expected_oc_user))
 	@echo "user match!"
 else
-	@echo "user do NOT match: exiting"
+	@echo "user do NOT match: exiting ..."
 	@echo "expected_oc_user: $(expected_oc_user)"
 	false
 endif
