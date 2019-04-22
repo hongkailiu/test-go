@@ -203,9 +203,10 @@ else
 endif
 	@echo "deploy component http web server ..."
 	oc apply -f $(test_go_secret_file)
-	oc apply -f ./deploy/testctl_http/testctl_deploy.yaml
+	oc apply -f ./deploy/testctl_http/web_deploy.yaml
 	oc create configmap -n hongkliu-stage prometheus --from-file=./deploy/testctl_http/prometheus.yml --dry-run -o yaml | oc apply -f -
 	oc apply -f ./deploy/testctl_http/prometheus_deploy.yaml
+	oc apply -f ./deploy/testctl_http/status_deploy.yaml
 	#https://github.com/kubernetes/kubernetes/issues/13488#issuecomment-481023838
 	#kubectl rollout restart #this will be available soon
 	@echo "deployed successfully!"

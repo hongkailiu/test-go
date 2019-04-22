@@ -50,8 +50,6 @@ spec:
 apiVersion: v1
 kind: Route
 metadata:
-  annotations:
-    openshift.io/host.generated: "true"
   name: prometheus
   namespace: hongkliu-stage
 spec:

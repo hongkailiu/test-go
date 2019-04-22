@@ -102,8 +102,6 @@ spec:
 apiVersion: v1
 kind: Route
 metadata:
-  annotations:
-    openshift.io/host.generated: "true"
   name: web
   namespace: hongkliu-run
 spec:
@@ -112,8 +110,6 @@ spec:
   to:
     kind: Service
     name: web
-    weight: 100
-  wildcardPolicy: None
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: None
