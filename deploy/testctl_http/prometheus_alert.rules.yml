@@ -1,11 +1,11 @@
 groups:
-  - name: example
+  - name: test-go
     rules:
-      - alert: HighRandomNumber
-        expr: random_number > 200
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
         labels:
           severity: slack
         annotations:
-          summary: High random number
-          description: "ttt {{ $labels.hostname }} ttt"
-          aaa: "333"
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."

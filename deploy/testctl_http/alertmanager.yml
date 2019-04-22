@@ -14,7 +14,7 @@ receivers:
       - channel: '#prometheus-alerts'
         api_url: https://hooks.slack.com/services/{slack_api_secret}
         icon_url: https://avatars3.githubusercontent.com/u/3380462
-        text: 'aaa {{ template "slack.default.text" . }}; bbb {{ template "custom_slack_text" . }}; ccc;'
+        text: 'msg{{ template "slack.default.text" . }}: {{ template "custom_slack_text" . }}'
 
 templates:
   - ./*.tmpl

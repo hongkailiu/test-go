@@ -279,7 +279,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "prometheus",
-      "description": "sum by (hostname) (rate(http_request_duration_seconds_count{status!~\"2.*\"}[1m]))",
+      "description": "sum by (hostname) (rate(http_request_duration_seconds_count{status!~\"2..\"}[1m]))",
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -311,7 +311,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum by (hostname) (rate(http_request_duration_seconds_count{status!~\"2.*\"}[1m]))",
+          "expr": "sum by (hostname) (rate(http_request_duration_seconds_count{status!~\"2..\"}[1m]))",
           "format": "time_series",
           "intervalFactor": 1,
           "refId": "A"
@@ -321,7 +321,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "status non-2*",
+      "title": "status non-2..",
       "tooltip": {
         "shared": true,
         "sort": 0,
