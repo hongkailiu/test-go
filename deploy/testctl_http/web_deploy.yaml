@@ -37,57 +37,57 @@ spec:
             - name: gh_client_id
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: gh_client_id
             - name: gh_client_secret
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: gh_client_secret
             - name: gg_client_id
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: gg_client_id
             - name: gg_client_secret
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: gg_client_secret
             - name: gg_redirect_url
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: gg_redirect_url
             - name: session_key
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: session_key
             - name: db_host
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: db_host
             - name: db_port
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: db_port
             - name: db_user
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: db_user
             - name: db_name
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: db_name
             - name: db_password
               valueFrom:
                 secretKeyRef:
-                  name: testctl
+                  name: web
                   key: db_password
           imagePullPolicy: IfNotPresent
           name: web

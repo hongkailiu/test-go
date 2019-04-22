@@ -1,0 +1,108 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: hongkliu-stage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - args:
+            - -config=/etc/grafana/grafana.ini
+          image: grafana/grafana:6.1.4
+          name: grafana
+          env:
+            # TODO: auth-proxy
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: GF_SECURITY_ADMIN_USER
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: GF_SECURITY_ADMIN_PASSWORD
+          ports:
+            - containerPort: 3001
+              name: http
+          resources:
+            requests:
+              cpu: 30m
+              memory: 60Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grafana-storage
+              readOnly: false
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grafana-datasources
+              readOnly: false
+            - mountPath: /etc/grafana/provisioning/dashboards
+              name: grafana-dashboards
+              readOnly: false
+            - mountPath: /grafana-dashboard-definitions/0/test-go
+              name: grafana-dashboard-test-go
+              readOnly: false
+            - mountPath: /etc/grafana
+              name: grafana-config
+              readOnly: false
+      securityContext: {}
+      volumes:
+        - emptyDir: {}
+          name: grafana-storage
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - configMap:
+            name: grafana-dashboards
+          name: grafana-dashboards
+        - configMap:
+            name: grafana-dashboard-test-go
+          name: grafana-dashboard-test-go
+        - name: grafana-config
+          configMap:
+            name: grafana-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: hongkliu-stage
+spec:
+  ports:
+    - name: http
+      port: 3001
+      protocol: TCP
+      targetPort: 3001
+  selector:
+    app: grafana
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: hongkliu-stage
+spec:
+  port:
+    targetPort: 3001
+  to:
+    kind: Service
+    name: grafana
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
