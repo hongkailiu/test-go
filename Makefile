@@ -204,10 +204,8 @@ endif
 	@echo "deploy component http web server ..."
 	oc apply -f $(test_go_secret_file)
 	oc apply -f ./deploy/testctl_http/testctl_deploy.yaml
-	oc create configmap -n hongkliu-run prometheus --from-file=./deploy/testctl_http/prometheus.yml --dry-run -o yaml | oc apply -f -
+	oc create configmap -n hongkliu-stage prometheus --from-file=./deploy/testctl_http/prometheus.yml --dry-run -o yaml | oc apply -f -
 	oc apply -f ./deploy/testctl_http/prometheus_deploy.yaml
 	#https://github.com/kubernetes/kubernetes/issues/13488#issuecomment-481023838
 	#kubectl rollout restart #this will be available soon
-	#oc patch deployment web -p '{"spec":{"template":{"spec":{"containers":[{"name":"web","env":[{"name":"LAST_MANUAL_RESTART","value":"'$(date +%s)'"}]}]}}}}'
-	#oc patch deployment prometheus -p '{"spec":{"template":{"spec":{"containers":[{"name":"prometheus","env":[{"name":"LAST_MANUAL_RESTART","value":"'$(date +%s)'"}]}]}}}}'
 	@echo "deployed successfully!"

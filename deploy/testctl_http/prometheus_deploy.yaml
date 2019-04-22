@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
-  namespace: hongkliu-run
+  namespace: hongkliu-stage
 spec:
   ports:
     - port: 9090
@@ -16,7 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: hongkliu-run
+  namespace: hongkliu-stage
 spec:
   replicas: 1
   selector:
@@ -53,7 +53,7 @@ metadata:
   annotations:
     openshift.io/host.generated: "true"
   name: prometheus
-  namespace: hongkliu-run
+  namespace: hongkliu-stage
 spec:
   port:
     targetPort: 9090

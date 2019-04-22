@@ -5,6 +5,7 @@ global:
 rule_files:
 
 scrape_configs:
-  - job_name: 'testctl'
+  - job_name: 'test-go'
+    scheme: https
     static_configs:
-      - targets: ['web.hongkliu-run.svc:8080']
+      - targets: ['web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com'] #['web.hongkliu-run.svc:8080']
