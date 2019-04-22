@@ -1,0 +1,11 @@
+groups:
+  - name: example
+    rules:
+      - alert: HighRandomNumber
+        expr: random_number > 200
+        labels:
+          severity: slack
+        annotations:
+          summary: High random number
+          description: "ttt {{ $labels.hostname }} ttt"
+          aaa: "333"

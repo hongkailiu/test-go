@@ -181,6 +181,7 @@ expected_oc_server := api-starter-us-east-2a-openshift-com:443
 expected_oc_user := hongkliu
 web_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/web_secret.yaml
 grafana_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/grafana_secret.yaml
+slack_api_secret_value := $(shell head -n 1 /home/hongkliu/repo/me/svt-secret/test_go/slack_api_secret.txt)
 
 .PHONY : oc-deploy-testctl
 oc-deploy-testctl:
@@ -205,7 +206,7 @@ endif
 	@echo "deploy component http web server ..."
 	oc apply -f $(web_secret_file)
 	oc apply -f ./deploy/testctl_http/web_deploy.yaml
-	oc create configmap -n hongkliu-stage prometheus --from-file=./deploy/testctl_http/prometheus.yml --dry-run -o yaml | oc apply -f -
+	oc create configmap -n hongkliu-stage prometheus --from-file=./deploy/testctl_http/prometheus.yml --from-file=alert.rules.yml=./deploy/testctl_http/prometheus_alert.rules.yml --dry-run -o yaml | oc apply -f -
 	oc apply -f ./deploy/testctl_http/prometheus_deploy.yaml
 	oc apply -f ./deploy/testctl_http/status_deploy.yaml
 	oc apply -f $(grafana_secret_file)
@@ -214,6 +215,10 @@ endif
 	oc create -n hongkliu-stage configmap grafana-dashboards --from-file=dashboards.yaml=./deploy/testctl_http/grafana_dashboards.yaml --dry-run -o yaml | oc apply -f -
 	oc create -n hongkliu-stage configmap grafana-dashboard-test-go --from-file=test-go.json=./deploy/testctl_http/test_go_dashboard.json --dry-run -o yaml | oc apply -f -
 	oc apply -f ./deploy/testctl_http/grafana_deploy.yaml
+	sed -e "s|{slack_api_secret}|$(slack_api_secret_value)|g" ./deploy/testctl_http/alertmanager.yml > /tmp/alertmanager_decoded.yml
+	oc create -n hongkliu-stage configmap alert-manager-config --from-file=alertmanager.yml=/tmp/alertmanager_decoded.yml --from-file=msg.tmpl=./deploy/testctl_http/alert_manager.msg.tmpl --dry-run -o yaml | oc apply -f -
+	rm -vf /tmp/alertmanager_decoded.yml
+	oc apply -f ./deploy/testctl_http/alert_manager_deploy.yaml
 	#https://github.com/kubernetes/kubernetes/issues/13488#issuecomment-481023838
 	#kubectl rollout restart #this will be available soon
 	@echo "deployed successfully!"
