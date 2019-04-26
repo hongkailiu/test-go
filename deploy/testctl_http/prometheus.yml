@@ -14,5 +14,7 @@ rule_files:
 scrape_configs:
   - job_name: 'test-go'
     scheme: https
+    tls_config:
+      insecure_skip_verify: true
     static_configs:
-      - targets: ['web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com'] #['web.hongkliu-run.svc:8080']
+      - targets: ['web-hongkliu-run.apps.hongkliu1.qe.devcluster.openshift.com'] #['web.hongkliu-run.svc:8080']

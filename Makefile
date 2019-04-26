@@ -177,8 +177,8 @@ oc_project := $(shell echo $(current_oc_context) | cut -d "/" -f1)
 oc_server := $(shell echo $(current_oc_context) | cut -d "/" -f2)
 oc_user := $(shell echo $(current_oc_context) | cut -d "/" -f3)
 
-expected_oc_server := api-starter-us-east-2a-openshift-com:443
-expected_oc_user := hongkliu
+expected_oc_server := api-hongkliu1-qe-devcluster-openshift-com:6443
+expected_oc_user := kube:admin
 web_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/web_secret.yaml
 grafana_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/grafana_secret.yaml
 slack_api_secret_value := $(shell head -n 1 /home/hongkliu/repo/me/svt-secret/test_go/slack_api_secret.txt)
