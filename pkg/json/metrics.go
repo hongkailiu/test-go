@@ -72,5 +72,3 @@ func LogMetrics(metrics []Metrics) error {
 	}
 	return nil
 }
-
-

@@ -17,7 +17,7 @@ func TestTypeDuration(t *testing.T) {
 
 func TestTypeDuration1(t *testing.T) {
 	td := TestDuration{
-		TestDuration: 3*time.Second + 5*time.Minute,
+		TestDuration: 23*time.Second + 6*time.Minute,
 	}
 
 	bolB, err := json.Marshal(td)
@@ -27,7 +27,7 @@ func TestTypeDuration1(t *testing.T) {
 
 	//fmt.Println("=" + actual + "=")
 
-	expect := `{"marker":"","name":"","type":"","startTime":"0001-01-01T00:00:00Z","testDuration":303000000000,"Steps":null}`
+	expect := `{"marker":"","name":"","type":"","startTime":"0001-01-01T00:00:00Z","testDuration":383000000000,"Steps":null}`
 
 	assert.Equal(t, expect, actual, "they should be equal")
 }
