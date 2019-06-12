@@ -21,8 +21,8 @@ if [[ "${CIRCLECI:-false}" == "true" ]]; then
   #sudo add-apt-repository -y ppa:openjdk-r/ppa
   #sudo apt-get update
   sudo apt-get install openjdk-8-jdk
-  #echo "installing patch on circle-ci ..."
-  #sudo apt-get install patch
+  echo "installing patch on circle-ci ..."
+  sudo apt-get install patch
   echo "installing bazel on circle-ci ..."
   curl -OL https://github.com/bazelbuild/bazelisk/releases/download/v0.0.7/bazelisk-linux-amd64
   sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
