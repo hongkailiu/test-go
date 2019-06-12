@@ -20,6 +20,7 @@ testctl http start
 testctl http getSecret`
 )
 
+// NewCmdHTTP ...
 func NewCmdHTTP(c *config.Config) *cobra.Command {
 	hc := &config.HttpConfig{
 		Config:  *c,
