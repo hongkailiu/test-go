@@ -19,7 +19,7 @@ if [[ "${CIRCLECI:-false}" == "true" ]]; then
   #sudo apt-get update
   #sudo apt-get install --allow-unauthenticated oracle-java8-installer
   sudo add-apt-repository ppa:openjdk-r/ppa
-  sudo apt-get update
+  #sudo apt-get update
   sudo apt-get install openjdk-8-jdk
   #echo "installing patch on circle-ci ..."
   #sudo apt-get install patch
