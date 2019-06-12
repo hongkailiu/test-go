@@ -27,7 +27,6 @@ if [[ "${CIRCLECI:-false}" == "true" ]]; then
   curl -OL https://github.com/bazelbuild/bazelisk/releases/download/v0.0.7/bazelisk-linux-amd64
   sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
   sudo chmod +x /usr/bin/bazel
-  bazel version
   #echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
   #curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
   #sudo apt-get update && sudo apt-get install bazel
