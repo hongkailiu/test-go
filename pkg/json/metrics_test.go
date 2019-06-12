@@ -23,9 +23,7 @@ func TestTypeDuration1(t *testing.T) {
 				RateDelay: 2 * time.Second,
 				SyncTime:  3 * time.Second,
 			},
-			PodStepDuration{
-
-			},
+			PodStepDuration{},
 		},
 	}
 
