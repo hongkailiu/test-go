@@ -1,5 +1,6 @@
 package config
 
+// Config ...
 type Config struct {
 	Verbose bool
 }
