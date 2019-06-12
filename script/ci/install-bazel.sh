@@ -14,7 +14,7 @@ fi
 
 if [[ "${CIRCLECI:-false}" == "true" ]]; then
   echo "installing openjdk on circle-ci ..."
-  #sudo apt-get install -y software-properties-common
+  sudo apt-get install -y software-properties-common
   #sudo add-apt-repository -y ppa:webupd8team/java
   #sudo apt-get update
   #sudo apt-get install --allow-unauthenticated oracle-java8-installer
