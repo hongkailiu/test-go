@@ -24,6 +24,7 @@ testctl sanity`
 	containLogs bool
 )
 
+// NewCmdOCPSanity ...
 func NewCmdOCPSanity(c *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "ocpsanity",

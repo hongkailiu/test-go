@@ -12,10 +12,12 @@ var (
 		kubectl version`
 )
 
+// Options ...
 type Options struct {
 	Short bool
 }
 
+// NewCmdVersion ...
 func NewCmdVersion() *cobra.Command {
 	o := &Options{}
 	cmd := &cobra.Command{

@@ -24,11 +24,13 @@ var (
 	ss       *ServiceStatus
 )
 
+// Check ...
 type Check struct {
 	Time   time.Time `json:"time"`
 	Status int       `json:"status"`
 }
 
+// ServiceStatus ...
 type ServiceStatus struct {
 	Url                 string `json:"url"`
 	LastSuccessfulCheck *Check `json:"lastSuccessfulCheck,omitempty"`
