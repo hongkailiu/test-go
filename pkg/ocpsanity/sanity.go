@@ -270,9 +270,9 @@ func printContainerLog(projectName string, podName string, container string) (re
 	}
 	logString := buf.String()
 
-	log.WithFields(logrus.Fields{"project": projectName, "podName": podName,}).
+	log.WithFields(logrus.Fields{"project": projectName, "podName": podName}).
 		Infof("pod log: begin\n%s", logString)
-	log.WithFields(logrus.Fields{"project": projectName, "podName": podName,}).
+	log.WithFields(logrus.Fields{"project": projectName, "podName": podName}).
 		Infof("pod log: end")
 	return nil
 }

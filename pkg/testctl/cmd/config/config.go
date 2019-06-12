@@ -6,6 +6,6 @@ type Config struct {
 
 type HttpConfig struct {
 	Config
-	PProf bool
+	PProf   bool
 	Version string
 }

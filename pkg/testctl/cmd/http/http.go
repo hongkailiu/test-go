@@ -22,7 +22,7 @@ testctl http getSecret`
 
 func NewCmdHTTP(c *config.Config) *cobra.Command {
 	hc := &config.HttpConfig{
-		Config: *c,
+		Config:  *c,
 		Version: config.VERSION,
 	}
 	cmd := &cobra.Command{

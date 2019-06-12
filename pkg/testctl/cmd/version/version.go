@@ -13,7 +13,7 @@ var (
 )
 
 type Options struct {
-	Short      bool
+	Short bool
 }
 
 func NewCmdVersion() *cobra.Command {
@@ -30,4 +30,3 @@ func NewCmdVersion() *cobra.Command {
 	cmd.Flags().BoolVar(&o.Short, "short", o.Short, "Print just the version number.")
 	return cmd
 }
-

@@ -13,8 +13,8 @@ func NewDefaultTestctlCommand() *cobra.Command {
 	c := &config.Config{}
 	cmd := &cobra.Command{
 		Use:   "testctl",
-		Short: "testctl controlls test program",
-		Long: `testctl controlls test program.
+		Short: "testctl controls test program",
+		Long: `testctl controls test program.
 	Find more information at https://github.com/hongkailiu/test-go`,
 		Run:     runHelp,
 		Version: config.VERSION,
