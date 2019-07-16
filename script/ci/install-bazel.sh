@@ -4,11 +4,16 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+readonly BAZELISK_VERSION=v0.0.8
+
 if [[ "${TRAVIS:-false}" == "true" ]]; then
   echo "installing bazel on travis-ci ..."
   echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
   curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
   sudo apt-get update && sudo apt-get install bazel
+  curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
+  sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
+  sudo chmod +x /usr/bin/bazel
   exit 0
 fi
 
@@ -24,7 +29,7 @@ if [[ "${CIRCLECI:-false}" == "true" ]]; then
   echo "installing patch on circle-ci ..."
   sudo apt-get install patch
   echo "installing bazel on circle-ci ..."
-  curl -OL https://github.com/bazelbuild/bazelisk/releases/download/v0.0.7/bazelisk-linux-amd64
+  curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
   sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
   sudo chmod +x /usr/bin/bazel
   #echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
