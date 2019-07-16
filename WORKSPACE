@@ -18,3 +18,13 @@ go_register_toolchains()
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 gazelle_dependencies()
 
+#https://github.com/protocolbuffers/protobuf/blob/master/examples/WORKSPACE
+http_archive(
+    name = "com_google_protobuf",
+    strip_prefix = "protobuf-3.9.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.9.0.tar.gz"],
+    )
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
