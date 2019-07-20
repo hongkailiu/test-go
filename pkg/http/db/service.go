@@ -5,6 +5,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+type ServiceI interface {
+	GetCities(limit, offset int) (*[]model.City, error)
+}
+
 // Service provides all functions with db
 type Service struct {
 	db *gorm.DB
@@ -12,10 +16,12 @@ type Service struct {
 
 // New constructs a db service
 func New(db *gorm.DB) *Service {
-	return &Service{db}
+	return &Service{db: db}
 }
 
 // GetCities get cities
-func (s *Service) GetCities(limit, offset int, cities *[]model.City) error {
-	return s.db.Limit(limit).Offset(offset).Find(cities).Error
+func (s *Service) GetCities(limit, offset int) (*[]model.City, error) {
+	var cities []model.City
+	err := s.db.Limit(limit).Offset(offset).Find(&cities).Error
+	return &cities, err
 }

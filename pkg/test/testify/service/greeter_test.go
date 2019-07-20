@@ -1,9 +1,9 @@
 package service_test
 
 import (
-	"github.com/hongkailiu/test-go/pkg/test/mockery/service/mocks"
 	"testing"
 
+	"github.com/hongkailiu/test-go/pkg/test/mockery/service/mocks"
 	"github.com/hongkailiu/test-go/pkg/test/testify/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

@@ -4,18 +4,33 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/hongkailiu/test-go/pkg/http/db"
+	"k8s.io/apimachinery/pkg/util/diff"
+
 	"github.com/hongkailiu/test-go/pkg/http/info"
+	"github.com/hongkailiu/test-go/pkg/http/model"
 	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
+	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 )
+
+type MyMockedDBService struct {
+	mock.Mock
+}
+
+func (m *MyMockedDBService) GetCities(limit, offset int) (*[]model.City, error) {
+	args := m.Called(limit, offset)
+	return args.Get(0).(*[]model.City), args.Error(1)
+
+}
 
 func TestRoute1(t *testing.T) {
 
@@ -42,9 +57,11 @@ func TestRoute1(t *testing.T) {
 	githubLogin := login{oauthConfGitHub, gitHubUserProvider{}}
 	googleLogin := login{oauthConfGoogle, googleUserProvider{}}
 
-	dbService := db.Service{}
+	mock := new(MyMockedDBService)
+	cities := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
+	mock.On("GetCities", 10, 0).Return(&cities, nil)
 
-	router := setupRouter(&hc, githubLogin, googleLogin, &dbService)
+	router := setupRouter(&hc, githubLogin, googleLogin, mock)
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/", nil)
@@ -73,4 +90,19 @@ func TestRoute1(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/api/v1/cities", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+testToken)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	//var cities *[]model.City
+	err = json.Unmarshal([]byte(w.Body.Bytes()), &cities)
+	assert.Nil(t, err)
+	expected := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
+	if !reflect.DeepEqual(expected, cities) {
+		t.Errorf("Unexpected mis-match: %s", diff.ObjectReflectDiff(expected, cities))
+	}
 }

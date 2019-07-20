@@ -174,7 +174,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 	log.Info("Server exited.")
 }
 
-func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService *db.Service) *gin.Engine {
+func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService db.ServiceI) *gin.Engine {
 	// Creates a router without any middleware by default
 	r := gin.New()
 
@@ -277,16 +277,16 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 	})
 
 	apiV1.GET("/cities", func(c *gin.Context) {
-		var cities []model.City
-		if err = dbService.GetCities(10, 0, &cities); err != nil {
+		cities, err := dbService.GetCities(10, 0)
+		if err != nil {
 			msg := err.Error()
 			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
 			return
 		}
 		if cities == nil {
-			cities = []model.City{}
+			cities = &[]model.City{}
 		}
-		c.JSON(http.StatusOK, cities)
+		c.JSON(http.StatusOK, *cities)
 	})
 
 	r.GET("/token", AuthenticationMiddleware(), func(c *gin.Context) {
