@@ -42,14 +42,23 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["server_test.go"],
+    srcs = [
+        "config_test.go",
+        "jwt_test.go",
+        "prometheus_test.go",
+        "server_test.go",
+    ],
     embed = [":go_default_library"],
     deps = [
-        "//pkg/http/db:go_default_library",
+        "//pkg/http/info:go_default_library",
+        "//pkg/http/model:go_default_library",
         "//pkg/testctl/cmd/config:go_default_library",
+        "//vendor/github.com/jinzhu/gorm:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
+        "//vendor/github.com/stretchr/testify/mock:go_default_library",
         "//vendor/golang.org/x/oauth2:go_default_library",
         "//vendor/golang.org/x/oauth2/github:go_default_library",
         "//vendor/golang.org/x/oauth2/google:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/diff:go_default_library",
     ],
 )
