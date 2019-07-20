@@ -6,13 +6,14 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-            - alert-manager.hongkliu-stage.svc:9093
+            - alert-manager:9093
 
 rule_files:
   - "alert.rules.yml"
 
 scrape_configs:
   - job_name: 'test-go'
-    scheme: https
+    scheme: http
     static_configs:
-      - targets: ['web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com'] #['web.hongkliu-run.svc:8080']
+      #- targets: ['web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com'] #['web.hongkliu-run.svc:8080']
+      - targets: ['web:8080']

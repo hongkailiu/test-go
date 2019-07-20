@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: status
-  namespace: hongkliu-stage
+  namespace: hongkliu-run
 spec:
   ports:
     - port: 8080
@@ -15,7 +15,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: status
-  namespace: hongkliu-stage
+  namespace: hongkliu-run
 spec:
   replicas: 1
   selector:
@@ -32,7 +32,7 @@ spec:
           args: ["http", "status", "-v"]
           env:
             - name: target_url
-              value: "https://web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com/"
+              value: "https://web-hongkliu-run.apps.us-east-1.online-starter.openshift.com/"
           name: status
           resources:
             requests:
@@ -46,7 +46,7 @@ apiVersion: v1
 kind: Route
 metadata:
   name: status
-  namespace: hongkliu-stage
+  namespace: hongkliu-run
 spec:
   port:
     targetPort: 8080
