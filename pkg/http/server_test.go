@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -23,6 +24,12 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+
+var (
+	hc cmdconfig.HttpConfig
+	githubLogin, googleLogin login
+)
+
 type MyMockedDBService struct {
 	mock.Mock
 }
@@ -33,11 +40,11 @@ func (m *MyMockedDBService) GetCities(limit, offset int) (*[]model.City, error) 
 
 }
 
-func TestRoute1(t *testing.T) {
-
+func beforeEach() {
+	fmt.Println("============================beforeEach======================")
 	appConfig = loadConfig()
 
-	hc := cmdconfig.HttpConfig{Version: "test-version"}
+	hc = cmdconfig.HttpConfig{Version: "test-version"}
 
 	oauthConfGitHub := &oauth2.Config{
 		ClientID:     "appConfig.ghClientID",
@@ -55,9 +62,12 @@ func TestRoute1(t *testing.T) {
 		Endpoint:     google.Endpoint,
 	}
 
-	githubLogin := login{oauthConfGitHub, gitHubUserProvider{}}
-	googleLogin := login{oauthConfGoogle, googleUserProvider{}}
+	githubLogin = login{oauthConfGitHub, gitHubUserProvider{}}
+	googleLogin = login{oauthConfGoogle, googleUserProvider{}}
+}
 
+func TestRoute1(t *testing.T) {
+	beforeEach()
 	mock := new(MyMockedDBService)
 	cities := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
 	mock.On("GetCities", 10, 0).Return(&cities, nil)
@@ -100,11 +110,54 @@ func TestRoute1(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	//var cities *[]model.City
-	err = json.Unmarshal([]byte(w.Body.Bytes()), &cities)
+	err = json.Unmarshal(w.Body.Bytes(), &cities)
 	assert.Nil(t, err)
 	expected := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
 	if !reflect.DeepEqual(expected, cities) {
 		t.Errorf("Unexpected mis-match: %s", diff.ObjectReflectDiff(expected, cities))
+	}
+}
+
+func TestRoute2(t *testing.T) {
+	beforeEach()
+	mock := new(MyMockedDBService)
+	cities := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
+	errorMsg := "test-error"
+	mock.On("GetCities", 10, 0).Return(&cities, fmt.Errorf(errorMsg))
+
+	router := setupRouter(&hc, githubLogin, googleLogin, mock)
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/whoami", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+testToken)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "", w.Header().Get("username"))
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/token", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+testToken)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, "", w.Header().Get("token"))
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/api/v1/cities", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+testToken)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	var mError models.Error
+	err = json.Unmarshal(w.Body.Bytes(), &mError)
+	assert.Nil(t, err)
+	expected := models.Error{Code: int64(http.StatusInternalServerError), Message: &errorMsg}
+	if !reflect.DeepEqual(expected, mError) {
+		t.Errorf("Unexpected mis-match: %s", diff.ObjectReflectDiff(expected, mError))
 	}
 }
 
