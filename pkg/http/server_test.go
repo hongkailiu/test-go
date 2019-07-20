@@ -2,13 +2,13 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/hongkailiu/test-go/pkg/http/info"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/hongkailiu/test-go/pkg/http/db"
+	"github.com/hongkailiu/test-go/pkg/http/info"
 	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/stretchr/testify/assert"
 
