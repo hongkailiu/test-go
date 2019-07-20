@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -105,4 +106,21 @@ func TestRoute1(t *testing.T) {
 	if !reflect.DeepEqual(expected, cities) {
 		t.Errorf("Unexpected mis-match: %s", diff.ObjectReflectDiff(expected, cities))
 	}
+}
+
+func TestSetupOAuthConfig1(t *testing.T) {
+	appConfig = loadConfig()
+
+	oauthConfGitHub, err := setupOAuthConfig("github")
+	assert.Nil(t, err)
+	assert.NotNil(t, oauthConfGitHub)
+
+	oauthConfGoogle, err := setupOAuthConfig("google")
+	assert.Nil(t, err)
+	assert.NotNil(t, oauthConfGoogle)
+
+	oauthConfAWS, err := setupOAuthConfig("aws")
+	assert.NotNil(t, err)
+	assert.Equal(t, fmt.Sprintf("do not support oauth for provider %s", "aws"), err.Error())
+	assert.Nil(t, oauthConfAWS)
 }

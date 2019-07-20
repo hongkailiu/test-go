@@ -61,24 +61,13 @@ func Run(hc *cmdconfig.HttpConfig) {
 
 	appConfig = loadConfig()
 
-	// You must register the app at https://github.com/settings/applications
-	// Set callback to http://127.0.0.1:7000/github_oauth_cb
-	// Set ClientId and ClientSecret to
-	oauthConfGitHub := &oauth2.Config{
-		ClientID:     appConfig.ghClientID,
-		ClientSecret: appConfig.ghClientSecret,
-		// select level of access you want from https://developer.github.com/v3/oauth/#scopes
-		Scopes:   []string{"read:user", "user:email"},
-		Endpoint: githuboauth.Endpoint,
+	oauthConfGitHub, err := setupOAuthConfig("github")
+	if err != nil {
+		log.Fatal("error at setupOAuthConfig:", err)
 	}
-
-	//https://console.developers.google.com/apis/dashboard
-	oauthConfGoogle := &oauth2.Config{
-		ClientID:     appConfig.ggClientID,
-		ClientSecret: appConfig.ggClientSecret,
-		RedirectURL:  appConfig.ggRedirectURL,
-		Scopes:       []string{"profile", "email"},
-		Endpoint:     google.Endpoint,
+	oauthConfGoogle, err := setupOAuthConfig("google")
+	if err != nil {
+		log.Fatal("error at setupOAuthConfig:", err)
 	}
 
 	githubLogin := login{oauthConfGitHub, gitHubUserProvider{}}
@@ -114,27 +103,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 	dbService := db.New(appDB)
 
 	prometheusRegister()
-
-	go func() {
-		for {
-			n := random.GetRandom(1000)
-			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
-			randomNumber.With(prometheus.Labels{"key": "value", "hostname": appConfig.hostname}).Set(float64(n))
-			time.Sleep(10 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
-			n := random.GetRandom(50)
-			log.WithFields(log.Fields{
-				"n": n,
-			}).Debug("generated fake storageOperationMetric")
-			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hliu.ca/aws-ebs",
-				"operation_name": "volume_provision", "hostname": appConfig.hostname}).Observe(float64(n))
-			time.Sleep(100 * time.Second)
-		}
-	}()
+	generateRandomMetricsData()
 
 	r := setupRouter(hc, githubLogin, googleLogin, dbService)
 
@@ -172,6 +141,57 @@ func Run(hc *cmdconfig.HttpConfig) {
 	}
 
 	log.Info("Server exited.")
+}
+
+func setupOAuthConfig(cloud string) (*oauth2.Config, error) {
+	switch cloud {
+	case "github":
+		// You must register the app at https://github.com/settings/applications
+		// Set callback to http://127.0.0.1:7000/github_oauth_cb
+		// Set ClientId and ClientSecret to
+		return &oauth2.Config{
+			ClientID:     appConfig.ghClientID,
+			ClientSecret: appConfig.ghClientSecret,
+			// select level of access you want from https://developer.github.com/v3/oauth/#scopes
+			Scopes:   []string{"read:user", "user:email"},
+			Endpoint: githuboauth.Endpoint,
+		}, nil
+	case "google":
+		//https://console.developers.google.com/apis/dashboard
+		return &oauth2.Config{
+			ClientID:     appConfig.ggClientID,
+			ClientSecret: appConfig.ggClientSecret,
+			RedirectURL:  appConfig.ggRedirectURL,
+			Scopes:       []string{"profile", "email"},
+			Endpoint:     google.Endpoint,
+		}, nil
+	default:
+		return nil, fmt.Errorf("do not support oauth for provider %s", cloud)
+	}
+
+}
+
+func generateRandomMetricsData() {
+	go func() {
+		for {
+			n := random.GetRandom(1000)
+			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
+			randomNumber.With(prometheus.Labels{"key": "value", "hostname": appConfig.hostname}).Set(float64(n))
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	go func() {
+		for {
+			n := random.GetRandom(50)
+			log.WithFields(log.Fields{
+				"n": n,
+			}).Debug("generated fake storageOperationMetric")
+			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hliu.ca/aws-ebs",
+				"operation_name": "volume_provision", "hostname": appConfig.hostname}).Observe(float64(n))
+			time.Sleep(100 * time.Second)
+		}
+	}()
 }
 
 func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService db.ServiceI) *gin.Engine {
