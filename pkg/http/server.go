@@ -115,6 +115,66 @@ func Run(hc *cmdconfig.HttpConfig) {
 
 	prometheusRegister()
 
+	go func() {
+		for {
+			n := random.GetRandom(1000)
+			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
+			randomNumber.With(prometheus.Labels{"key": "value", "hostname": appConfig.hostname}).Set(float64(n))
+			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	go func() {
+		for {
+			n := random.GetRandom(50)
+			log.WithFields(log.Fields{
+				"n": n,
+			}).Debug("generated fake storageOperationMetric")
+			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hliu.ca/aws-ebs",
+				"operation_name": "volume_provision", "hostname": appConfig.hostname}).Observe(float64(n))
+			time.Sleep(100 * time.Second)
+		}
+	}()
+
+	r := setupRouter(hc, githubLogin, googleLogin, dbService)
+
+	// By default it serves on :8080 unless a
+	// PORT environment variable was defined.
+	//r.Run()
+
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8080"
+	}
+	log.WithFields(log.Fields{"port": port}).Debug("use port")
+
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: r,
+	}
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sig
+		log.Info("http server is shutting down...")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatal("error at server shutdown:", err)
+		}
+	}()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.WithError(err).Fatal("Server exited.")
+	}
+
+	log.Info("Server exited.")
+}
+
+func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService *db.Service) *gin.Engine {
 	// Creates a router without any middleware by default
 	r := gin.New()
 
@@ -186,27 +246,6 @@ func Run(hc *cmdconfig.HttpConfig) {
 		c.Redirect(http.StatusTemporaryRedirect, "/console")
 	})
 
-	go func() {
-		for {
-			n := random.GetRandom(1000)
-			log.WithFields(log.Fields{"n": n}).Debug("generated random number")
-			randomNumber.With(prometheus.Labels{"key": "value", "hostname": appConfig.hostname}).Set(float64(n))
-			time.Sleep(10 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
-			n := random.GetRandom(50)
-			log.WithFields(log.Fields{
-				"n": n,
-			}).Debug("generated fake storageOperationMetric")
-			storageOperationMetric.With(prometheus.Labels{"volume_plugin": "hliu.ca/aws-ebs",
-				"operation_name": "volume_provision", "hostname": appConfig.hostname}).Observe(float64(n))
-			time.Sleep(100 * time.Second)
-		}
-	}()
-
 	swaggerDir := filepath.Join(dir, "swagger")
 	log.WithFields(log.Fields{"swaggerDir": swaggerDir}).Debug("http swaggerDir dir")
 	r.StaticFS("/swagger", http.Dir(swaggerDir))
@@ -269,40 +308,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 		pprof.Register(r)
 	}
 
-	// By default it serves on :8080 unless a
-	// PORT environment variable was defined.
-	//r.Run()
-
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "8080"
-	}
-	log.WithFields(log.Fields{"port": port}).Debug("use port")
-
-	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", port),
-		Handler: r,
-	}
-
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sig
-		log.Info("http server is shutting down...")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Fatal("error at server shutdown:", err)
-		}
-	}()
-
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.WithError(err).Fatal("Server exited.")
-	}
-
-	log.Info("Server exited.")
+	return r
 }
 
 func getKeyInSession(c *gin.Context, key string) *string {
