@@ -42,3 +42,8 @@ func TestLoadConfig5(t *testing.T) {
 	assert.NotEqual(t, defaultSessionKey, c.sessionKey)
 	assert.Equal(t, 32, len(c.sessionKey))
 }
+
+func TestLoadDBConfig1(t *testing.T) {
+	c := loadDBConfig()
+	assert.Equal(t, "host=localhost port=5432 user=redhat dbname=ttt password=redhat sslmode=disable", c.getDBString())
+}
