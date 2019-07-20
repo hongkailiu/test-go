@@ -54,11 +54,11 @@ func TestRoute1(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	i := info.Info{}
-	json.Unmarshal([]byte(w.Body.Bytes()), &i)
+	err = json.Unmarshal([]byte(w.Body.Bytes()), &i)
+	assert.Nil(t, err)
 	assert.Equal(t, hc.Version, i.Version)
 	assert.NotEmpty(t, i.Ips)
 	assert.True(t, time.Now().Sub(i.Now) > 0)
-
 
 	w = httptest.NewRecorder()
 	req, err = http.NewRequest("GET", "/api/v1/users", nil)
