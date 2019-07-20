@@ -66,4 +66,11 @@ func TestRoute1(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusForbidden, w.Code)
+
+	w = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/token", nil)
+	assert.Nil(t, err)
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
