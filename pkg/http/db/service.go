@@ -5,6 +5,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// ServiceI defines all functions with db
 type ServiceI interface {
 	GetCities(limit, offset int) (*[]model.City, error)
 }
