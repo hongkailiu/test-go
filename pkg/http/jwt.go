@@ -40,9 +40,6 @@ func getLocalIDFromToken(tokenString string, key interface{}) (string, error) {
 		localID := claims.Id
 		exp := claims.ExpiresAt
 		log.WithFields(log.Fields{"localID": localID, "exp": exp}).Debug("found in token")
-		if err != nil {
-			return "", fmt.Errorf("found error when getLocalID(s), %s", err.Error())
-		}
 		if time.Now().Unix() > exp {
 			return "", fmt.Errorf("token is expired, %d", exp)
 		}
