@@ -6,6 +6,7 @@ import (
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -24,9 +25,8 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-
 var (
-	hc cmdconfig.HttpConfig
+	hc                       cmdconfig.HttpConfig
 	githubLogin, googleLogin login
 )
 
@@ -176,4 +176,10 @@ func TestSetupOAuthConfig1(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, fmt.Sprintf("do not support oauth for provider %s", "aws"), err.Error())
 	assert.Nil(t, oauthConfAWS)
+}
+
+func TestBeforeStartServer(t *testing.T) {
+	hc = cmdconfig.HttpConfig{Version: "test-version"}
+	os.Setenv("unit_testing", "true")
+	Run(&hc)
 }

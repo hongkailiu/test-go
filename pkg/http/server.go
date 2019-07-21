@@ -95,9 +95,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 	if err != nil {
 		log.Errorf("error occurred when db.OpenPostgres(appDBString): %s", err.Error())
 		log.Warnf("running application without db")
-	}
-
-	if err == nil {
+	} else {
 		db.Migrate(appDB)
 	}
 	dbService := db.New(appDB)
@@ -135,6 +133,12 @@ func Run(hc *cmdconfig.HttpConfig) {
 			log.Fatal("error at server shutdown:", err)
 		}
 	}()
+
+	// for better test coverage
+	if os.Getenv("unit_testing") == "true" {
+		log.Info("Server not started because of unit testing.")
+		return
+	}
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.WithError(err).Fatal("Server exited.")
