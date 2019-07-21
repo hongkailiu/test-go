@@ -45,14 +45,15 @@ go_test(
     srcs = [
         "config_test.go",
         "jwt_test.go",
-        "prometheus_test.go",
         "server_test.go",
     ],
     embed = [":go_default_library"],
     deps = [
         "//pkg/http/info:go_default_library",
         "//pkg/http/model:go_default_library",
+        "//pkg/swagger/swagger/models:go_default_library",
         "//pkg/testctl/cmd/config:go_default_library",
+        "//vendor/github.com/dgrijalva/jwt-go:go_default_library",
         "//vendor/github.com/jinzhu/gorm:go_default_library",
         "//vendor/github.com/stretchr/testify/assert:go_default_library",
         "//vendor/github.com/stretchr/testify/mock:go_default_library",
