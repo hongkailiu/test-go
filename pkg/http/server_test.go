@@ -183,3 +183,7 @@ func TestBeforeStartServer(t *testing.T) {
 	os.Setenv("unit_testing", "true")
 	Run(&hc)
 }
+
+func TestGetSecret(t *testing.T) {
+	assert.Len(t, GetSecret(16), 16)
+}
