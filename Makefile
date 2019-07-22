@@ -107,7 +107,7 @@ build-ocptf:
 
 .PHONY : bazel-all
 bazel-all:
-ifneq ($(CIRCLECI), true)
+ifeq ($(CIRCLECI), true)
 	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
 else
 	bazel build //cmd/...
