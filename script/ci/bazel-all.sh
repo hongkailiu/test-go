@@ -11,7 +11,7 @@ if [[ "${TRAVIS:-false}" == "true" ]]; then
   echo "bazel test ..."
   ### ignore those package: seems bazel needs test file and target file are in the same pkg
   ### however, it is not the case for those 2 pkgs
-  bazel test -- //... -//pkg/flexy/... -//pkg/ocptf/...
+  bazel test -- //... -//pkg/ocptf/...
   exit 0
 fi
 
@@ -21,7 +21,7 @@ if [[ "${CIRCLECI:-false}" == "true" ]]; then
   echo "bazel build ..."
   bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
   echo "bazel test ..."
-  bazel test -- //... -//pkg/flexy/... -//pkg/ocptf/...
+  bazel test -- //... -//pkg/ocptf/...
   exit 0
 fi
 
