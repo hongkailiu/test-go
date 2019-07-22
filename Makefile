@@ -41,28 +41,6 @@ gen-swagger: validate-swagger
 		--exclude-main \
 		--name=hello
 
-
-.PHONY : build-flexy
-build-flexy:
-	./script/ci/build-flexy.sh
-
-.PHONY : create-flexy-instances
-create-flexy-instances:
-	./script/run/create-flexy-instances.sh
-
-###make run-flexy-playbooks secret_vars_file=/tmp/aaa.sh ansible_repo_path=/home/hongkliu/repo/openshift/openshift-ansible install_glusterfs=false
-.PHONY : run-flexy-playbooks
-run-flexy-playbooks:
-	./script/run/run-flexy-playbooks.sh
-
-.PHONY : release-flexy
-release-flexy:
-	./script/ci/release-flexy.sh
-
-.PHONY : test-flexy
-test-flexy:
-	./script/ci/test-flexy.sh
-
 .PHONY : code-gen-clean
 code-gen-clean:
 	./script/ci/code-gen-clean.sh
@@ -130,9 +108,6 @@ build-testctl:
 
 .PHONY : ci-install
 ci-install:
-	go get github.com/onsi/ginkgo/ginkgo
-	cp test_files/flexy/unit.test.files/gce.json /tmp/
-	@echo "install bazel ..."
 	./script/ci/install-bazel.sh
 
 
@@ -140,7 +115,6 @@ ci-install:
 ci-before-script:
 	echo "GOPATH: $${GOPATH}"
 	go version
-	ginkgo version
 	docker version
 	make --version
 	java -version
@@ -150,8 +124,6 @@ CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
 CI_SCRIPT_DEPS += build-swagger
 CI_SCRIPT_DEPS += build-others
-CI_SCRIPT_DEPS += build-flexy
-CI_SCRIPT_DEPS += test-flexy
 CI_SCRIPT_DEPS += code-gen
 CI_SCRIPT_DEPS += build-code-gen
 CI_SCRIPT_DEPS += test-pb
