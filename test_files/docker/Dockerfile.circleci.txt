@@ -3,5 +3,5 @@ FROM docker.io/circleci/golang:1.12
 ARG BAZELISK_VERSION=v0.0.8
 
 RUN sudo apt-get install openjdk-8-jdk patch && \
-        curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64 &&
+        curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64 && \
         sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel && sudo chmod +x /usr/bin/bazel
