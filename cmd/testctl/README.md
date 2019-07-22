@@ -46,7 +46,7 @@ $ buildah push --creds=hongkailiu d58cbf2a06aa docker://quay.io/hongkailiu/test-
 $ buildah push --creds=hongkailiu quay.io/hongkailiu/test-go:testctl-0.0.12
 ###
 $ buildah bud --label "version=$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go" --label "build_time=$(date --utc +%FT%TZ)"  --format=docker -f test_files/docker/Dockerfile.circleci.txt -t quay.io/hongkailiu/test-go:circleci-0.0.1 .
-$ buildah push --creds=hongkailiu quay.io/hongkailiu/test-go:cirlcleci-0.0.1
+$ buildah push --creds=hongkailiu quay.io/hongkailiu/test-go:circleci-0.0.1
 
 $ skopeo inspect docker://quay.io/hongkailiu/test-go:testctl-0.0.8 | jq -r .Labels
 {
