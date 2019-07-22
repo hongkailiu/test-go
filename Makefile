@@ -1,10 +1,10 @@
 .PHONY : build-k8s
 build-k8s:
-	./script/ci/build-k8s.sh
+	go build -o build/k8s ./pkg/k8s/
 
 .PHONY : build-oc
 build-oc:
-	./script/ci/build-oc.sh
+	go build -o build/oc ./pkg/oc/
 
 .PHONY : update-dep
 update-dep:
@@ -13,7 +13,7 @@ update-dep:
 
 .PHONY : build-swagger
 build-swagger:
-	./script/ci/build-swagger.sh
+	go build -o build/hello-swagger ./pkg/swagger/
 
 
 # The `validate-swagger` target checks for errors and inconsistencies in
@@ -43,23 +43,24 @@ gen-swagger: validate-swagger
 
 .PHONY : code-gen-clean
 code-gen-clean:
-	./script/ci/code-gen-clean.sh
+	rm -rfv pkg/codegen/pkg/client
+	rm -fv pkg/codegen/pkg/apis/app.example.com/v1alpha1/zz_generated.deepcopy.go
 
 .PHONY : code-gen
 code-gen:
-	./script/ci/code-gen.sh
+	./pkg/codegen/hack/update-codegen.sh
 
 .PHONY : build-code-gen
 build-code-gen:
-	./script/ci/build-code-gen.sh
+	go build -o build/example ./pkg/codegen/cmd/example/
 
 .PHONY : test-pb
 test-pb:
-	./script/ci/test-pb.sh
+	go test -v ./pkg/probuf/unittest/...
 
 .PHONY : test-lc
 test-lc:
-	./script/ci/test-lc.sh
+	go test -v ./pkg/lc/...
 
 .PHONY : build-others
 build-others:
@@ -80,7 +81,18 @@ gen-coverage:
 
 .PHONY : coveralls
 coveralls:
-	./script/ci/coveralls.sh
+ifneq ($(CI), true)
+	echo "please run this on ci system, like travis ci or circle ci"
+	false
+endif
+	go get -u github.com/mattn/goveralls
+ifeq ($(TRAVIS), true)
+	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=travis-ci
+endif
+ifeq ($(CIRCLECI), true)
+	###https://github.com/lemurheavy/coveralls-public/issues/632
+	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci -repotoken="${COVERALLS_TOKEN}"
+endif
 
 .PHONY : gen-images
 gen-images:
@@ -92,9 +104,14 @@ gen-images:
 build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
-.PHONY : bazel-build
-bazel-build:
-	./script/ci/bazel-all.sh
+.PHONY : bazel-all
+bazel-all:
+ifneq ($(CIRCLECI), true)
+	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
+else
+	bazel build //cmd/...
+endif
+	bazel test -- //... -//pkg/ocptf/...
 
 build_version := $(shell git describe --tags --always --dirty)
 
@@ -106,10 +123,23 @@ build-testctl:
 	cp -rv pkg/http/swagger build/
 	git checkout ./pkg/testctl/cmd/config/version.go
 
+BAZELISK_VERSION := v0.0.8
+
 .PHONY : ci-install
 ci-install:
-	./script/ci/install-bazel.sh
-
+ifneq ($(CI), true)
+	echo "not supported CI environment ... failing"
+	false
+endif
+ifeq ($(TRAVIS), true)
+	echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+	curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
+	sudo apt-get update
+	sudo apt-get install bazel
+endif
+	curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
+	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
+	sudo chmod +x /usr/bin/bazel
 
 .PHONY : ci-before-script
 ci-before-script:
@@ -133,7 +163,7 @@ CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += build-testctl
 CI_SCRIPT_DEPS += gen-images
 CI_SCRIPT_DEPS += build-ocptf
-CI_SCRIPT_DEPS += bazel-build
+CI_SCRIPT_DEPS += bazel-all
 
 .PHONY : ci-script
 ci-script: $(CI_SCRIPT_DEPS)
