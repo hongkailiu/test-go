@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -294,9 +295,7 @@ func (z *bufioEncWriter) reset(w io.Writer, bufsize int) {
 	if bufsize <= 0 {
 		bufsize = defEncByteBufSize
 	}
-	if z.buf == nil {
-		z.buf = z.bytesBufPooler.get(bufsize)
-	} else if cap(z.buf) >= bufsize {
+	if cap(z.buf) >= bufsize {
 		z.buf = z.buf[:cap(z.buf)]
 	} else {
 		z.bytesBufPooler.end() // potentially return old one to pool
@@ -732,9 +731,30 @@ func (e *Encoder) kStruct(f *codecFnInfo, rv reflect.Value) {
 	// The cost is that of locking sometimes, but sync.Pool is efficient
 	// enough to reduce thread contention.
 
+	var spool *sync.Pool
+	var poolv interface{}
+	var fkvs []sfiRv
 	// fmt.Printf(">>>>>>>>>>>>>> encode.kStruct: newlen: %d\n", newlen)
-	var spool sfiRvPooler
-	var fkvs = spool.get(newlen)
+	if newlen < 0 { // bounds-check-elimination
+		// cannot happen // here for bounds-check-elimination
+	} else if newlen <= 8 {
+		spool, poolv = pool.sfiRv8()
+		fkvs = poolv.(*[8]sfiRv)[:newlen]
+	} else if newlen <= 16 {
+		spool, poolv = pool.sfiRv16()
+		fkvs = poolv.(*[16]sfiRv)[:newlen]
+	} else if newlen <= 32 {
+		spool, poolv = pool.sfiRv32()
+		fkvs = poolv.(*[32]sfiRv)[:newlen]
+	} else if newlen <= 64 {
+		spool, poolv = pool.sfiRv64()
+		fkvs = poolv.(*[64]sfiRv)[:newlen]
+	} else if newlen <= 128 {
+		spool, poolv = pool.sfiRv128()
+		fkvs = poolv.(*[128]sfiRv)[:newlen]
+	} else {
+		fkvs = make([]sfiRv, newlen)
+	}
 
 	var kv sfiRv
 	recur := e.h.RecursiveEmptyCheck
@@ -753,8 +773,7 @@ func (e *Encoder) kStruct(f *codecFnInfo, rv reflect.Value) {
 			// if a reference or struct, set to nil (so you do not output too much)
 			if si.omitEmpty() && isEmptyValue(kv.r, e.h.TypeInfos, recur, recur) {
 				switch kv.r.Kind() {
-				case reflect.Struct, reflect.Interface, reflect.Ptr,
-					reflect.Array, reflect.Map, reflect.Slice:
+				case reflect.Struct, reflect.Interface, reflect.Ptr, reflect.Array, reflect.Map, reflect.Slice:
 					kv.r = reflect.Value{} //encode as nil
 				}
 			}
@@ -823,7 +842,9 @@ func (e *Encoder) kStruct(f *codecFnInfo, rv reflect.Value) {
 	// do not use defer. Instead, use explicit pool return at end of function.
 	// defer has a cost we are trying to avoid.
 	// If there is a panic and these slices are not returned, it is ok.
-	spool.end()
+	if spool != nil {
+		spool.Put(poolv)
+	}
 }
 
 func (e *Encoder) kMap(f *codecFnInfo, rv reflect.Value) {
@@ -1473,21 +1494,11 @@ func (e *Encoder) MustEncode(v interface{}) {
 }
 
 func (e *Encoder) mustEncode(v interface{}) {
-	// ensure the bufioEncWriter buffer is not nil (e.g. if Release() was called)
-	if e.wf != nil && e.wf.buf == nil {
-		if e.h.WriterBufferSize > 0 {
-			e.wf.buf = e.wf.bytesBufPooler.get(e.h.WriterBufferSize)
-		} else {
-			e.wf.buf = e.wf.bytesBufPooler.get(defEncByteBufSize)
-		}
-	}
-
 	e.calls++
 	e.encode(v)
 	e.e.atEndOfEncode()
 	e.w.end()
 	e.calls--
-
 	if !e.h.ExplicitRelease && e.calls == 0 {
 		e.Release()
 	}

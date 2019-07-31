@@ -8,7 +8,7 @@ build-oc:
 
 .PHONY : update-dep
 update-dep:
-	dep ensure
+	#dep ensure
 	bazel run //:gazelle
 
 .PHONY : build-swagger
@@ -139,13 +139,16 @@ ifeq ($(TRAVIS), true)
 	sudo apt-get update
 	sudo apt-get install bazel
 endif
+	go mod download
 	curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
 
 .PHONY : ci-before-script
 ci-before-script:
-	echo "GOPATH: $${GOPATH}"
+	echo "env. var. GOPATH: $${GOPATH}"
+	echo "env. var. GO111MODULE: $${GO111MODULE}"
+	echo "env. var. USE_BAZEL_VERSION: $${USE_BAZEL_VERSION}"
 	go version
 	docker version
 	make --version
@@ -156,7 +159,8 @@ CI_SCRIPT_DEPS := build-k8s
 CI_SCRIPT_DEPS += build-oc
 CI_SCRIPT_DEPS += build-swagger
 CI_SCRIPT_DEPS += build-others
-CI_SCRIPT_DEPS += code-gen
+#we can retry this when golang 1.13 lands
+#CI_SCRIPT_DEPS += code-gen
 CI_SCRIPT_DEPS += build-code-gen
 CI_SCRIPT_DEPS += test-pb
 CI_SCRIPT_DEPS += test-lc

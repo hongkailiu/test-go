@@ -7,7 +7,7 @@ set -o pipefail
 
 SCRIPT_ROOT=$(dirname ${BASH_SOURCE})/../../..
 
-go get -d k8s.io/code-generator/cmd/client-gen
+GO111MODULE="off" go get -d k8s.io/code-generator/cmd/client-gen
 git -C ${GOPATH}/src/k8s.io/code-generator/ checkout kubernetes-1.12.1
 
 CODEGEN_PKG=${CODEGEN_PKG:-$(cd ${SCRIPT_ROOT}/; ls -d -1 ${GOPATH}/src/k8s.io/code-generator 2>/dev/null || echo ../code-generator)}
