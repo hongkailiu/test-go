@@ -11,9 +11,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//pkg/http/model:go_default_library",
-        "//vendor/github.com/go-gormigrate/gormigrate:go_default_library",
         "//vendor/github.com/jinzhu/gorm:go_default_library",
         "//vendor/github.com/jinzhu/gorm/dialects/postgres:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
+        "//vendor/gopkg.in/gormigrate.v1:go_default_library",
     ],
 )
