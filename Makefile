@@ -91,7 +91,8 @@ ifeq ($(TRAVIS), true)
 endif
 ifeq ($(CIRCLECI), true)
 	###https://github.com/lemurheavy/coveralls-public/issues/632
-	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci -repotoken="${COVERALLS_TOKEN}"
+	#"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci -repotoken="${COVERALLS_TOKEN}"
+	echo "skipping coveralls on circleci ..."
 endif
 
 .PHONY : gen-images
