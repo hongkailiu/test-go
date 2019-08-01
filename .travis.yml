@@ -11,6 +11,7 @@ env:
     ### should not be necessary
     ### flaky on travis ci if bazelisk asks github to determine the version
     - USE_BAZEL_VERSION=0.28.1
+    - GOPROXY=https://goproxy.io
 
 script:
   - make CI="${CI}" TRAVIS="${TRAVIS}" ci-all
