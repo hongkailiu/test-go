@@ -149,6 +149,7 @@ ci-before-script:
 	echo "env. var. GOPATH: $${GOPATH}"
 	echo "env. var. GO111MODULE: $${GO111MODULE}"
 	echo "env. var. USE_BAZEL_VERSION: $${USE_BAZEL_VERSION}"
+	echo "env. var. GOPROXY: $${GOPROXY}"
 	go version
 	docker version
 	make --version
