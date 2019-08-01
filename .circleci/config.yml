@@ -18,6 +18,7 @@ jobs:
       - image: quay.io/hongkailiu/test-go:circleci-0.0.1
         environment:
           GO111MODULE: "on"
+          GOPROXY: "https://goproxy.io"
     working_directory: /go/src/github.com/hongkailiu/test-go
     steps:
       - checkout
