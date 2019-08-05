@@ -1,9 +1,0 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "go_default_library",
-    srcs = ["json.go"],
-    importmap = "github.com/hongkailiu/test-go/vendor/github.com/gin-gonic/gin/json",
-    importpath = "github.com/gin-gonic/gin/json",
-    visibility = ["//visibility:public"],
-)

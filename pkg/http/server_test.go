@@ -1,9 +1,9 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -15,8 +15,12 @@ import (
 
 	"github.com/hongkailiu/test-go/pkg/http/info"
 	"github.com/hongkailiu/test-go/pkg/http/model"
+	"github.com/hongkailiu/test-go/pkg/http/webhook"
+	"github.com/hongkailiu/test-go/pkg/http/webhook/github"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -41,6 +45,7 @@ func (m *MyMockedDBService) GetCities(limit, offset int) (*[]model.City, error) 
 }
 
 func beforeEach() {
+	log.SetLevel(log.DebugLevel)
 	fmt.Println("============================beforeEach======================")
 	appConfig = loadConfig()
 
@@ -186,4 +191,44 @@ func TestBeforeStartServer(t *testing.T) {
 
 func TestGetSecret(t *testing.T) {
 	assert.Len(t, GetSecret(16), 16)
+}
+
+func TestRoute3(t *testing.T) {
+	beforeEach()
+	mock := new(MyMockedDBService)
+	router := setupRouter(&hc, githubLogin, googleLogin, mock)
+
+	event := github.Event{
+		PingEvent: github.PingEvent{
+			Zen:    "zen-abc",
+			HookID: 23,
+			Hook: github.Hook{
+				ID:   23,
+				Name: "webhook-cool-name",
+			},
+		},
+	}
+	eventBytes, err := json.Marshal(&event)
+	assert.Nil(t, err)
+
+	fmt.Println("=" + string(eventBytes) + "=")
+
+	w := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodPost, "/webhook", bytes.NewReader(eventBytes))
+	assert.Nil(t, err)
+	req.Header.Add("X-GitHub-Event", "ping")
+	req.Header.Add("X-GitHub-Delivery", "72d3162e-cc78-11e3-81ab-4c9367dc0958")
+	req.Header.Add("X-Hub-Signature", "sha1=7d38cdd689735b008b3c702edd92eea23791c5f6")
+	req.Header.Add("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var r webhook.Response
+	err = json.Unmarshal([]byte(w.Body.Bytes()), &r)
+	assert.Nil(t, err)
+	expected := webhook.Response{
+		Message: "ok",
+	}
+	assert.Equal(t, expected, r)
 }

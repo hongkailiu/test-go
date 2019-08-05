@@ -3,6 +3,8 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +23,8 @@ import (
 	"github.com/hongkailiu/test-go/pkg/http/db"
 	"github.com/hongkailiu/test-go/pkg/http/info"
 	"github.com/hongkailiu/test-go/pkg/http/model"
+	"github.com/hongkailiu/test-go/pkg/http/webhook"
+	"github.com/hongkailiu/test-go/pkg/http/webhook/github"
 	"github.com/hongkailiu/test-go/pkg/random"
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
@@ -229,6 +233,41 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 		}
 	})
 
+	r.POST("/webhook", func(c *gin.Context) {
+		// TODO ShouldBindHeader will be available in the next gin release
+		//if err := c.Request.ShouldBindHeader(&h); err != nil {
+		//	c.JSON(200, err)
+		//}
+		h := github.WebhookHeader{
+			EventName:     c.GetHeader("X-GitHub-Event"),
+			GUID:          c.GetHeader("X-GitHub-Delivery"),
+			HMACHexDigest: c.GetHeader("X-Hub-Signature"),
+		}
+		log.WithFields(log.Fields{"h": h}, ).Debug("webhook headers")
+		if !hasValidSecret() {
+			c.JSON(http.StatusBadRequest, webhook.Response{Message: "invalid secret"})
+			return
+		}
+		var event github.Event
+		// If `GET`, only `Form` binding engine (`query`) used.
+		// If `POST`, first checks the `content-type` for `JSON` or `XML`, then uses `Form` (`form-data`).
+		// See more at https://github.com/gin-gonic/gin/blob/master/binding/binding.go#L48
+		if err := c.ShouldBindBodyWith(&event, binding.JSON); err != nil {
+			b, err := ioutil.ReadAll(c.Request.Body)
+			if err != nil {
+				log.WithError(err).Error("error when ioutil.ReadAll(c.Request.Body)")
+				c.JSON(http.StatusInternalServerError, webhook.Response{Message: "cannot read request body"})
+				return
+			}
+			log.WithField("request.body", string(b)).WithError(err).Error("error when c.ShouldBindBodyWith(&event, binding.JSON)")
+			c.JSON(http.StatusBadRequest, webhook.Response{Message: "invalid request body"})
+			return
+		}
+		log.WithFields(log.Fields{"event": event}, ).Debug("webhook body")
+		msg := "ok"
+		c.JSON(http.StatusOK, webhook.Response{Message: msg})
+	})
+
 	r.GET("/metrics", func(c *gin.Context) {
 		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
 	})
@@ -333,6 +372,11 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 	}
 
 	return r
+}
+
+func hasValidSecret() bool {
+	//TODO
+	return true
 }
 
 func getKeyInSession(c *gin.Context, key string) *string {

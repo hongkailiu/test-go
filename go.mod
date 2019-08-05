@@ -9,8 +9,8 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/pprof v1.2.0
 	github.com/gin-contrib/sessions v0.0.0-20190101140330-dc5246754963
-	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
-	github.com/gin-gonic/gin v1.3.0
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/gin-gonic/gin v1.4.0
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/jsonpointer v0.18.0 // indirect
@@ -25,10 +25,9 @@ require (
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.2
 	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf // indirect
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/websocket v1.4.0
@@ -38,6 +37,8 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jinzhu/gorm v1.9.2
+	github.com/json-iterator/go v1.1.7 // indirect
+	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/onsi/gomega v1.4.3
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/openshift/client-go v3.9.0+incompatible
@@ -52,11 +53,15 @@ require (
 	github.com/sirupsen/logrus v1.3.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/crypto v0.0.0-20190208162236-193df9c0f06f // indirect
-	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
+	github.com/ugorji/go v1.1.7 // indirect
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
+	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
 	golang.org/x/oauth2 v0.0.0-20190130055435-99b60b757ec1
-	golang.org/x/sys v0.0.0-20190209173611-3b5209105503 // indirect
+	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
+	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190802220118-1d1727260058 // indirect
 	google.golang.org/api v0.1.0
 	google.golang.org/grpc v1.18.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
