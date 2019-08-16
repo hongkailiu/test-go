@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hongkailiu/test-go/pkg/http"
+	"github.com/hongkailiu/test-go/pkg/httpreverse"
 	status "github.com/hongkailiu/test-go/pkg/status/server"
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		Example: "testctl http start",
 		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			setup(c)
+			setup(c, "http")
 			http.Run(hc)
 		},
 	}
@@ -64,6 +65,16 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 			status.Start()
 		},
 	})
+
+	cmd.AddCommand(&cobra.Command{
+		Use:   "reverseStart",
+		Short: "Start http reverse server",
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			setup(c, "reverse")
+			httpreverse.Start()
+		},
+	})
 	return cmd
 }
 
@@ -81,11 +92,11 @@ func (f *formatter) Format(e *logrus.Entry) ([]byte, error) {
 	return f.lf.Format(e)
 }
 
-func setup(c *config.Config) {
+func setup(c *config.Config, component string) {
 	//https://github.com/sirupsen/logrus/pull/653#issuecomment-454467900
 	logrus.SetFormatter(&formatter{
 		fields: logrus.Fields{
-			"component": "http",
+			"component": component,
 		},
 		lf: &logrus.TextFormatter{
 			DisableColors: false,
