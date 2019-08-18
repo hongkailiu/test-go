@@ -35,12 +35,20 @@ func Start() {
 	log.Info("Start http reverse server")
 
 	c := loadConfig()
-	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
-		Scheme: c.TargetScheme,
-		Host:   c.TargetHost,
-	})
+	log.WithField("config", fmt.Sprintf("%+v", c)).Info("config loaded")
 
-	srv := &http.Server{Addr: fmt.Sprintf(":%s", c.Port), Handler: proxy}
+	targetURL := url.URL{Scheme: c.TargetScheme, Host: c.TargetHost,}
+	reverseProxy := httputil.NewSingleHostReverseProxy(&targetURL)
+
+	director := reverseProxy.Director
+	reverseProxy.Director = func(req *http.Request) {
+		director(req)
+		//https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host
+		req.Header.Add("X-Forwarded-Host", req.Host)
+		req.Host = req.URL.Host
+	}
+
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", c.Port), Handler: reverseProxy}
 
 	// Wait for interrupt signal to gracefully shutdown the server with
 	// a timeout of 5 seconds.

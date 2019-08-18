@@ -44,7 +44,7 @@ var (
 func PrometheusMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
-		log.WithFields(log.Fields{"c.Request.URL.Path": c.Request.URL.Path}).
+		log.WithFields(log.Fields{"c.Request.URL.Path": c.Request.URL.Path,"c.Request.Host": c.Request.Host,"c.Request.Header.Get(\"X-Forwarded-Host\")": c.Request.Header.Get("X-Forwarded-Host")}).
 			Debug("prometheus middleware detected path visited")
 		httpRequestsTotal.With(prometheus.Labels{"path": c.Request.URL.Path, "hostname": appConfig.hostname, "method": c.Request.Method}).Inc()
 		// before request
