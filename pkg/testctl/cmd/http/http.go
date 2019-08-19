@@ -44,7 +44,8 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(c, "http")
-			http.Run(hc, log)
+			http.SetLog(log)
+			http.Run(hc)
 		},
 	}
 	startCmd.Flags().BoolVarP(&hc.PProf, "pprof", "p", false, "enable pprof, see https://golang.org/pkg/net/http/pprof/")
@@ -74,7 +75,8 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(c, "reverse")
-			httpreverse.Start(log)
+			httpreverse.SetLog(log)
+			httpreverse.Start()
 		},
 	})
 	return cmd

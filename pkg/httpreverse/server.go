@@ -43,9 +43,13 @@ func setupReverseProxy(targetURL *url.URL) *httputil.ReverseProxy {
 	return reverseProxy
 }
 
-// Start http reverse server
-func Start(l *logrus.Logger) {
+// SetLog sets up log
+func SetLog(l *logrus.Logger) {
 	log = l
+}
+
+// Start http reverse server
+func Start() {
 	log.Info("Start http reverse server")
 
 	c := loadConfig()

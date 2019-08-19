@@ -32,6 +32,10 @@ var (
 	githubLogin, googleLogin login
 )
 
+func init() {
+	log = logrus.New()
+}
+
 type MyMockedDBService struct {
 	mock.Mock
 }
@@ -43,7 +47,6 @@ func (m *MyMockedDBService) GetCities(limit, offset int) (*[]model.City, error) 
 }
 
 func beforeEach() {
-	log = logrus.New()
 	log.SetLevel(logrus.DebugLevel)
 	fmt.Println("============================beforeEach======================")
 	appConfig = loadConfig()
@@ -185,7 +188,7 @@ func TestSetupOAuthConfig1(t *testing.T) {
 func TestBeforeStartServer(t *testing.T) {
 	hc = cmdconfig.HttpConfig{Version: "test-version"}
 	os.Setenv("unit_testing", "true")
-	Run(&hc, log)
+	Run(&hc)
 }
 
 func TestGetSecret(t *testing.T) {

@@ -58,9 +58,13 @@ func PrometheusMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Run starts the http server
-func Run(hc *cmdconfig.HttpConfig, l *logrus.Logger) {
+// SetLog sets up log
+func SetLog(l *logrus.Logger) {
 	log = l
+}
+
+// Run starts the http server
+func Run(hc *cmdconfig.HttpConfig) {
 	log.WithFields(logrus.Fields{"hc.PProf": hc.PProf}).Info("Run with args")
 
 	appConfig = loadConfig()
