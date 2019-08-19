@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"github.com/hongkailiu/test-go/pkg/lib/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type config struct {
@@ -60,7 +60,7 @@ func getSessionKey() ([]byte, error) {
 		}
 		result = append(result, byte(i))
 	}
-	log.WithFields(log.Fields{"result": result}).Infof("got secret from env. var. session_key")
+	log.WithFields(logrus.Fields{"result": result}).Infof("got secret from env. var. session_key")
 	return result, nil
 }
 

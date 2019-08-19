@@ -1,18 +1,17 @@
 package httpreverse
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/hongkailiu/test-go/pkg/lib/util"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
+)
+
+var (
+	log *logrus.Logger
 )
 
 type config struct {
@@ -30,15 +29,9 @@ func loadConfig() config {
 	return c
 }
 
-// Start http reverse server
-func Start() {
-	log.Info("Start http reverse server")
+func setupReverseProxy(targetURL *url.URL) *httputil.ReverseProxy {
 
-	c := loadConfig()
-	log.WithField("config", fmt.Sprintf("%+v", c)).Info("config loaded")
-
-	targetURL := url.URL{Scheme: c.TargetScheme, Host: c.TargetHost,}
-	reverseProxy := httputil.NewSingleHostReverseProxy(&targetURL)
+	reverseProxy := httputil.NewSingleHostReverseProxy(targetURL)
 
 	director := reverseProxy.Director
 	reverseProxy.Director = func(req *http.Request) {
@@ -47,22 +40,21 @@ func Start() {
 		req.Header.Add("X-Forwarded-Host", req.Host)
 		req.Host = req.URL.Host
 	}
+	return reverseProxy
+}
 
-	srv := &http.Server{Addr: fmt.Sprintf(":%s", c.Port), Handler: reverseProxy}
+// Start http reverse server
+func Start(l *logrus.Logger) {
+	log = l
+	log.Info("Start http reverse server")
 
-	// Wait for interrupt signal to gracefully shutdown the server with
-	// a timeout of 5 seconds.
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sig
-		log.Info("http server is shutting down...")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Fatal("error at server shutdown:", err)
-		}
-	}()
+	c := loadConfig()
+	log.WithField("config", fmt.Sprintf("%+v", c)).Info("config loaded")
+
+	srv := &http.Server{Addr: fmt.Sprintf(":%s", c.Port), Handler:
+	setupReverseProxy(&url.URL{Scheme: c.TargetScheme, Host: c.TargetHost,})}
+
+	util.ShutdownHTTPServer(srv, log)
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.WithError(err).Fatal("Server exited.")

@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // AuthorizationMiddleware handles if the context is not authorized
@@ -56,7 +56,7 @@ func isAuthorized(localID, method, path string) bool {
 		return false
 	}
 	if strings.HasPrefix(path, "/api/v1") {
-		log.WithFields(log.Fields{"localID": localID, "method": method, "path": path}).Debug("isAuthorized")
+		log.WithFields(logrus.Fields{"localID": localID, "method": method, "path": path}).Debug("isAuthorized")
 		// TODO Implement Role based authorization with storage
 		// Simulate authorization
 		if strings.HasPrefix(path, "/api/v1/user/") {

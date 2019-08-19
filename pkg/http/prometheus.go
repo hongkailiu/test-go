@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -42,7 +42,7 @@ var (
 )
 
 func prometheusRegister() {
-	log.WithFields(log.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
+	log.WithFields(logrus.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
 	prometheus.MustRegister(httpRequestsTotal)
 	prometheus.MustRegister(httpRequestDuration)
 	prometheus.MustRegister(randomNumber)

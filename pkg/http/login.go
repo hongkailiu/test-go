@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/satori/go.uuid"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	googleauth "google.golang.org/api/oauth2/v2"
 )
@@ -61,7 +61,7 @@ type login struct {
 func (l login) getLoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		url := l.config.AuthCodeURL(oauthStateString, oauth2.AccessTypeOnline)
-		log.WithFields(log.Fields{"url": url}).Debug("redirect login url")
+		log.WithFields(logrus.Fields{"url": url}).Debug("redirect login url")
 		c.Redirect(http.StatusTemporaryRedirect, url)
 	}
 }

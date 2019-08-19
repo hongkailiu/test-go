@@ -19,6 +19,8 @@ testctl http start
 
 # Get http secret
 testctl http getSecret`
+
+	log = logrus.New()
 )
 
 // NewCmdHTTP ...
@@ -42,7 +44,7 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		//Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(c, "http")
-			http.Run(hc)
+			http.Run(hc, log)
 		},
 	}
 	startCmd.Flags().BoolVarP(&hc.PProf, "pprof", "p", false, "enable pprof, see https://golang.org/pkg/net/http/pprof/")
@@ -72,7 +74,7 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			setup(c, "reverse")
-			httpreverse.Start()
+			httpreverse.Start(log)
 		},
 	})
 	return cmd
@@ -94,7 +96,7 @@ func (f *formatter) Format(e *logrus.Entry) ([]byte, error) {
 
 func setup(c *config.Config, component string) {
 	//https://github.com/sirupsen/logrus/pull/653#issuecomment-454467900
-	logrus.SetFormatter(&formatter{
+	log.SetFormatter(&formatter{
 		fields: logrus.Fields{
 			"component": component,
 		},
@@ -104,9 +106,9 @@ func setup(c *config.Config, component string) {
 		},
 	})
 
-	logrus.SetOutput(os.Stdout)
-	logrus.SetLevel(logrus.WarnLevel)
+	log.SetOutput(os.Stdout)
+	log.SetLevel(logrus.WarnLevel)
 	if c.Verbose {
-		logrus.SetLevel(logrus.DebugLevel)
+		log.SetLevel(logrus.DebugLevel)
 	}
 }
