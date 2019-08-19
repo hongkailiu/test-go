@@ -4,11 +4,13 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -17,6 +19,7 @@ var (
 )
 
 func TestJWT1(t *testing.T) {
+	log = logrus.New()
 	token, err := getToken(testLocalID, defaultSessionKeyForTest)
 	assert.Nil(t, err)
 	localID, err := getLocalIDFromToken(token, defaultSessionKeyForTest)
@@ -25,6 +28,7 @@ func TestJWT1(t *testing.T) {
 }
 
 func TestJWT2(t *testing.T) {
+	log = logrus.New()
 	token, err := getExpiredToken(testLocalID, defaultSessionKeyForTest)
 	assert.Nil(t, err)
 	localID, err := getLocalIDFromToken(token, defaultSessionKeyForTest)
@@ -34,6 +38,7 @@ func TestJWT2(t *testing.T) {
 }
 
 func TestJWT3(t *testing.T) {
+	log = logrus.New()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	assert.Nil(t, err)
 

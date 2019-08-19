@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/apimachinery/pkg/util/diff"
-
 	"github.com/hongkailiu/test-go/pkg/http/info"
 	"github.com/hongkailiu/test-go/pkg/http/model"
 	"github.com/hongkailiu/test-go/pkg/http/webhook"
@@ -20,13 +18,13 @@ import (
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/jinzhu/gorm"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
+	"k8s.io/apimachinery/pkg/util/diff"
 )
 
 var (
@@ -45,7 +43,8 @@ func (m *MyMockedDBService) GetCities(limit, offset int) (*[]model.City, error) 
 }
 
 func beforeEach() {
-	log.SetLevel(log.DebugLevel)
+	log = logrus.New()
+	log.SetLevel(logrus.DebugLevel)
 	fmt.Println("============================beforeEach======================")
 	appConfig = loadConfig()
 
@@ -186,7 +185,7 @@ func TestSetupOAuthConfig1(t *testing.T) {
 func TestBeforeStartServer(t *testing.T) {
 	hc = cmdconfig.HttpConfig{Version: "test-version"}
 	os.Setenv("unit_testing", "true")
-	Run(&hc)
+	Run(&hc, log)
 }
 
 func TestGetSecret(t *testing.T) {
