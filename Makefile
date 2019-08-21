@@ -95,14 +95,16 @@ ifeq ($(CIRCLECI), true)
 	echo "skipping coveralls on circleci ..."
 endif
 
+go_version := $(shell go version)
+
 .PHONY : gen-images
 gen-images:
 	docker build --label "version=$$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go" -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-travis .
 	docker build -f test_files/docker/Dockerfile.ocptf.txt -t quay.io/hongkailiu/test-go:ocptf-travis .
 	###E: Unable to locate package openjdk-8-jdk
 	###docker build -f test_files/docker/Dockerfile.circleci.txt -t quay.io/hongkailiu/test-go:circleci-travis .
-ifeq ($(TRAVIS), true)
-	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/test-go:testctl-$(USER)-${TRAVIS_JOB_NUMBER}" .
+ifeq ($(TRAVIS)$(findstring go1.12,$(go_version)), truego1.12)
+	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/test-go:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 	docker login -u hongkailiu -p $(quay_cli_password)
 	docker push "quay.io/hongkailiu/test-go:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 endif
