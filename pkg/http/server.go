@@ -225,6 +225,7 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 		}
 	})
 
+	// https://developer.github.com/webhooks/
 	r.POST("/webhook", func(c *gin.Context) {
 		// TODO ShouldBindHeader will be available in the next gin release
 		//if err := c.Request.ShouldBindHeader(&h); err != nil {
