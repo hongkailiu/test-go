@@ -5,7 +5,7 @@ WORKDIR /go/src/github.com/hongkailiu/test-go/
 RUN make GO111MODULE=on GOPROXY="https://goproxy.io" CGO_ENABLED=0 GOOS=linux build-testctl
 
 
-FROM alpine:3.9
+FROM alpine:3.10
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 WORKDIR /
 COPY --from=builder /go/src/github.com/hongkailiu/test-go/build/testctl /testctl
