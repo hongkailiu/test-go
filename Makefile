@@ -105,7 +105,7 @@ gen-images:
 	###docker build -f test_files/docker/Dockerfile.circleci.txt -t quay.io/hongkailiu/test-go:circleci-travis .
 ifeq ($(TRAVIS)$(findstring go1.12,$(go_version)), truego1.12)
 	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/test-go:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
-	docker login -u hongkailiu -p $(quay_cli_password)
+	echo "$(quay_cli_password)" | docker login -u hongkailiu quay.io --password-stdin
 	docker push "quay.io/hongkailiu/test-go:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 endif
 	docker images
