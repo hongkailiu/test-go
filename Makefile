@@ -133,7 +133,7 @@ build-testctl:
 	cp -rv pkg/http/swagger build/
 	git checkout ./pkg/testctl/cmd/config/version.go
 
-BAZELISK_VERSION := v0.0.8
+BAZELISK_VERSION := v1.0
 
 .PHONY : ci-install
 ci-install:
@@ -146,11 +146,13 @@ ifeq ($(TRAVIS), true)
 	curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
 	sudo apt-get update
 	sudo apt-get install bazel
-endif
-	go mod download
+	# install bazelisk
 	curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
+endif
+	go mod download
+
 
 .PHONY : ci-before-script
 ci-before-script:
