@@ -1,0 +1,25 @@
+# oc apply -n hongkliu-test -f ./openshift-assets/test-go_bc.yaml
+### https://lists.openshift.redhat.com/openshift-archives/users/2017-September/msg00031.html
+# oc create is ci-staging
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "test-go-build-dockerfile"
+spec:
+  runPolicy: "Serial"
+  source:
+    git:
+      uri: "https://github.com/hongkailiu/test-go"
+    contextDir: .
+  strategy:
+    dockerStrategy:
+      dockerfilePath: test_files/docker/Dockerfile.testctl.txt
+      noCache: true
+      forcePull: true
+  output:
+    to:
+      kind: "ImageStreamTag"
+      name: "ci-staging:testctl-bc"
+    imageLabels:
+      - name: "buildBy"
+        value: "openshift"
