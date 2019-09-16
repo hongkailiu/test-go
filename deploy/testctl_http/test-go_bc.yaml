@@ -1,0 +1,25 @@
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "test-go-build-dockerfile"
+  namespace: hongkliu-run
+spec:
+  runPolicy: "Serial"
+  source:
+    git:
+      uri: "https://github.com/hongkailiu/test-go"
+    contextDir: .
+  strategy:
+    dockerStrategy:
+      dockerfilePath: test_files/docker/Dockerfile.testctl.txt
+      noCache: true
+      forcePull: true
+  output:
+    to:
+      kind: "ImageStreamTag"
+      name: "ci-staging:testctl-bc"
+    imageLabels:
+      - name: "buildBy"
+        value: "openshift"
+      - name: "triggerBy"
+        value: "github-webhook"

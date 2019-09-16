@@ -48,6 +48,8 @@ endif
 	oc create -n hongkliu-run configmap alert-manager-config --from-file=alertmanager.yml=/tmp/alertmanager_decoded.yml --from-file=msg.tmpl=./alert_manager.msg.tmpl --dry-run -o yaml | oc apply -f -
 	rm -vf /tmp/alertmanager_decoded.yml
 	oc apply -f ./alert_manager_deploy.yaml
+	##TODO bc with sourceStrategy
+	#oc apply -f ./test-go_bc.yaml
 	#https://github.com/kubernetes/kubernetes/issues/13488#issuecomment-481023838
 	#kubectl rollout restart #this will be available soon
 	@echo "deployed successfully!"

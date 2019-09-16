@@ -2,6 +2,7 @@ package github
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -33,6 +34,16 @@ type IssueCommentEvent struct {
 	Comment IssueComment `json:"comment"`
 }
 
+type Repository struct {
+	Name     string `json:"name"`
+	FullName string `json:"full_name"`
+}
+
+type PushEvent struct {
+	Repository Repository `json:"repository"`
+	Ref        string     `json:"ref"`
+}
+
 type WebhookHeaders struct {
 	EventType     string `header:"X-GitHub-Event"`
 	GUID          string `header:"X-GitHub-Delivery"`
@@ -61,8 +72,10 @@ func Handle(payload []byte, wh WebhookHeaders, log *logrus.Logger) (int, string)
 	switch wh.EventType {
 	case "ping":
 		go handlePing(payload, log)
+	case "push":
+		go handlePush(payload, log)
 	case "issue_comment":
-		go handleIssueComments(payload, log)
+		go handleIssueComment(payload, log)
 	default:
 		log.WithField("wh.EventType", wh.EventType).Info("Ignored payload with an unimplemented event type.")
 	}
@@ -82,7 +95,22 @@ func handlePing(payload []byte, log *logrus.Logger) {
 	log.WithField("event.HookID", event.HookID).Debug("received PingEvent")
 }
 
-func handleIssueComments(payload []byte, log *logrus.Logger) {
+func handlePush(payload []byte, log *logrus.Logger) {
+	var event PushEvent
+	if err := json.Unmarshal(payload, &event); err != nil {
+		log.WithError(err).WithField("payload", string(payload)).Error("Cannot parse payload")
+		return
+	}
+	log.WithField("event.Repository", fmt.Sprintf("%+v", event.Repository)).WithField("event.Ref", event.Ref).Debug("received PushEvent")
+	buildTestGo(event)
+}
+
+func buildTestGo(event PushEvent) {
+	// TODO k8s api to trigger build
+	// DC triggered by the new image
+}
+
+func handleIssueComment(payload []byte, log *logrus.Logger) {
 	var event IssueCommentEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
 		log.WithError(err).WithField("payload", string(payload)).Error("Cannot parse payload")
