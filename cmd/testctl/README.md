@@ -54,6 +54,9 @@ $ skopeo inspect docker://quay.io/hongkailiu/test-go:testctl-0.0.8 | jq -r .Labe
   "version": "0.0.11-57-gf8dec948"
 }
 
+# podman login quay.io -u hongkailiu
+#  skopeo copy docker://quay.io/hongkailiu/ci-staging:testctl-travis-534.2 docker://quay.io/hongkailiu/test-go:testctl-travis-534.2
+
 ```
 
 ## Deployment

@@ -200,14 +200,12 @@ func TestRoute3(t *testing.T) {
 	mock := new(MyMockedDBService)
 	router := setupRouter(&hc, githubLogin, googleLogin, mock)
 
-	event := github.Event{
-		PingEvent: github.PingEvent{
-			Zen:    "zen-abc",
-			HookID: 23,
-			Hook: github.Hook{
-				ID:   23,
-				Name: "webhook-cool-name",
-			},
+	event := github.PingEvent{
+		Zen:    "zen-abc",
+		HookID: 23,
+		Hook: github.Hook{
+			ID:   23,
+			Name: "webhook-cool-name",
 		},
 	}
 	eventBytes, err := json.Marshal(&event)
@@ -230,7 +228,7 @@ func TestRoute3(t *testing.T) {
 	err = json.Unmarshal([]byte(w.Body.Bytes()), &r)
 	assert.Nil(t, err)
 	expected := webhook.Response{
-		Message: "ok",
+		Message: "OK",
 	}
 	assert.Equal(t, expected, r)
 }

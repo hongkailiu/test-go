@@ -28,7 +28,6 @@ go_library(
         "//vendor/github.com/gin-contrib/sessions:go_default_library",
         "//vendor/github.com/gin-contrib/sessions/cookie:go_default_library",
         "//vendor/github.com/gin-gonic/gin:go_default_library",
-        "//vendor/github.com/gin-gonic/gin/binding:go_default_library",
         "//vendor/github.com/go-openapi/runtime/middleware:go_default_library",
         "//vendor/github.com/google/go-github/github:go_default_library",
         "//vendor/github.com/gorilla/securecookie:go_default_library",

@@ -5,4 +5,5 @@ go_library(
     srcs = ["event.go"],
     importpath = "github.com/hongkailiu/test-go/pkg/http/webhook/github",
     visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/sirupsen/logrus:go_default_library"],
 )
