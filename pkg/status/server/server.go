@@ -219,6 +219,9 @@ func getK8SHelper() k8sHelper {
 			inCluster:    true,
 			config:       config,
 			k8sClientSet: clientset,
+			project:      os.Getenv("PROJECT_NAME"),
+			deployment:   os.Getenv("DEPLOYMENT_NAME"),
+			container:    os.Getenv("CONTAINER_NAME"),
 		}
 	}
 	return k8sHelper{}
