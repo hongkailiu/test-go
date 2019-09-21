@@ -26,6 +26,7 @@ spec:
       labels:
         name: status
     spec:
+      serviceAccount: status
       containers:
         - image: quay.io/hongkailiu/test-go:testctl-travis-536.2
           command: ["/testctl"]

@@ -86,7 +86,7 @@ func applyDeployment(event quay.RepositoryEvent) error {
 	if !helper.inCluster {
 		return fmt.Errorf("not in cluster")
 	}
-	client := helper.k8sClientSet.Apps().Deployments(helper.project)
+	client := helper.k8sClientSet.AppsV1().Deployments(helper.project)
 	d, err := client.Get(helper.deployment, metav1.GetOptions{})
 	if err != nil {
 		return err

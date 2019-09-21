@@ -1,0 +1,40 @@
+kind: List
+apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: status
+      namespace: hongkliu-run
+  - kind: Role
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: status
+      namespace: hongkliu-run
+    rules:
+      - apiGroups:
+          - "apps"
+          - "extensions"
+        resources:
+          - deployments
+        verbs:
+          - "get"
+          - "list"
+          - "watch"
+          - "create"
+          - "update"
+          - "patch"
+          - "delete"
+  - kind: RoleBinding
+    apiVersion: rbac.authorization.k8s.io/v1
+    metadata:
+      name: status
+      namespace: hongkliu-run
+    subjects:
+      - kind: ServiceAccount
+        name: status
+        namespace: hongkliu-run
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: status
