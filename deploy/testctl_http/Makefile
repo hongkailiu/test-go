@@ -6,7 +6,7 @@ oc_project := $(shell echo $(current_oc_context) | cut -d "/" -f1)
 oc_server := $(shell echo $(current_oc_context) | cut -d "/" -f2)
 oc_user := $(shell echo $(current_oc_context) | cut -d "/" -f3)
 
-expected_oc_server := api-us-east-1-online-starter-openshift-com:6443
+expected_oc_server := api-ca-central-1-starter-openshift-online-com:6443
 expected_oc_user := hongkliu
 web_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/web_secret.yaml
 grafana_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/grafana_secret.yaml
@@ -44,7 +44,7 @@ endif
 	oc create -n hongkliu-run configmap grafana-dashboards --from-file=dashboards.yaml=./grafana_dashboards.yaml --dry-run -o yaml | oc apply -f -
 	oc create -n hongkliu-run configmap grafana-dashboard-test-go --from-file=test-go.json=./test_go_dashboard.json --dry-run -o yaml | oc apply -f -
 	oc apply -f ./grafana_deploy.yaml
-	sed -e "s|{slack_api_secret}|$(slack_api_secret_value)|g" ./alertmanager.yml > /tmp/alertmanager_decoded.yml
+	@sed -e "s|{slack_api_secret}|$(slack_api_secret_value)|g" ./alertmanager.yml > /tmp/alertmanager_decoded.yml
 	oc create -n hongkliu-run configmap alert-manager-config --from-file=alertmanager.yml=/tmp/alertmanager_decoded.yml --from-file=msg.tmpl=./alert_manager.msg.tmpl --dry-run -o yaml | oc apply -f -
 	rm -vf /tmp/alertmanager_decoded.yml
 	oc apply -f ./alert_manager_deploy.yaml
