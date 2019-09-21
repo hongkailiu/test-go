@@ -94,7 +94,7 @@ func applyDeployment(event quay.RepositoryEvent) error {
 	log.WithField("d.Name", d.Namespace).WithField("d.Name", d.Name).Debug("found deployment")
 	found := false
 	containers := d.Spec.Template.Spec.Containers
-	for _, c := range containers {
+	for i, c := range containers {
 		log.WithField("c.Name", c.Name).Debug("listing container ...")
 		if c.Name == helper.container {
 			log.WithField("c.Name", c.Name).Debug("found the matching container")
@@ -102,7 +102,7 @@ func applyDeployment(event quay.RepositoryEvent) error {
 			targetImage := fmt.Sprintf("%s:%s", event.DockerURL, event.GetTheMostRecentTag())
 			log.WithField("c.Image", c.Image).WithField("targetImage", targetImage).Debug("get the current image ...")
 			if c.Image != targetImage {
-				c.Image = targetImage
+				d.Spec.Template.Spec.Containers[i].Image = targetImage
 				log.WithField("d.Name", d.Name).Debug("updating deployment ...")
 				if _, err := client.Update(d); err != nil {
 					log.WithError(err).WithField("d.Name", d.Name).Debug("error occurred when updating deployment")
