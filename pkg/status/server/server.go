@@ -23,11 +23,11 @@ import (
 )
 
 const (
-	defaultTargetUrl = "https://web-hongkliu-run.b542.starter-us-east-2a.openshiftapps.com/"
+	defaultTargetUrl = "https://web-hongkliu-run.apps.ca-central-1.starter.openshift-online.com/"
+	addr             = ":8080"
 )
 
 var (
-	addr     = ":8080"
 	upgrader = websocket.Upgrader{} // use default options
 	ss       *ServiceStatus
 	log      *logrus.Logger
@@ -118,38 +118,28 @@ func applyDeployment(event quay.RepositoryEvent) error {
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	log.Println("echo: a")
 	c, err := upgrader.Upgrade(w, r, nil)
-	log.Println("echo: b")
 	if err != nil {
-		log.Print("upgrade:", err)
+		log.WithError(err).Error("error occurred when getting web socket connection")
 		return
 	}
 	defer func() {
 		err := c.Close()
 		if err != nil {
-			log.Print("close:", err)
+			log.WithError(err).Error("error occurred when closing web socket connection")
 		}
 	}()
 
 	for {
-		log.Println("for loop:")
-		//mt, message, err := c.ReadMessage()
-		//if err != nil {
-		//	log.Println("read:", err)
-		//	break
-		//}
-		//log.Printf("recv: %s", message)
 		if ss != nil {
-			log.Println("sending:")
 			b, err := json.Marshal(ss)
 			if err != nil {
-				log.Println("marshal:", err)
+				log.WithError(err).Error("error occurred when marshaling service status")
 				break
 			}
 			err = c.WriteMessage(websocket.TextMessage, b)
 			if err != nil {
-				log.Println("write:", err)
+				log.WithError(err).Error("error occurred when writing message")
 				break
 			}
 		}
@@ -169,10 +159,9 @@ type k8sHelper struct {
 	inCluster    bool
 	config       *rest.Config
 	k8sClientSet *kubernetes.Clientset
-	//TODO
-	project    string
-	deployment string
-	container  string
+	project      string
+	deployment   string
+	container    string
 }
 
 // Start status http server
@@ -188,20 +177,21 @@ func Start(logger *logrus.Logger) {
 
 	ss = &ServiceStatus{Url: url}
 
-	log.Println("url: " + ss.Url)
-
-	log.Println("configure cron jobs ...")
-	c := cron.New()
-	//log.Println("000")
-	err := c.AddFunc("*/10 * * * * *", func() {
-		now := time.Now()
-		log.Println("Every 10 seconds" + now.Format(time.RFC3339))
-		updateStatus(now)
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	c.Start()
+	log.WithField("ss.url", ss.Url).Info("contacting web server ...")
+	// fresh web server status
+	go func() {
+		log.Info("configure cron jobs ...")
+		c := cron.New()
+		err := c.AddFunc("*/10 * * * * *", func() {
+			now := time.Now()
+			log.WithField("now", now.Format(time.RFC3339)).Debug("Every 10 seconds ... ")
+			updateStatus(now)
+		})
+		if err != nil {
+			log.WithError(err).Error("error occurred when the add cron job")
+		}
+		c.Start()
+	}()
 
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/", home)
@@ -235,10 +225,10 @@ func getK8SHelper() k8sHelper {
 func updateStatus(now time.Time) {
 	resp, err := resty.R().Get(ss.Url)
 	if err != nil {
-		log.Print("resty: ", err)
+		log.WithError(err).Error("error occurred when getting status from web server")
 	}
 	sc := resp.StatusCode()
-	log.Printf("sc is %d\n", sc)
+	log.WithField("statusCode", sc).Debug("web server returned")
 	check := &Check{now, sc}
 	if sc >= http.StatusOK && sc < http.StatusMultipleChoices {
 		ss.LastSuccessfulCheck = check
