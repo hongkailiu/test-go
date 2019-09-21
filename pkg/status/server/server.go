@@ -19,7 +19,7 @@ import (
 
 	"gopkg.in/resty.v1"
 
-	"github.com/hongkailiu/test-go/quay"
+	"github.com/hongkailiu/test-go/pkg/quay"
 )
 
 const (

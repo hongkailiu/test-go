@@ -3,6 +3,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["quay.go"],
-    importpath = "github.com/hongkailiu/test-go/quay",
+    importpath = "github.com/hongkailiu/test-go/pkg/quay",
     visibility = ["//visibility:public"],
 )
