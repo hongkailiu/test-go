@@ -39,9 +39,9 @@ spec:
             - name: PROJECT_NAME
               value: "hongkliu-run"
             - name: DEPLOYMENT_NAME
-              value: "status"
+              value: "web"
             - name: CONTAINER_NAME
-              value: "status"
+              value: "web"
           name: status
           resources:
             requests:
