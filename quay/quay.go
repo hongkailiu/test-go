@@ -8,3 +8,7 @@ type RepositoryEvent struct {
 	Homepage    string   `json:"homepage"`
 	UpdatedTags []string `json:"updated_tags,omitempty"`
 }
+
+func (event RepositoryEvent) GetTheMostRecentTag() string {
+	return event.UpdatedTags[len(event.UpdatedTags)-1]
+}

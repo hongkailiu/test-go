@@ -2,13 +2,16 @@ package server
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	"github.com/gorilla/websocket"
 	"github.com/robfig/cron"
@@ -24,10 +27,11 @@ const (
 )
 
 var (
-	addr     = flag.String("addr", ":8080", "http service address")
+	addr     = ":8080"
 	upgrader = websocket.Upgrader{} // use default options
 	ss       *ServiceStatus
 	log      *logrus.Logger
+	helper   k8sHelper
 )
 
 // Check ...
@@ -65,11 +69,47 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func handle(bytes []byte) {
-	event := &quay.RepositoryEvent{}
-	if err := json.Unmarshal(bytes, event); err != nil {
+	event := quay.RepositoryEvent{}
+	if err := json.Unmarshal(bytes, &event); err != nil {
 		log.WithError(err).WithField("string(bytes)", string(bytes)).Error("cannot unmarshal with json")
 	}
 	log.WithField("event", event).Debug("received an event")
+	if err := applyDeployment(event); err != nil {
+		log.WithError(err).WithField("event", event).Errorf("error occurred when applying deployment")
+	}
+}
+
+func applyDeployment(event quay.RepositoryEvent) error {
+	if len(event.UpdatedTags) == 0 {
+		return fmt.Errorf("invalid event: empty tags")
+	}
+	if !helper.inCluster {
+		return fmt.Errorf("not in cluster")
+	}
+	client := helper.k8sClientSet.Apps().Deployments(helper.project)
+	d, err := client.Get(helper.deployment, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	found := false
+	containers := d.Spec.Template.Spec.Containers
+	for _, c := range containers {
+		log.WithField("c.Name", c.Name).Debug("found container")
+		if c.Name == helper.container {
+			found = true
+			targetImage := fmt.Sprintf("%s:%s", event.DockerURL, event.GetTheMostRecentTag())
+			if c.Image != targetImage {
+				c.Image = targetImage
+				if _, err := client.Update(d); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	if !found {
+		return fmt.Errorf("cannot find the container with name '%s'", helper.container)
+	}
+	return nil
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
@@ -120,10 +160,21 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type k8sHelper struct {
+	inCluster    bool
+	config       *rest.Config
+	k8sClientSet *kubernetes.Clientset
+	//TODO
+	project    string
+	deployment string
+	container  string
+}
+
 // Start status http server
 func Start(logger *logrus.Logger) {
 	log = logger
-	flag.Parse()
+
+	helper = getK8SHelper()
 
 	url := os.Getenv("target_url")
 	if url == "" {
@@ -151,7 +202,26 @@ func Start(logger *logrus.Logger) {
 	http.HandleFunc("/", home)
 	http.HandleFunc("/webhook", webhook)
 	log.Println("starting status http server ...")
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(addr, nil))
+}
+
+func getK8SHelper() k8sHelper {
+	if os.Getenv("IN_CLUSTER") == "true" {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			log.WithError(err).Error("cannot get in cluster config")
+		}
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			log.WithError(err).Error("cannot get in cluster client set")
+		}
+		return k8sHelper{
+			inCluster:    true,
+			config:       config,
+			k8sClientSet: clientset,
+		}
+	}
+	return k8sHelper{}
 }
 
 func updateStatus(now time.Time) {
