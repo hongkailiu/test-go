@@ -28,7 +28,7 @@ spec:
     spec:
       serviceAccount: status
       containers:
-        - image: quay.io/hongkailiu/test-go:testctl-travis-536.2
+        - image: quay.io/hongkailiu/test-go:testctl-travis-545.2
           command: ["/testctl"]
           args: ["http", "status", "-v"]
           env:
