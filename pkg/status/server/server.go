@@ -60,7 +60,7 @@ func webhook(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).Error("cannot write response")
 	}
 	if n != len(content) {
-		log.WithField("n", n).Error("cannot write '%s' properly", content)
+		log.WithField("n", n).Errorf("cannot write '%s' properly", content)
 	}
 }
 
