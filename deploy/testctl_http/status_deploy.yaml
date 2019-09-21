@@ -33,7 +33,7 @@ spec:
           args: ["http", "status", "-v"]
           env:
             - name: target_url
-              value: "https://web-hongkliu-run.apps.us-east-1.online-starter.openshift.com/"
+              value: "https://web-hongkliu-run.apps.ca-central-1.starter.openshift-online.com/"
             - name: IN_CLUSTER
               value: "true"
             - name: PROJECT_NAME
