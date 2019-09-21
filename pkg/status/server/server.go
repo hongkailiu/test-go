@@ -3,15 +3,20 @@ package server
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/robfig/cron"
+	"github.com/sirupsen/logrus"
+
 	"gopkg.in/resty.v1"
+
+	"github.com/hongkailiu/test-go/quay"
 )
 
 const (
@@ -22,6 +27,7 @@ var (
 	addr     = flag.String("addr", ":8080", "http service address")
 	upgrader = websocket.Upgrader{} // use default options
 	ss       *ServiceStatus
+	log      *logrus.Logger
 )
 
 // Check ...
@@ -35,6 +41,35 @@ type ServiceStatus struct {
 	Url                 string `json:"url"`
 	LastSuccessfulCheck *Check `json:"lastSuccessfulCheck,omitempty"`
 	LastFailedCheck     *Check `json:"lastFailedCheck,omitempty"`
+}
+
+func webhook(w http.ResponseWriter, r *http.Request) {
+	if http.MethodPost != r.Method {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed),
+			http.StatusMethodNotAllowed)
+	}
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	//log.WithField("string(body", string(body)).Debug("post with body")
+	go handle(body)
+	content := "OK"
+	n, err := fmt.Fprint(w, content)
+	if err != nil {
+		log.WithError(err).Error("cannot write response")
+	}
+	if n != len(content) {
+		log.WithField("n", n).Error("cannot write '%s' properly", content)
+	}
+}
+
+func handle(bytes []byte) {
+	event := &quay.RepositoryEvent{}
+	if err := json.Unmarshal(bytes, event); err != nil {
+		log.WithError(err).WithField("string(bytes)", string(bytes)).Error("cannot unmarshal with json")
+	}
+	log.WithField("event", event).Debug("received an event")
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
@@ -86,9 +121,9 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 
 // Start status http server
-func Start() {
+func Start(logger *logrus.Logger) {
+	log = logger
 	flag.Parse()
-	log.SetFlags(0)
 
 	url := os.Getenv("target_url")
 	if url == "" {
@@ -114,6 +149,7 @@ func Start() {
 
 	http.HandleFunc("/status", status)
 	http.HandleFunc("/", home)
+	http.HandleFunc("/webhook", webhook)
 	log.Println("starting status http server ...")
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

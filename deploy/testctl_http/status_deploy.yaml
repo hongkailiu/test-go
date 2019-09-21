@@ -27,7 +27,7 @@ spec:
         name: status
     spec:
       containers:
-        - image: quay.io/hongkailiu/test-go:testctl-0.0.16
+        - image: quay.io/hongkailiu/test-go:testctl-travis-536.2
           command: ["/testctl"]
           args: ["http", "status", "-v"]
           env:

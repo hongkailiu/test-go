@@ -28,7 +28,7 @@ spec:
         name: web
     spec:
       containers:
-        - image: "quay.io/hongkailiu/test-go:testctl-travis-512.2"
+        - image: "quay.io/hongkailiu/test-go:testctl-travis-536.2"
           command: ["/testctl"]
           args: ["http", "start", "-v"]
           env:

@@ -65,7 +65,8 @@ func NewCmdHTTP(c *config.Config) *cobra.Command {
 		Short: "Get http status",
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			status.Start()
+			setup(c, "status")
+			status.Start(log)
 		},
 	})
 
