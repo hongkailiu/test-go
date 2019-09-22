@@ -1,4 +1,4 @@
-IMAGE_NAME = quay.io/hongkailiu/test-go:s2i-1.0.3
+IMAGE_NAME = quay.io/hongkailiu/test-go:s2i-1.0.6
 
 .PHONY: build
 build:

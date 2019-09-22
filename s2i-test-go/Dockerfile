@@ -13,11 +13,11 @@ LABEL io.k8s.description="Platform for building test-go" \
 LABEL io.openshift.s2i.scripts-url=image:///usr/local/s2i
 COPY ./s2i/bin/ /usr/local/s2i
 
-USER 1001
-
 WORKDIR /app
 
-RUN sudo chmod -R 777 /app
+RUN chmod -R 777 /app
+
+USER 1001
 
 EXPOSE 8080
 
