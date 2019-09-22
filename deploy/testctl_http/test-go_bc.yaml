@@ -1,7 +1,8 @@
+### NOT working yet: OOMKilled on openshift-online
 kind: "BuildConfig"
 apiVersion: "v1"
 metadata:
-  name: "test-go-build-dockerfile"
+  name: "test-go-build-s2i"
   namespace: hongkliu-run
 spec:
   runPolicy: "Serial"
@@ -10,10 +11,13 @@ spec:
       uri: "https://github.com/hongkailiu/test-go"
     contextDir: .
   strategy:
-    dockerStrategy:
-      dockerfilePath: test_files/docker/Dockerfile.testctl.txt
-      noCache: true
-      forcePull: true
+    sourceStrategy:
+      env:
+        - name: GOCACHE
+          value: /tmp/.cache
+      from:
+        kind: "DockerImage"
+        name: "quay.io/hongkailiu/test-go:s2i-1.0.6"
   output:
     to:
       kind: "ImageStreamTag"
