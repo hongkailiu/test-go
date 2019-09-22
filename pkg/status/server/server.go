@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,6 +84,11 @@ func applyDeployment(event quay.RepositoryEvent) error {
 	if len(event.UpdatedTags) == 0 {
 		return fmt.Errorf("invalid event: empty tags")
 	}
+	tag := event.GetTheMostRecentTag()
+	if !strings.Contains(tag, "testctl") {
+		log.WithField("tag", tag).Warn("not testctl tag, ignoring ...")
+		return nil
+	}
 	if !helper.inCluster {
 		return fmt.Errorf("not in cluster")
 	}
@@ -99,7 +105,7 @@ func applyDeployment(event quay.RepositoryEvent) error {
 		if c.Name == helper.container {
 			log.WithField("c.Name", c.Name).Debug("found the matching container")
 			found = true
-			targetImage := fmt.Sprintf("%s:%s", event.DockerURL, event.GetTheMostRecentTag())
+			targetImage := fmt.Sprintf("%s:%s", event.DockerURL, tag)
 			log.WithField("c.Image", c.Image).WithField("targetImage", targetImage).Debug("get the current image ...")
 			if c.Image != targetImage {
 				d.Spec.Template.Spec.Containers[i].Image = targetImage
