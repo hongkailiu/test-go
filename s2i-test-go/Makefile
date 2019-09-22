@@ -1,4 +1,4 @@
-IMAGE_NAME = docker.io/golang:1.12
+IMAGE_NAME = quay.io/hongkailiu/test-go:s2i-1.0.0
 
 .PHONY: build
 build:
