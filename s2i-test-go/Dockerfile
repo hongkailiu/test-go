@@ -17,6 +17,8 @@ USER 1001
 
 WORKDIR /go/src/github.com/hongkailiu/test-go/
 
+RUN chown 1001:1001 $(pwd)
+
 EXPOSE 8080
 
 CMD ["/usr/local/s2i/usage"]
