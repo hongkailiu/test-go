@@ -15,6 +15,8 @@ COPY ./s2i/bin/ /usr/local/s2i
 
 USER 1001
 
+WORKDIR /go/src/github.com/hongkailiu/test-go/
+
 EXPOSE 8080
 
 CMD ["/usr/local/s2i/usage"]

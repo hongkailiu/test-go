@@ -10,7 +10,7 @@ if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
 fi
 
 echo "---> Installing application source..."
-cp -Rfv /tmp/src/. ./
+cp -Rf /tmp/src/. ./
 
 echo "---> Building application from source..."
 make GO111MODULE=on GOPROXY="https://goproxy.io" CGO_ENABLED=0 GOOS=linux build-testctl
