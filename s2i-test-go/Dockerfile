@@ -15,9 +15,9 @@ COPY ./s2i/bin/ /usr/local/s2i
 
 USER 1001
 
-WORKDIR /go/src/github.com/hongkailiu/test-go/
+WORKDIR /app
 
-RUN chown 1001:1001 $(pwd)
+RUN sudo chmod -R 777 /app
 
 EXPOSE 8080
 
