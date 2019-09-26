@@ -15,6 +15,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/securecookie"
+	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/google"
+
+	"github.com/hongkailiu/test-go/pkg/collector"
 	"github.com/hongkailiu/test-go/pkg/http/db"
 	"github.com/hongkailiu/test-go/pkg/http/info"
 	"github.com/hongkailiu/test-go/pkg/http/model"
@@ -23,13 +32,6 @@ import (
 	"github.com/hongkailiu/test-go/pkg/lib/util"
 	"github.com/hongkailiu/test-go/pkg/random"
 	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
-	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
-	githuboauth "golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -106,10 +108,19 @@ func Run(hc *cmdconfig.HttpConfig) {
 	}
 	dbService := db.New(appDB)
 
-	prometheusRegister()
+	prowJobController := collector.NewProwJobControllerForTest(log)
+	registry := prometheus.NewRegistry()
+	//registry := prometheus.DefaultRegisterer
+	collector.NewProwJobCollector("test", prowJobController, registry, log)
+	registry.MustRegister(
+		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+		prometheus.NewGoCollector(),
+	)
+
+	prometheusRegister(registry)
 	generateRandomMetricsData()
 
-	r := setupRouter(hc, githubLogin, googleLogin, dbService)
+	r := setupRouter(hc, githubLogin, googleLogin, dbService, registry)
 
 	// By default it serves on :8080 unless a
 	// PORT environment variable was defined.
@@ -192,7 +203,7 @@ func generateRandomMetricsData() {
 	}()
 }
 
-func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService db.ServiceI) *gin.Engine {
+func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService db.ServiceI, reg *prometheus.Registry) *gin.Engine {
 	// Creates a router without any middleware by default
 	r := gin.New()
 
@@ -246,7 +257,7 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 	})
 
 	r.GET("/metrics", func(c *gin.Context) {
-		promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(c.Writer, c.Request)
 	})
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))

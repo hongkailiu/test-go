@@ -11,13 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hongkailiu/test-go/pkg/http/info"
-	"github.com/hongkailiu/test-go/pkg/http/model"
-	"github.com/hongkailiu/test-go/pkg/http/webhook"
-	"github.com/hongkailiu/test-go/pkg/http/webhook/github"
-	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
-	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
+
 	"github.com/jinzhu/gorm"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -25,6 +21,13 @@ import (
 	githuboauth "golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 	"k8s.io/apimachinery/pkg/util/diff"
+
+	"github.com/hongkailiu/test-go/pkg/http/info"
+	"github.com/hongkailiu/test-go/pkg/http/model"
+	"github.com/hongkailiu/test-go/pkg/http/webhook"
+	"github.com/hongkailiu/test-go/pkg/http/webhook/github"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
+	cmdconfig "github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 )
 
 var (
@@ -79,7 +82,7 @@ func TestRoute1(t *testing.T) {
 	cities := []model.City{{Name: "test-city", Model: gorm.Model{ID: uint(23)}}}
 	mock.On("GetCities", 10, 0).Return(&cities, nil)
 
-	router := setupRouter(&hc, githubLogin, googleLogin, mock)
+	router := setupRouter(&hc, githubLogin, googleLogin, mock, prometheus.NewRegistry())
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/", nil)
@@ -132,7 +135,7 @@ func TestRoute2(t *testing.T) {
 	errorMsg := "test-error"
 	mock.On("GetCities", 10, 0).Return(&cities, fmt.Errorf(errorMsg))
 
-	router := setupRouter(&hc, githubLogin, googleLogin, mock)
+	router := setupRouter(&hc, githubLogin, googleLogin, mock, prometheus.NewRegistry())
 
 	w := httptest.NewRecorder()
 	req, err := http.NewRequest("GET", "/whoami", nil)
@@ -198,7 +201,7 @@ func TestGetSecret(t *testing.T) {
 func TestRoute3(t *testing.T) {
 	beforeEach()
 	mock := new(MyMockedDBService)
-	router := setupRouter(&hc, githubLogin, googleLogin, mock)
+	router := setupRouter(&hc, githubLogin, googleLogin, mock, prometheus.NewRegistry())
 
 	event := github.PingEvent{
 		Zen:    "zen-abc",

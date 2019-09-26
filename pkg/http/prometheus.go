@@ -41,10 +41,10 @@ var (
 	)
 )
 
-func prometheusRegister() {
+func prometheusRegister(reg *prometheus.Registry) {
 	log.WithFields(logrus.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
-	prometheus.MustRegister(httpRequestsTotal)
-	prometheus.MustRegister(httpRequestDuration)
-	prometheus.MustRegister(randomNumber)
-	prometheus.MustRegister(storageOperationMetric)
+	reg.MustRegister(httpRequestsTotal)
+	reg.MustRegister(httpRequestDuration)
+	reg.MustRegister(randomNumber)
+	reg.MustRegister(storageOperationMetric)
 }

@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/hongkailiu/test-go/cmd/experimental/prometheus_collector",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/collector:go_default_library",
+        "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
+        "//vendor/github.com/prometheus/client_golang/prometheus/promhttp:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "prometheus_collector",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
