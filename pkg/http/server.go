@@ -23,7 +23,6 @@ import (
 	githuboauth "golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 
-	"github.com/hongkailiu/test-go/pkg/collector"
 	"github.com/hongkailiu/test-go/pkg/http/db"
 	"github.com/hongkailiu/test-go/pkg/http/info"
 	"github.com/hongkailiu/test-go/pkg/http/model"
@@ -108,16 +107,8 @@ func Run(hc *cmdconfig.HttpConfig) {
 	}
 	dbService := db.New(appDB)
 
-	prowJobController := collector.NewProwJobControllerForTest(log)
-	registry := prometheus.NewRegistry()
-	//registry := prometheus.DefaultRegisterer
-	collector.NewProwJobCollector("test", prowJobController, registry, log)
-	registry.MustRegister(
-		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
-		prometheus.NewGoCollector(),
-	)
-
-	prometheusRegister(registry)
+	prowJobClient := NewProwJobControllerForTest(log)
+	registry := prometheusRegister("test-go", "test-selector", prowJobClient)
 	generateRandomMetricsData()
 
 	r := setupRouter(hc, githubLogin, googleLogin, dbService, registry)

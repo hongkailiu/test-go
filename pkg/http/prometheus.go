@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -41,10 +40,17 @@ var (
 	)
 )
 
-func prometheusRegister(reg *prometheus.Registry) {
-	log.WithFields(logrus.Fields{"name": "httpRequestsTotal"}).Info("prometheus register")
-	reg.MustRegister(httpRequestsTotal)
-	reg.MustRegister(httpRequestDuration)
-	reg.MustRegister(randomNumber)
-	reg.MustRegister(storageOperationMetric)
+func prometheusRegister(component, selector string, client prowJobClient) *prometheus.Registry {
+	registry := prometheus.NewRegistry()
+	registerProwJobCollector(component, client, selector, registry)
+	registry.MustRegister(
+		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+		prometheus.NewGoCollector(),
+	)
+
+	registry.MustRegister(httpRequestsTotal)
+	registry.MustRegister(httpRequestDuration)
+	registry.MustRegister(randomNumber)
+	registry.MustRegister(storageOperationMetric)
+	return registry
 }

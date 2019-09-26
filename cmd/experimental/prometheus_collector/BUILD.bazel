@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/hongkailiu/test-go/cmd/experimental/prometheus_collector",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/collector:go_default_library",
+        "//vendor/github.com/hongkailiu/test-go/pkg/collector:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
         "//vendor/github.com/prometheus/client_golang/prometheus/promhttp:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
