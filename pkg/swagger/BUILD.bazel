@@ -6,13 +6,13 @@ go_library(
     importpath = "github.com/hongkailiu/test-go/pkg/swagger",
     visibility = ["//visibility:private"],
     deps = [
-        "//pkg/swagger/swagger/models:go_default_library",
-        "//pkg/swagger/swagger/restapi:go_default_library",
-        "//pkg/swagger/swagger/restapi/operations:go_default_library",
         "//vendor/github.com/alexflint/go-arg:go_default_library",
         "//vendor/github.com/go-openapi/loads:go_default_library",
         "//vendor/github.com/go-openapi/runtime/middleware:go_default_library",
         "//vendor/github.com/go-openapi/swag:go_default_library",
+        "//vendor/github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/models:go_default_library",
+        "//vendor/github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/restapi:go_default_library",
+        "//vendor/github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/restapi/operations:go_default_library",
     ],
 )
 

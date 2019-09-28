@@ -6,11 +6,10 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	models2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/models"
 	"net/http"
 
 	"github.com/go-openapi/runtime"
-
-	models "github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 )
 
 // GetUserUserIDOKCode is the HTTP code returned for type GetUserUserIDOK
@@ -25,7 +24,7 @@ type GetUserUserIDOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.User `json:"body,omitempty"`
+	Payload *models2.User `json:"body,omitempty"`
 }
 
 // NewGetUserUserIDOK creates GetUserUserIDOK with default headers values
@@ -35,13 +34,13 @@ func NewGetUserUserIDOK() *GetUserUserIDOK {
 }
 
 // WithPayload adds the payload to the get user user Id o k response
-func (o *GetUserUserIDOK) WithPayload(payload *models.User) *GetUserUserIDOK {
+func (o *GetUserUserIDOK) WithPayload(payload *models2.User) *GetUserUserIDOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get user user Id o k response
-func (o *GetUserUserIDOK) SetPayload(payload *models.User) {
+func (o *GetUserUserIDOK) SetPayload(payload *models2.User) {
 	o.Payload = payload
 }
 
@@ -115,7 +114,7 @@ type GetUserUserIDDefault struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.Error `json:"body,omitempty"`
+	Payload *models2.Error `json:"body,omitempty"`
 }
 
 // NewGetUserUserIDDefault creates GetUserUserIDDefault with default headers values
@@ -141,13 +140,13 @@ func (o *GetUserUserIDDefault) SetStatusCode(code int) {
 }
 
 // WithPayload adds the payload to the get user user ID default response
-func (o *GetUserUserIDDefault) WithPayload(payload *models.Error) *GetUserUserIDDefault {
+func (o *GetUserUserIDDefault) WithPayload(payload *models2.Error) *GetUserUserIDDefault {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get user user ID default response
-func (o *GetUserUserIDDefault) SetPayload(payload *models.Error) {
+func (o *GetUserUserIDDefault) SetPayload(payload *models2.Error) {
 	o.Payload = payload
 }
 

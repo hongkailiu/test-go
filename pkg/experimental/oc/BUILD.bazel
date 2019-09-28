@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["oc.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/experimental/oc",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/lib/util:go_default_library",
+        "//vendor/github.com/openshift/api/build/v1:go_default_library",
+        "//vendor/github.com/openshift/client-go/build/clientset/versioned/typed/build/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",
+        "//vendor/k8s.io/client-go/kubernetes:go_default_library",
+        "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "oc",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

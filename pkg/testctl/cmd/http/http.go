@@ -6,7 +6,7 @@ import (
 
 	"github.com/hongkailiu/test-go/pkg/http"
 	"github.com/hongkailiu/test-go/pkg/httpreverse"
-	status "github.com/hongkailiu/test-go/pkg/status/server"
+	"github.com/hongkailiu/test-go/pkg/status"
 	"github.com/hongkailiu/test-go/pkg/testctl/cmd/config"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

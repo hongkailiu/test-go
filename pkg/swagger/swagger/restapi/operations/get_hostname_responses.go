@@ -6,11 +6,10 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	models2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/models"
 	"net/http"
 
 	"github.com/go-openapi/runtime"
-
-	models "github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 )
 
 // GetHostnameOKCode is the HTTP code returned for type GetHostnameOK
@@ -66,7 +65,7 @@ type GetHostnameDefault struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.Error `json:"body,omitempty"`
+	Payload *models2.Error `json:"body,omitempty"`
 }
 
 // NewGetHostnameDefault creates GetHostnameDefault with default headers values
@@ -92,13 +91,13 @@ func (o *GetHostnameDefault) SetStatusCode(code int) {
 }
 
 // WithPayload adds the payload to the get hostname default response
-func (o *GetHostnameDefault) WithPayload(payload *models.Error) *GetHostnameDefault {
+func (o *GetHostnameDefault) WithPayload(payload *models2.Error) *GetHostnameDefault {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get hostname default response
-func (o *GetHostnameDefault) SetPayload(payload *models.Error) {
+func (o *GetHostnameDefault) SetPayload(payload *models2.Error) {
 	o.Payload = payload
 }
 
