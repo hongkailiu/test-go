@@ -15,7 +15,7 @@ jobs:
 
   build-golang-112:
     docker:
-      - image: quay.io/hongkailiu/test-go:circleci-0.0.6
+      - image: quay.io/hongkailiu/test-go:circleci-travis-601.2
         environment:
           GO111MODULE: "on"
           GOPROXY: "https://goproxy.io"
