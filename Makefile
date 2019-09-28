@@ -14,7 +14,7 @@ validate-modules:
 ###deprecated
 download-vendor:
 	go mod vendor
-.PHONY: validate-vendor
+.PHONY: download-vendor
 
 .PHONY : build-swagger
 build-swagger:
