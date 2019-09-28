@@ -114,6 +114,12 @@ ifeq ($(TRAVIS)$(findstring go1.12,$(go_version))$(build_circleci_image), truego
 endif
 	docker images
 
+testctl_travis_tag := $(shell if [ -x "$(command -v skopeo)" ]; then skopeo inspect docker://quay.io/hongkailiu/test-go:http-0.0.1 | jq -r .RepoTags[] | sort -V | grep testctl-travis | tail -n 1; fi)
+
+.PHONY : copy-images
+copy-images:
+	skopeo copy docker://quay.io/hongkailiu/ci-staging:$(testctl_travis_tag) docker://quay.io/hongkailiu/test-go:$(testctl_travis_tag)
+
 .PHONY : build-ocptf
 build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
