@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["greeter.go"],
+    importpath = "github.com/hongkailiu/test-go/pkg/experimental/test/testify/service",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["greeter_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//pkg/experimental/test/mockery/service/mocks:go_default_library",
+        "//vendor/github.com/stretchr/testify/assert:go_default_library",
+        "//vendor/github.com/stretchr/testify/mock:go_default_library",
+    ],
+)

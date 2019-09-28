@@ -1,19 +1,26 @@
-###
+###bk of original Makefile before creating experimental folder
+.PHONY : build-k8s
+build-k8s:
+	go build -o build/k8s ./pkg/k8s/
+
+.PHONY : build-oc
+build-oc:
+	go build -o build/oc ./pkg/oc/
+
 .PHONY : update-dep
 update-dep:
 	#dep ensure
 	bazel run //:gazelle
 
 validate-modules:
-	go mod tidy
-	go mod vendor
+	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod tidy
+	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 	git status -s ./vendor/ go.mod go.sum
 	test -z "$$(git status --porcelain go.mod go.sum)"
 .PHONY: validate-modules
 
-###deprecated
 download-vendor:
-	go mod vendor
+	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 .PHONY: validate-vendor
 
 .PHONY : build-swagger
@@ -59,9 +66,25 @@ code-gen:
 build-code-gen:
 	go build -o build/example ./pkg/codegen/cmd/example/
 
+.PHONY : test-pb
+test-pb:
+	go test -v ./pkg/probuf/unittest/...
+
 .PHONY : test-lc
 test-lc:
 	go test -v ./pkg/lc/...
+
+.PHONY : build-others
+build-others:
+	go build -o ./build/hello ./pkg/hello/
+	go build -o ./build/worker_pool ./pkg/channel/
+
+.PHONY : test-others
+test-others:
+	go test -v ./pkg/hello/...
+	go test -v ./pkg/doc/...
+	go test -v ./pkg/json/...
+	go test -v ./pkg/http/...
 
 .PHONY : gen-coverage
 gen-coverage:
@@ -105,7 +128,7 @@ build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
 .PHONY : bazel-all
-bazel-all: download-vendor update-dep
+bazel-all: download-vendor
 ifeq ($(CIRCLECI), true)
 	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
 else
@@ -141,6 +164,8 @@ ifeq ($(TRAVIS), true)
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
 endif
+	go mod download
+
 
 .PHONY : ci-before-script
 ci-before-script:
@@ -149,16 +174,21 @@ ci-before-script:
 	echo "env. var. USE_BAZEL_VERSION: $${USE_BAZEL_VERSION}"
 	echo "env. var. GOPROXY: $${GOPROXY}"
 	go version
-	go env
 	docker version
 	make --version
 	java -version
 	bazel version
 
-CI_SCRIPT_DEPS += validate-modules
+CI_SCRIPT_DEPS := build-k8s
+CI_SCRIPT_DEPS += build-oc
 CI_SCRIPT_DEPS += build-swagger
+CI_SCRIPT_DEPS += build-others
+#we can retry this when golang 1.13 lands
+#CI_SCRIPT_DEPS += code-gen
 CI_SCRIPT_DEPS += build-code-gen
+CI_SCRIPT_DEPS += test-pb
 CI_SCRIPT_DEPS += test-lc
+CI_SCRIPT_DEPS += test-others
 CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += build-testctl
 CI_SCRIPT_DEPS += gen-images
