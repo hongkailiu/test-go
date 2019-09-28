@@ -5,15 +5,15 @@ update-dep:
 	bazel run //:gazelle
 
 validate-modules:
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod tidy
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
+	go mod tidy
+	go mod vendor
 	git status -s ./vendor/ go.mod go.sum
 	test -z "$$(git status --porcelain go.mod go.sum)"
 .PHONY: validate-modules
 
 ###deprecated
 download-vendor:
-	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
+	go mod vendor
 .PHONY: validate-vendor
 
 .PHONY : build-swagger
@@ -149,11 +149,13 @@ ci-before-script:
 	echo "env. var. USE_BAZEL_VERSION: $${USE_BAZEL_VERSION}"
 	echo "env. var. GOPROXY: $${GOPROXY}"
 	go version
+	go env
 	docker version
 	make --version
 	java -version
 	bazel version
 
+CI_SCRIPT_DEPS += validate-modules
 CI_SCRIPT_DEPS += build-swagger
 CI_SCRIPT_DEPS += build-code-gen
 CI_SCRIPT_DEPS += test-lc
