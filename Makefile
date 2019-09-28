@@ -1,6 +1,10 @@
 ###
-.PHONY : update-dep
-update-dep:
+### go get -u k8s.io/client-go@kubernetes-1.15.0
+### go get -u k8s.io/client-go@kubernetes-1.15.0
+### go get -u github.com/openshift/client-go@master
+### go get -u github.com/openshift/api@master
+.PHONY : update-bazel
+update-bazel:
 	#dep ensure
 	bazel run //:gazelle
 
@@ -105,7 +109,7 @@ build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
 .PHONY : bazel-all
-bazel-all: download-vendor update-dep
+bazel-all: download-vendor update-bazel
 ifeq ($(CIRCLECI), true)
 	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
 else
