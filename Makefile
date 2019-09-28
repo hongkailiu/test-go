@@ -141,8 +141,6 @@ ifeq ($(TRAVIS), true)
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
 endif
-	go mod download
-
 
 .PHONY : ci-before-script
 ci-before-script:
