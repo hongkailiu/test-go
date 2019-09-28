@@ -14,6 +14,8 @@ fix-bazel:
 	# https://github.com/bazelbuild/bazel-gazelle/issues/432#issuecomment-457789836
 	sed -i -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
 
+go_version := $(shell go version)
+
 validate-modules:
 	go mod tidy
 	go mod vendor
@@ -97,8 +99,6 @@ ifeq ($(CIRCLECI), true)
 	#"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci -repotoken="${COVERALLS_TOKEN}"
 	echo "skipping coveralls on circleci ..."
 endif
-
-go_version := $(shell go version)
 
 .PHONY : gen-images
 gen-images:
