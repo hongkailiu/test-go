@@ -46,6 +46,19 @@ gen-swagger: validate-swagger
 		--exclude-main \
 		--name=hello
 
+.PHONY : code-gen-clean
+code-gen-clean:
+	rm -rfv pkg/codegen/pkg/client
+	rm -fv pkg/codegen/pkg/apis/app.example.com/v1alpha1/zz_generated.deepcopy.go
+
+.PHONY : code-gen
+code-gen:
+	./pkg/codegen/hack/update-codegen.sh
+
+.PHONY : build-code-gen
+build-code-gen:
+	go build -o build/example ./pkg/codegen/cmd/example/
+
 .PHONY : test-lc
 test-lc:
 	go test -v ./pkg/lc/...
@@ -144,6 +157,7 @@ ci-before-script:
 	bazel version
 
 CI_SCRIPT_DEPS += build-swagger
+CI_SCRIPT_DEPS += build-code-gen
 CI_SCRIPT_DEPS += test-lc
 CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += build-testctl
