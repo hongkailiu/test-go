@@ -103,7 +103,7 @@ gen-images:
 #	docker build --label "version=$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go" --label "build_time=$(date --utc +%FT%TZ)" -f test_files/docker/Dockerfile.circleci.txt -t quay.io/hongkailiu/test-go:circleci-travis .
 ifeq ($(TRAVIS)$(findstring go1.12,$(go_version)), truego1.12)
 	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
-	docker tag quay.io/hongkailiu/test-go:circleci-travis "quay.io/hongkailiu/ci-staging:circleci-$(USER)-${TRAVIS_JOB_NUMBER}"
+#	docker tag quay.io/hongkailiu/test-go:circleci-travis "quay.io/hongkailiu/ci-staging:circleci-$(USER)-${TRAVIS_JOB_NUMBER}"
 	echo "$(quay_cli_password)" | docker login -u hongkailiu quay.io --password-stdin
 	docker push "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 #	docker push "quay.io/hongkailiu/ci-staging:circleci-$(USER)-${TRAVIS_JOB_NUMBER}"
