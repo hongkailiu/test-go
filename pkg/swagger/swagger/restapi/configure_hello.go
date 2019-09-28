@@ -4,21 +4,22 @@ package restapi
 
 import (
 	"crypto/tls"
-	operations2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/restapi/operations"
 	"net/http"
 
-	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
+	errors "github.com/go-openapi/errors"
+	runtime "github.com/go-openapi/runtime"
+	middleware "github.com/go-openapi/runtime/middleware"
+
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi/operations"
 )
 
 //go:generate swagger generate server --target ../swagger/swagger --name hello --spec ../swagger/swagger/swagger.yml --exclude-main
 
-func configureFlags(api *operations2.HelloAPI) {
+func configureFlags(api *operations.HelloAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
-func configureAPI(api *operations2.HelloAPI) http.Handler {
+func configureAPI(api *operations.HelloAPI) http.Handler {
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -34,13 +35,13 @@ func configureAPI(api *operations2.HelloAPI) http.Handler {
 
 	api.TxtProducer = runtime.TextProducer()
 
-	api.GetUserUserIDHandler = operations2.GetUserUserIDHandlerFunc(func(params operations2.GetUserUserIDParams) middleware.Responder {
+	api.GetUserUserIDHandler = operations.GetUserUserIDHandlerFunc(func(params operations.GetUserUserIDParams) middleware.Responder {
 		return middleware.NotImplemented("operation .GetUserUserID has not yet been implemented")
 	})
-	api.GetUsersHandler = operations2.GetUsersHandlerFunc(func(params operations2.GetUsersParams) middleware.Responder {
+	api.GetUsersHandler = operations.GetUsersHandlerFunc(func(params operations.GetUsersParams) middleware.Responder {
 		return middleware.NotImplemented("operation .GetUsers has not yet been implemented")
 	})
-	api.GetHostnameHandler = operations2.GetHostnameHandlerFunc(func(params operations2.GetHostnameParams) middleware.Responder {
+	api.GetHostnameHandler = operations.GetHostnameHandlerFunc(func(params operations.GetHostnameParams) middleware.Responder {
 		return middleware.NotImplemented("operation .GetHostname has not yet been implemented")
 	})
 

@@ -7,9 +7,6 @@
 package main
 
 import (
-	models2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/models"
-	restapi2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/restapi"
-	operations2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/restapi/operations"
 	"log"
 	"os"
 
@@ -18,6 +15,10 @@ import (
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
+
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi"
+	"github.com/hongkailiu/test-go/pkg/swagger/swagger/restapi/operations"
 )
 
 type cliArgs struct {
@@ -38,36 +39,37 @@ var (
 //		that would indicate the failure.
 //	-	In case of success, the payload the indicates
 //		the success with the hostname.
-func getHostnameHandler(params operations2.GetHostnameParams) middleware.Responder {
+func getHostnameHandler(params operations.GetHostnameParams) middleware.Responder {
 	payload, err := os.Hostname()
 
 	if err != nil {
-		errPayload := &models2.Error{
+		errPayload := &models.Error{
 			Code:    500,
 			Message: swag.String("failed to retrieve hostname"),
 		}
 
-		return operations2.NewGetHostnameDefault(500).
+		return operations.
+			NewGetHostnameDefault(500).
 			WithPayload(errPayload)
 	}
 
-	return operations2.NewGetHostnameOK().WithPayload(payload)
+	return operations.NewGetHostnameOK().WithPayload(payload)
 }
 
-func getUsersHandler(params operations2.GetUsersParams) middleware.Responder {
+func getUsersHandler(params operations.GetUsersParams) middleware.Responder {
 	id := int64(3)
-	users := []*models2.User{{&id, "hongkliu"}}
-	return operations2.NewGetUsersOK().WithPayload(users)
+	users := []*models.User{{&id, "hongkliu"}}
+	return operations.NewGetUsersOK().WithPayload(users)
 }
 
-func getUserUserIDHandler(params operations2.GetUserUserIDParams) middleware.Responder {
+func getUserUserIDHandler(params operations.GetUserUserIDParams) middleware.Responder {
 
 	if params.UserID == 1 {
 		id := int64(1)
-		user := models2.User{&id, "mike"}
-		return operations2.NewGetUserUserIDOK().WithPayload(&user)
+		user := models.User{&id, "mike"}
+		return operations.NewGetUserUserIDOK().WithPayload(&user)
 	}
-	return operations2.NewGetUserUserIDNotFound()
+	return operations.NewGetUserUserIDNotFound()
 
 }
 
@@ -83,29 +85,29 @@ func main() {
 	// api definition.
 	// This JSON is hardcoded as part of the generated code
 	// that go-swagger creates.
-	swaggerSpec, err := loads.Analyzed(restapi2.SwaggerJSON, "")
+	swaggerSpec, err := loads.Analyzed(restapi.SwaggerJSON, "")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Load a dummy object that servers as an interface
 	// that allows us to implement the API specification.
-	api := operations2.NewHelloAPI(swaggerSpec)
+	api := operations.NewHelloAPI(swaggerSpec)
 
 	// Create the REST api server that will make use of
 	// the object that will container our handler implementations.
-	server := restapi2.NewServer(api)
+	server := restapi.NewServer(api)
 	defer server.Shutdown()
 
 	// Configure the server port
 	server.Port = args.Port
 
 	// Add our handler implementation
-	api.GetHostnameHandler = operations2.GetHostnameHandlerFunc(
+	api.GetHostnameHandler = operations.GetHostnameHandlerFunc(
 		getHostnameHandler)
 
-	api.GetUsersHandler = operations2.GetUsersHandlerFunc(getUsersHandler)
-	api.GetUserUserIDHandler = operations2.GetUserUserIDHandlerFunc(getUserUserIDHandler)
+	api.GetUsersHandler = operations.GetUsersHandlerFunc(getUsersHandler)
+	api.GetUserUserIDHandler = operations.GetUserUserIDHandlerFunc(getUserUserIDHandler)
 
 	// Let it run
 	if err := server.Serve(); err != nil {

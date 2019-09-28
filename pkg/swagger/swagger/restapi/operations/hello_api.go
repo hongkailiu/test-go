@@ -10,13 +10,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-openapi/errors"
-	"github.com/go-openapi/loads"
-	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/runtime/security"
-	"github.com/go-openapi/spec"
-	"github.com/go-openapi/strfmt"
+	errors "github.com/go-openapi/errors"
+	loads "github.com/go-openapi/loads"
+	runtime "github.com/go-openapi/runtime"
+	middleware "github.com/go-openapi/runtime/middleware"
+	security "github.com/go-openapi/runtime/security"
+	spec "github.com/go-openapi/spec"
+	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 

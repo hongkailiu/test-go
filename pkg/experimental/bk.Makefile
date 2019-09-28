@@ -1,4 +1,12 @@
-###
+###bk of original Makefile before creating experimental folder
+.PHONY : build-k8s
+build-k8s:
+	go build -o build/k8s ./pkg/k8s/
+
+.PHONY : build-oc
+build-oc:
+	go build -o build/oc ./pkg/oc/
+
 .PHONY : update-dep
 update-dep:
 	#dep ensure
@@ -11,7 +19,6 @@ validate-modules:
 	test -z "$$(git status --porcelain go.mod go.sum)"
 .PHONY: validate-modules
 
-###deprecated
 download-vendor:
 	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 .PHONY: validate-vendor
@@ -46,9 +53,38 @@ gen-swagger: validate-swagger
 		--exclude-main \
 		--name=hello
 
+.PHONY : code-gen-clean
+code-gen-clean:
+	rm -rfv pkg/codegen/pkg/client
+	rm -fv pkg/codegen/pkg/apis/app.example.com/v1alpha1/zz_generated.deepcopy.go
+
+.PHONY : code-gen
+code-gen:
+	./pkg/codegen/hack/update-codegen.sh
+
+.PHONY : build-code-gen
+build-code-gen:
+	go build -o build/example ./pkg/codegen/cmd/example/
+
+.PHONY : test-pb
+test-pb:
+	go test -v ./pkg/probuf/unittest/...
+
 .PHONY : test-lc
 test-lc:
 	go test -v ./pkg/lc/...
+
+.PHONY : build-others
+build-others:
+	go build -o ./build/hello ./pkg/hello/
+	go build -o ./build/worker_pool ./pkg/channel/
+
+.PHONY : test-others
+test-others:
+	go test -v ./pkg/hello/...
+	go test -v ./pkg/doc/...
+	go test -v ./pkg/json/...
+	go test -v ./pkg/http/...
 
 .PHONY : gen-coverage
 gen-coverage:
@@ -143,8 +179,16 @@ ci-before-script:
 	java -version
 	bazel version
 
+CI_SCRIPT_DEPS := build-k8s
+CI_SCRIPT_DEPS += build-oc
 CI_SCRIPT_DEPS += build-swagger
+CI_SCRIPT_DEPS += build-others
+#we can retry this when golang 1.13 lands
+#CI_SCRIPT_DEPS += code-gen
+CI_SCRIPT_DEPS += build-code-gen
+CI_SCRIPT_DEPS += test-pb
 CI_SCRIPT_DEPS += test-lc
+CI_SCRIPT_DEPS += test-others
 CI_SCRIPT_DEPS += gen-coverage
 CI_SCRIPT_DEPS += build-testctl
 CI_SCRIPT_DEPS += gen-images

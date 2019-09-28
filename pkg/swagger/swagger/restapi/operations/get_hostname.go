@@ -8,7 +8,7 @@ package operations
 import (
 	"net/http"
 
-	"github.com/go-openapi/runtime/middleware"
+	middleware "github.com/go-openapi/runtime/middleware"
 )
 
 // GetHostnameHandlerFunc turns a function with the right signature into a get hostname handler

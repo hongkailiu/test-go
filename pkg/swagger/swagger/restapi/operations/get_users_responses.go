@@ -6,10 +6,11 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	models2 "github.com/hongkailiu/test-go/pkg/experimental/swagger/swagger/models"
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	models "github.com/hongkailiu/test-go/pkg/swagger/swagger/models"
 )
 
 // GetUsersOKCode is the HTTP code returned for type GetUsersOK
@@ -24,7 +25,7 @@ type GetUsersOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*models2.User `json:"body,omitempty"`
+	Payload []*models.User `json:"body,omitempty"`
 }
 
 // NewGetUsersOK creates GetUsersOK with default headers values
@@ -34,13 +35,13 @@ func NewGetUsersOK() *GetUsersOK {
 }
 
 // WithPayload adds the payload to the get users o k response
-func (o *GetUsersOK) WithPayload(payload []*models2.User) *GetUsersOK {
+func (o *GetUsersOK) WithPayload(payload []*models.User) *GetUsersOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get users o k response
-func (o *GetUsersOK) SetPayload(payload []*models2.User) {
+func (o *GetUsersOK) SetPayload(payload []*models.User) {
 	o.Payload = payload
 }
 
@@ -50,7 +51,7 @@ func (o *GetUsersOK) WriteResponse(rw http.ResponseWriter, producer runtime.Prod
 	rw.WriteHeader(200)
 	payload := o.Payload
 	if payload == nil {
-		payload = make([]*models2.User, 0, 50)
+		payload = make([]*models.User, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {
