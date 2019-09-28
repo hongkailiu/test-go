@@ -7,6 +7,9 @@
 update-bazel:
 	#dep ensure
 	bazel run //:gazelle
+	# gazelle:resolve did not work out
+	# https://github.com/bazelbuild/bazel-gazelle/issues/432#issuecomment-457789836
+	sed -i -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
 
 validate-modules:
 	go mod tidy
