@@ -18,7 +18,9 @@ validate-modules:
 	go mod tidy
 	go mod vendor
 	git status -s ./vendor/ go.mod go.sum
+ifeq ($(TRAVIS)$(findstring devel,$(go_version)), truedevel)
 	test -z "$$(git status --porcelain go.mod go.sum)"
+endif
 .PHONY: validate-modules
 
 ###deprecated
