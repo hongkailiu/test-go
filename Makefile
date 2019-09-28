@@ -127,7 +127,7 @@ build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
 .PHONY : bazel-all
-bazel-all:
+bazel-all: download-vendor
 ifeq ($(CIRCLECI), true)
 	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
 else
