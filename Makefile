@@ -7,6 +7,9 @@
 update-bazel:
 	#dep ensure
 	bazel run //:gazelle
+
+.PHONY : fix-bazel
+fix-bazel:
 	# gazelle:resolve did not work out
 	# https://github.com/bazelbuild/bazel-gazelle/issues/432#issuecomment-457789836
 	sed -i -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
@@ -112,7 +115,7 @@ build-ocptf:
 	go build -o ./build/ocptf ./cmd/ocptf/
 
 .PHONY : bazel-all
-bazel-all: download-vendor update-bazel
+bazel-all: download-vendor update-bazel fix-bazel
 ifeq ($(CIRCLECI), true)
 	bazel build --jobs=1 --jvmopt='-Xmx:2048m' --jvmopt='-Xms:2048m' //cmd/...
 else
