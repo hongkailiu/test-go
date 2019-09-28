@@ -56,7 +56,7 @@ func (in *SVTGo) DeepCopyObject() runtime.Object {
 func (in *SVTGoList) DeepCopyInto(out *SVTGoList) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ListMeta = in.ListMeta
+	in.ListMeta.DeepCopyInto(&out.ListMeta)
 	if in.Items != nil {
 		in, out := &in.Items, &out.Items
 		*out = make([]SVTGo, len(*in))
