@@ -11,12 +11,15 @@ update-dep:
 	#dep ensure
 	bazel run //:gazelle
 
-validate-vendor:
-	go version
+validate-modules:
 	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod tidy
 	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 	git status -s ./vendor/ go.mod go.sum
-	test -z "$$(git status -s ./vendor/ go.mod go.sum | grep -v vendor/modules.txt)"
+	test -z "$$(git status --porcelain go.mod go.sum)"
+.PHONY: validate-modules
+
+download-vendor:
+	GO111MODULE=on GOPROXY=https://proxy.golang.org go mod vendor
 .PHONY: validate-vendor
 
 .PHONY : build-swagger
