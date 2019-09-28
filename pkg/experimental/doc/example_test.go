@@ -2,6 +2,8 @@ package doc_test
 
 import (
 	"fmt"
+
+	. "github.com/hongkailiu/test-go/pkg/experimental/doc"
 )
 
 func Example() {

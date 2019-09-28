@@ -2,6 +2,8 @@ package doc_test
 
 import (
 	"testing"
+
+	. "github.com/hongkailiu/test-go/pkg/experimental/doc"
 )
 
 func TestNewHello(t *testing.T) {

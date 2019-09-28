@@ -45,7 +45,7 @@ func FeatureContext(s *godog.Suite) {
 }
 
 func iUserUsernameAndPasswordAsInputOfTheService(username, password string) error {
-	loginResult = Login(username, password)
+	loginResult = c.loginService.Login(username, password)
 	return nil
 }
 

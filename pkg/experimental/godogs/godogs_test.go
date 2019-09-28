@@ -3,21 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	service2 "github.com/hongkailiu/test-go/pkg/experimental/godogs/service"
 	"os"
 	"testing"
 
 	"github.com/DATA-DOG/godog"
 	"github.com/DATA-DOG/godog/colors"
+
+	"github.com/hongkailiu/test-go/pkg/experimental/godogs/service"
 )
 
 type context struct {
-	loginService service2.LoginService
+	loginService service.LoginService
 }
 
 var (
 	opt = godog.Options{Output: colors.Colored(os.Stdout)}
-	c   = context{loginService: service2.NewService()}
+	c   = context{loginService: service.NewService()}
 )
 
 func init() {
