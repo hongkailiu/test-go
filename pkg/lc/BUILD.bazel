@@ -11,7 +11,7 @@ go_library(
         "two_sum.go",
         "util.go",
     ],
-    importpath = "github.com/hongkailiu/test-go/pkg/experimental/lc",
+    importpath = "github.com/hongkailiu/test-go/pkg/lc",
     visibility = ["//visibility:public"],
 )
 
