@@ -1,0 +1,8 @@
+appID: abc
+cities:
+  - name: vancouver
+    country: ca
+  - name: toronto
+    country: ca
+  - name: montreal
+    country: ca

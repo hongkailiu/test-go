@@ -8,6 +8,7 @@ require (
 	github.com/alexflint/go-arg v1.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/gin-contrib/pprof v1.2.0
 	github.com/gin-contrib/sessions v0.0.0-20190101140330-dc5246754963
 	github.com/gin-contrib/sse v0.1.0 // indirect
