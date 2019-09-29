@@ -5,7 +5,6 @@
 ### go get -u github.com/openshift/api@master
 .PHONY : update-bazel
 update-bazel:
-	#dep ensure
 	bazel run //:gazelle
 
 .PHONY : fix-bazel

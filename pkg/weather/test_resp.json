@@ -1,0 +1,41 @@
+{
+  "coord": {
+    "lon": -122.85,
+    "lat": 49.19
+  },
+  "weather": [{
+    "id": 803,
+    "main": "Clouds",
+    "description": "broken clouds",
+    "icon": "04n"
+  }],
+  "base": "stations",
+  "main": {
+    "temp": 285.67,
+    "pressure": 1012,
+    "humidity": 66,
+    "temp_min": 283.71,
+    "temp_max": 288.71
+  },
+  "visibility": 32186,
+  "wind": {
+    "speed": 2.1,
+    "deg": 100
+  },
+  "clouds": {
+    "all": 75
+  },
+  "dt": 1569723673,
+  "sys": {
+    "type": 1,
+    "id": 954,
+    "message": 0.0094,
+    "country": "CA",
+    "sunrise": 1569679584,
+    "sunset": 1569722259
+  },
+  "timezone": -25200,
+  "id": 6159905,
+  "name": "Surrey",
+  "cod": 200
+}
