@@ -37,6 +37,7 @@ func TestLoadConfig(t *testing.T) {
 						Country: "ca",
 					},
 				},
+				Output: []string{"logger", "csv", "yaml"},
 			},
 			expectedError: nil,
 		},
