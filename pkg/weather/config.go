@@ -10,7 +10,7 @@ import (
 type Config struct {
 	AppID  string   `json:"appID"`
 	Cities []City   `json:"cities"`
-	Output []string `json:"output"`
+	Writers []string `json:"writer"`
 }
 
 type City struct {

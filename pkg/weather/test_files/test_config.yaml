@@ -6,7 +6,7 @@ cities:
     country: ca
   - name: montreal
     country: ca
-output:
+writer:
   - logger
   - csv
   - yaml

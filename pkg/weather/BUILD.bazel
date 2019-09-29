@@ -3,17 +3,29 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "config.go",
         "model.go",
         "service.go",
+        "writer.go",
     ],
     importpath = "github.com/hongkailiu/test-go/pkg/weather",
     visibility = ["//visibility:public"],
-    deps = ["//vendor/gopkg.in/resty.v1:go_default_library"],
+    deps = [
+        "//vendor/github.com/ghodss/yaml:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+        "//vendor/gopkg.in/resty.v1:go_default_library",
+    ],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = ["service_test.go"],
+    srcs = [
+        "config_test.go",
+        "service_test.go",
+    ],
     embed = [":go_default_library"],
-    deps = ["//vendor/github.com/stretchr/testify/assert:go_default_library"],
+    deps = [
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+        "//vendor/github.com/stretchr/testify/assert:go_default_library",
+    ],
 )
