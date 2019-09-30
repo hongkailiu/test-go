@@ -60,15 +60,15 @@ func (w *CSV) Write(response Response) (returnE error) {
 
 func getRecord(now time.Time, r Response) []string {
 	//{"first_name", "last_name", "username"}
-	t := r.Date
-	logrus.WithField("r.Date.UTC().Format(http.TimeFormat)", r.Date.UTC().Format(http.TimeFormat)).Debug("get record")
+	utcTime := r.Date.UTC()
+	logrus.WithField("utcTime.Format(http.TimeFormat)", utcTime.Format(http.TimeFormat)).Debug("get record")
 	return []string{
 		now.UTC().Format(http.TimeFormat),
-		t.UTC().Format(http.TimeFormat),
-		strconv.Itoa(t.Year()),
-		t.Month().String(),
-		strconv.Itoa(t.Day()),
-		strconv.Itoa(t.Hour()),
+		utcTime.Format(http.TimeFormat),
+		strconv.Itoa(utcTime.Year()),
+		utcTime.Month().String(),
+		strconv.Itoa(utcTime.Day()),
+		strconv.Itoa(utcTime.Hour()),
 		r.Weather[0].Main,
 		r.Weather[0].Description,
 		r.Weather[0].Icon,
