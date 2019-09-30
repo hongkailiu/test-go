@@ -10,3 +10,4 @@ writer:
   - logger
   - csv
   - yaml
+outputDir: /tmp

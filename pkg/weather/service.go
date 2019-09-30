@@ -21,12 +21,13 @@ type Service interface {
 }
 
 type OpenWeatherMap struct {
-	client *resty.Client
-	appID  string
+	client       *resty.Client
+	appID        string
+	outputFolder string
 }
 
-func NewOpenWeatherMap(appID string) *OpenWeatherMap {
-	return &OpenWeatherMap{client: resty.New(), appID: appID}
+func NewOpenWeatherMap(appID, outputFolder string) *OpenWeatherMap {
+	return &OpenWeatherMap{client: resty.New(), appID: appID, outputFolder: outputFolder}
 }
 
 func (w *OpenWeatherMap) GetWeather(city, country string, sample bool) (Response, error) {
@@ -60,14 +61,14 @@ func (w *OpenWeatherMap) GetWeather(city, country string, sample bool) (Response
 	return response, nil
 }
 
-func getWriters(writerNames []string) ([]Writer, error) {
+func getWriters(writerNames []string, outputDir string) ([]Writer, error) {
 	var writers []Writer
 	for _, writeName := range writerNames {
 		switch writeName {
 		case "logger":
 			writers = append(writers, &Logger{logger: logrus.WithField("writer", "logger")})
 		case "csv":
-			writers = append(writers, &CSV{})
+			writers = append(writers, &CSV{OutputDir: outputDir})
 		case "yaml":
 			writers = append(writers, &YAML{})
 		default:
@@ -78,7 +79,7 @@ func getWriters(writerNames []string) ([]Writer, error) {
 }
 
 func (w *OpenWeatherMap) HandleResponse(r Response, writerNames []string) error {
-	writers, err := getWriters(writerNames)
+	writers, err := getWriters(writerNames, w.outputFolder)
 	if err != nil {
 		return err
 	}

@@ -7,20 +7,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetWeather(t *testing.T) {
-	appID := "b6907d289e10d714a6e88b30761fae22"
+func TestGetRecord(t *testing.T) {
+	now := time.Unix(1569878592, 0)
 	testcases := []struct {
-		description      string
-		city             string
-		country          string
-		expectedResponse Response
-		expectedError    error
+		description string
+		response    Response
+		expected    []string
 	}{
 		{
 			description: "London,uk",
-			city:        "London",
-			country:     "uk",
-			expectedResponse: Response{
+			response: Response{
 				ID:   2643743,
 				Name: "London",
 				CoOrd: CoOrd{
@@ -52,16 +48,14 @@ func TestGetWeather(t *testing.T) {
 				Condition: 200,
 				Date:      NewJSONTime(time.Unix(1485789600, 0)),
 			},
-			expectedError: nil,
+			expected: []string{"2019-09-30T17:23:12-04:00", "2017-01-30T10:20:00-05:00", "2017", "January", "30", "10", "Drizzle", "light intensity drizzle", "09d", "280.3"},
 		},
 	}
 
 	for _, tc := range testcases {
 		t.Run(tc.description, func(t *testing.T) {
-			service := NewOpenWeatherMap(appID, "")
-			r, err := service.GetWeather(tc.city, tc.country, true)
-			assert.Equal(t, tc.expectedResponse, r)
-			assert.Equal(t, tc.expectedError, err)
+			result := getRecord(now, tc.response)
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 

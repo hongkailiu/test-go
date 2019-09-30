@@ -1,16 +1,19 @@
 package weather
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/sirupsen/logrus"
 )
 
 type Config struct {
-	AppID  string   `json:"appID"`
-	Cities []City   `json:"cities"`
-	Writers []string `json:"writer"`
+	AppID     string   `json:"appID"`
+	Cities    []City   `json:"cities"`
+	Writers   []string `json:"writer"`
+	OutputDir string   `json:"outputDir"`
 }
 
 type City struct {
@@ -30,4 +33,23 @@ func LoadConfig(path string) (Config, error) {
 		return c, err
 	}
 	return c, nil
+}
+
+func (c Config) Validate() error {
+	fileInfo, err := os.Stat(c.OutputDir)
+	if os.IsNotExist(err) {
+		logrus.WithField("c.OutputDir", c.OutputDir).Info("output dir does not exists, creating ...")
+		err := os.MkdirAll(c.OutputDir, 0755)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if err != nil {
+		return err
+	}
+	logrus.WithField("fileInfo.Name()", fileInfo.Name()).Info("Output dir")
+	if !fileInfo.IsDir() {
+		return fmt.Errorf("output dir '%s' is not a dir", c.OutputDir)
+	}
+	return nil
 }

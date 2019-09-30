@@ -21,7 +21,9 @@ go_test(
     name = "go_default_test",
     srcs = [
         "config_test.go",
+        "model_test.go",
         "service_test.go",
+        "writer_test.go",
     ],
     data = glob(["test_files/**/*.*"]),
     embed = [":go_default_library"],

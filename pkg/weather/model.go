@@ -6,15 +6,17 @@ import (
 	"time"
 )
 
-type JSONTime time.Time
+//https://gist.github.com/uudashr/6b285cf0c44b0a7375d1b786967e1712
+type JSONTime struct {
+	time.Time
+}
 
 func NewJSONTime(t time.Time) JSONTime {
-	z := JSONTime(t)
-	return z
+	return JSONTime{Time: t}
 }
 
 func (t *JSONTime) MarshalJSON() ([]byte, error) {
-	stamp := fmt.Sprintf("%d", time.Time(*t).Unix())
+	stamp := fmt.Sprintf("%d", t.Time.Unix())
 	return []byte(stamp), nil
 }
 
@@ -23,7 +25,7 @@ func (t *JSONTime) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*t = NewJSONTime(time.Unix(i, 0))
+	t.Time = time.Unix(i, 0)
 	return nil
 
 }
@@ -46,23 +48,24 @@ type Weather struct {
 	ID          int    `json:"id"`
 	Main        string `json:"main"`
 	Description string `json:"description"`
+	Icon        string `json:"icon"`
 }
 
 type CoOrd struct {
-	Lat float32 `json:"lon"`
-	Lon float32 `json:"lat"`
+	Lat float64 `json:"lon"`
+	Lon float64 `json:"lat"`
 }
 
 type Main struct {
-	Temp     float32
+	Temp     float64
 	Pressure int
 	Humidity int
-	tempMin  float32
-	tempMax  float32
+	tempMin  float64
+	tempMax  float64
 }
 
 type Wind struct {
-	Speed float32
+	Speed float64
 	Deg   int
 }
 

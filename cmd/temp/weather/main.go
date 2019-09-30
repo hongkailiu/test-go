@@ -39,9 +39,13 @@ func main() {
 		logrus.WithError(err).WithField("o.configPath", o.configPath).Fatal("Failed to load the config.")
 	}
 
+	if err := c.Validate(); err != nil {
+		logrus.WithError(err).WithField("o.configPath", o.configPath).Fatal("Failed to validate the config.")
+	}
+
 	logrus.Info("starting weather processing ...")
 
-	service := weather.NewOpenWeatherMap(c.AppID)
+	service := weather.NewOpenWeatherMap(c.AppID, c.OutputDir)
 
 	for _, city := range c.Cities {
 		r, err := service.GetWeather(city.Name, city.Country, false)
