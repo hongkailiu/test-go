@@ -44,7 +44,7 @@ func main() {
 	service := weather.NewOpenWeatherMap(c.AppID)
 
 	for _, city := range c.Cities {
-		r, err := service.GetWeather(city.Name, city.Country)
+		r, err := service.GetWeather(city.Name, city.Country, false)
 		if err != nil {
 			logrus.WithError(err).WithField("city.Name", city.Name).WithField("city.Country", city.Country).Fatal("Failed to get weather.")
 		}

@@ -9,13 +9,14 @@ import (
 	"gopkg.in/resty.v1"
 )
 
-var (
-	apiUrl = "http://api.openweathermap.org/data/2.5/weather"
+const (
+	apiUrl       = "http://api.openweathermap.org/data/2.5/weather"
+	apiSampleUrl = "https://samples.openweathermap.org/data/2.5/weather"
 	//http://api.openweathermap.org/data/2.5/weather?q=surrey,ca&appid=secret
 )
 
 type Service interface {
-	GetWeather(city, country string) (Response, error)
+	GetWeather(city, country string, sample bool) (Response, error)
 	HandleResponse(r Response, names []string) error
 }
 
@@ -28,14 +29,20 @@ func NewOpenWeatherMap(appID string) *OpenWeatherMap {
 	return &OpenWeatherMap{client: resty.New(), appID: appID}
 }
 
-func (w *OpenWeatherMap) GetWeather(city, country string) (Response, error) {
+func (w *OpenWeatherMap) GetWeather(city, country string, sample bool) (Response, error) {
+	url := apiUrl
+	params := map[string]string{
+		"q":     fmt.Sprintf("%s,%s", city, country),
+		"appid": w.appID,
+		"units": "metric",
+	}
+	if sample {
+		url = apiSampleUrl
+		delete(params, "units")
+	}
 	resp, err := w.client.R().
-		SetQueryParams(map[string]string{
-			"q":     fmt.Sprintf("%s,%s", city, country),
-			"appid": w.appID,
-			"units": "metric",
-		}).
-		Get(apiUrl)
+		SetQueryParams(params).
+		Get(url)
 	if err != nil {
 		return Response{}, err
 	}

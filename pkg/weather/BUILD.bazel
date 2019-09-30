@@ -23,6 +23,7 @@ go_test(
         "config_test.go",
         "service_test.go",
     ],
+    data = glob(["test_files/**/*.*"]),
     embed = [":go_default_library"],
     deps = [
         "//vendor/github.com/sirupsen/logrus:go_default_library",

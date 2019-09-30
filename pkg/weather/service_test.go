@@ -8,8 +8,6 @@ import (
 )
 
 func TestGetWeather(t *testing.T) {
-	t.Skip("sample url does not work with 'units=metric'")
-	apiUrl = "https://samples.openweathermap.org/data/2.5/weather"
 	appID := "b6907d289e10d714a6e88b30761fae22"
 	testcases := []struct {
 		description      string
@@ -60,7 +58,7 @@ func TestGetWeather(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(tc.description, func(t *testing.T) {
 			service := NewOpenWeatherMap(appID)
-			r, err := service.GetWeather(tc.city, tc.country)
+			r, err := service.GetWeather(tc.city, tc.country, true)
 			assert.Equal(t, tc.expectedResponse, r)
 			assert.Equal(t, tc.expectedError, err)
 		})
