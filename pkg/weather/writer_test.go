@@ -48,7 +48,7 @@ func TestGetRecord(t *testing.T) {
 				Condition: 200,
 				Date:      NewJSONTime(time.Unix(1485789600, 0)),
 			},
-			expected: []string{"2019-09-30T17:23:12-04:00", "2017-01-30T10:20:00-05:00", "2017", "January", "30", "10", "Drizzle", "light intensity drizzle", "09d", "280.3"},
+			expected: []string{"Mon, 30 Sep 2019 21:23:12 GMT", "Mon, 30 Jan 2017 15:20:00 GMT", "2017", "January", "30", "10", "Drizzle", "light intensity drizzle", "09d", "280.3"},
 		},
 	}
 

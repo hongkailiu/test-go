@@ -3,6 +3,7 @@ package weather
 import (
 	"encoding/csv"
 	"encoding/json"
+	"net/http"
 	"os"
 	"path"
 	"strconv"
@@ -60,10 +61,10 @@ func (w *CSV) Write(response Response) (returnE error) {
 func getRecord(now time.Time, r Response) []string {
 	//{"first_name", "last_name", "username"}
 	t := r.Date
-	logrus.WithField("r.Date.Format(time.RFC3339)", r.Date.Format(time.RFC3339)).Debug("get record")
+	logrus.WithField("r.Date.UTC().Format(http.TimeFormat)", r.Date.UTC().Format(http.TimeFormat)).Debug("get record")
 	return []string{
-		now.Format(time.RFC3339),
-		t.Format(time.RFC3339),
+		now.UTC().Format(http.TimeFormat),
+		t.UTC().Format(http.TimeFormat),
 		strconv.Itoa(t.Year()),
 		t.Month().String(),
 		strconv.Itoa(t.Day()),
