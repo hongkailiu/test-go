@@ -2,12 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
-	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hongkailiu/test-go/pkg/weather"
@@ -37,32 +34,23 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	_, err := weather.LoadConfig(o.configPath)
+	c, err := weather.LoadConfig(o.configPath)
 	if err != nil {
 		logrus.WithError(err).WithField("o.configPath", o.configPath).Fatal("Failed to load the config.")
 	}
 
 	logrus.Info("starting weather processing ...")
 
-	logrus.Info("configure cron jobs ...")
-	cron := cron.New()
-	err = cron.AddFunc("*/10 * * * * *", func() {
-		now := time.Now()
-		logrus.WithField("now", now.Format(time.RFC3339)).Debug("Every 10 seconds ... ")
-		//TODO
-	})
-	if err != nil {
-		logrus.WithError(err).Fatal("error occurred when the add cron job")
+	service := weather.NewOpenWeatherMap(c.AppID)
+
+	for _, city := range c.Cities {
+		r, err := service.GetWeather(city.Name, city.Country)
+		if err != nil {
+			logrus.WithError(err).WithField("city.Name", city.Name).WithField("city.Country", city.Country).Fatal("Failed to get weather.")
+		}
+		if err := service.HandleResponse(r, c.Writers); err != nil {
+			logrus.WithError(err).WithField("response", fmt.Sprintf("%v", r)).Fatal("Failed to handle response.")
+		}
 	}
-	cron.Start()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sig
-		logrus.Println("weather shutting down...")
-		cron.Stop()
-	}()
-
-	select {}
 }
