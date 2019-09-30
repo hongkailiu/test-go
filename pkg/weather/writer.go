@@ -64,6 +64,8 @@ func getRecord(now time.Time, r Response) []string {
 	logrus.WithField("utcTime.Format(http.TimeFormat)", utcTime.Format(http.TimeFormat)).Debug("get record")
 	return []string{
 		now.UTC().Format(http.TimeFormat),
+		r.Name,
+		r.Sys.Country,
 		utcTime.Format(http.TimeFormat),
 		strconv.Itoa(utcTime.Year()),
 		utcTime.Month().String(),
