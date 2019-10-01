@@ -17,6 +17,7 @@ limitations under the License.
 package http
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -57,9 +58,10 @@ func (pjc prowJobCollector) Collect(ch chan<- prometheus.Metric) {
 		return
 	}
 	for _, pj := range prowJobs.Items {
-		pjLabelKeys, pjLabelValues := kubeLabelsToPrometheusLabels(pj.Labels)
-		pjLabelKeys = append([]string{"prow_job_name", "prow_job_namespace"}, pjLabelKeys...)
-		pjLabelValues = append([]string{pj.Name, pj.Namespace}, pjLabelValues...)
+		agent := string(pj.Spec.Agent)
+		pjLabelKeys, pjLabelValues := kubeLabelsToPrometheusLabels(pj.Labels, "label_")
+		pjLabelKeys = append([]string{"prow_job_name", "prow_job_namespace", "prow_job_agent"}, pjLabelKeys...)
+		pjLabelValues = append([]string{pj.Name, pj.Namespace, agent}, pjLabelValues...)
 		labelDesc := prometheus.NewDesc(
 			"prow_job_labels",
 			"Kubernetes labels converted to Prometheus labels.",
@@ -72,9 +74,9 @@ func (pjc prowJobCollector) Collect(ch chan<- prometheus.Metric) {
 			float64(1),
 			pjLabelValues...,
 		)
-		pjAnnotationKeys, pjAnnotationValues := kubeLabelsToPrometheusLabels(pj.Annotations)
-		pjAnnotationKeys = append([]string{"prow_job_name", "prow_job_namespace"}, pjAnnotationKeys...)
-		pjAnnotationValues = append([]string{pj.Name, pj.Namespace}, pjAnnotationValues...)
+		pjAnnotationKeys, pjAnnotationValues := kubeLabelsToPrometheusLabels(pj.Annotations, "annotation_")
+		pjAnnotationKeys = append([]string{"prow_job_name", "prow_job_namespace", "prow_job_agent"}, pjAnnotationKeys...)
+		pjAnnotationValues = append([]string{pj.Name, pj.Namespace, agent}, pjAnnotationValues...)
 		annotationDesc := prometheus.NewDesc(
 			"prow_job_annotations",
 			"Kubernetes annotations converted to Prometheus labels.",
@@ -89,23 +91,13 @@ func (pjc prowJobCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 }
 
-func registerProwJobCollector(name string, client prowJobClient, selector string, reg prometheus.Registerer) *prowJobCollector {
-	c := &prowJobCollector{
-		name:     name,
-		client:   client,
-		selector: selector,
-	}
-	prometheus.WrapRegistererWith(prometheus.Labels{"collector_name": name}, reg).MustRegister(c)
-	return c
-}
-
 var (
 	invalidLabelCharRE    = regexp.MustCompile(`[^a-zA-Z0-9_]`)
 	escapeWithDoubleQuote = strings.NewReplacer("\\", `\\`, "\n", `\n`, "\"", `\"`)
 )
 
 // https://github.com/kubernetes/kube-state-metrics/blob/1d69c1e637564aec4591b5b03522fa8b5fca6597/internal/store/utils.go#L60
-func kubeLabelsToPrometheusLabels(labels map[string]string) ([]string, []string) {
+func kubeLabelsToPrometheusLabels(labels map[string]string, prefix string) ([]string, []string) {
 	labelKeys := make([]string, 0, len(labels))
 	for k := range labels {
 		labelKeys = append(labelKeys, k)
@@ -114,7 +106,7 @@ func kubeLabelsToPrometheusLabels(labels map[string]string) ([]string, []string)
 
 	labelValues := make([]string, 0, len(labels))
 	for i, k := range labelKeys {
-		labelKeys[i] = "label_" + sanitizeLabelName(k)
+		labelKeys[i] = fmt.Sprintf("%s%s", prefix, sanitizeLabelName(k))
 		labelValues = append(labelValues, escapeString(labels[k]))
 	}
 	return labelKeys, labelValues

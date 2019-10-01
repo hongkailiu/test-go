@@ -108,7 +108,7 @@ func Run(hc *cmdconfig.HttpConfig) {
 	dbService := db.New(appDB)
 
 	prowJobClient := NewProwJobControllerForTest(log)
-	registry := prometheusRegister("test-go", "test-selector", prowJobClient)
+	registry := mustRegister("test-go", "test-selector", prowJobClient)
 	generateRandomMetricsData()
 
 	r := setupRouter(hc, githubLogin, googleLogin, dbService, registry)

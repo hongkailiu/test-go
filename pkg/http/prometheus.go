@@ -62,9 +62,13 @@ var (
 	}, metricLabels)
 )
 
-func prometheusRegister(component, selector string, client prowJobClient) *prometheus.Registry {
+func mustRegister(component, selector string, client prowJobClient) *prometheus.Registry {
 	registry := prometheus.NewRegistry()
-	registerProwJobCollector(component, client, selector, registry)
+	prometheus.WrapRegistererWith(prometheus.Labels{"collector_name": component}, registry).MustRegister(&prowJobCollector{
+		name:     component,
+		client:   client,
+		selector: selector,
+	})
 	registry.MustRegister(
 		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
 		prometheus.NewGoCollector(),
