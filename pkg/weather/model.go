@@ -66,7 +66,7 @@ type Main struct {
 
 type Wind struct {
 	Speed float64
-	Deg   int
+	Deg   float64
 }
 
 type Sys struct {
