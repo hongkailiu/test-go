@@ -54,22 +54,37 @@ func (pjc prowJobCollector) Collect(ch chan<- prometheus.Metric) {
 	prowJobs, err := pjc.client.List(metav1.ListOptions{LabelSelector: pjc.selector})
 	if err != nil {
 		logrus.WithError(err).Errorf("Failed to list prow jobs with selector '%s'", pjc.selector)
+		return
 	}
 	for _, pj := range prowJobs.Items {
 		pjLabelKeys, pjLabelValues := kubeLabelsToPrometheusLabels(pj.Labels)
 		pjLabelKeys = append([]string{"prow_job_name", "prow_job_namespace"}, pjLabelKeys...)
 		pjLabelValues = append([]string{pj.Name, pj.Namespace}, pjLabelValues...)
-		desc := prometheus.NewDesc(
+		labelDesc := prometheus.NewDesc(
 			"prow_job_labels",
-			"The number of prow jobs with the labels.",
+			"Kubernetes labels converted to Prometheus labels.",
 			pjLabelKeys, nil,
 		)
 		ch <- prometheus.MustNewConstMetric(
-			desc,
+			labelDesc,
 			prometheus.GaugeValue,
 			// always 1 since there is only 1 prow job for each namespace and each prow job name
 			float64(1),
 			pjLabelValues...,
+		)
+		pjAnnotationKeys, pjAnnotationValues := kubeLabelsToPrometheusLabels(pj.Annotations)
+		pjAnnotationKeys = append([]string{"prow_job_name", "prow_job_namespace"}, pjAnnotationKeys...)
+		pjAnnotationValues = append([]string{pj.Name, pj.Namespace}, pjAnnotationValues...)
+		annotationDesc := prometheus.NewDesc(
+			"prow_job_annotations",
+			"Kubernetes annotations converted to Prometheus labels.",
+			pjAnnotationKeys, nil,
+		)
+		ch <- prometheus.MustNewConstMetric(
+			annotationDesc,
+			prometheus.GaugeValue,
+			float64(1),
+			pjAnnotationValues...,
 		)
 	}
 }
