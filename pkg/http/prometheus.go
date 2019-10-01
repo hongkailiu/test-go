@@ -38,6 +38,28 @@ var (
 		},
 		[]string{"volume_plugin", "operation_name", "hostname"},
 	)
+
+	metricLabels = []string{
+		// namespace of the job
+		"job_namespace",
+		// name of the job
+		"job_name",
+		// type of the prowjob: presubmit, postsubmit, periodic, batch
+		"type",
+		// state of the prowjob: triggered, pending, success, failure, aborted, error
+		"state",
+		// the org of the prowjob's repo
+		"org",
+		// the prowjob's repo
+		"repo",
+		// the base_ref of the prowjob's repo
+		"base_ref",
+	}
+
+	prowJobTransitions = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "prowjob_state_transitions",
+		Help: "Number of prowjobs transitioning states",
+	}, metricLabels)
 )
 
 func prometheusRegister(component, selector string, client prowJobClient) *prometheus.Registry {
@@ -52,5 +74,56 @@ func prometheusRegister(component, selector string, client prowJobClient) *prome
 	registry.MustRegister(httpRequestDuration)
 	registry.MustRegister(randomNumber)
 	registry.MustRegister(storageOperationMetric)
+	registry.MustRegister(prowJobTransitions)
 	return registry
+}
+
+type jobLabel struct {
+	jobNamespace string
+	jobName      string
+	jobType      string
+	state        string
+	org          string
+	repo         string
+	baseRef      string
+}
+
+func (jl *jobLabel) values() []string {
+	return []string{jl.jobNamespace, jl.jobName, jl.jobType, jl.state, jl.org, jl.repo, jl.baseRef}
+}
+
+func generateJobLabel(n int) jobLabel {
+	switch n % 3 {
+	case 0:
+		return jobLabel{
+			jobNamespace: "ns1",
+			jobName:      "job1",
+			jobType:      "presubmit",
+			state:        "failure",
+			org:          "codeready-toolchain",
+			repo:         "host-operator",
+			baseRef:      "master",
+		}
+	case 1:
+		return jobLabel{
+			jobNamespace: "ns2",
+			jobName:      "job2",
+			jobType:      "periodic",
+			state:        "success",
+			org:          "operator-framework",
+			repo:         "operator-sdk",
+			baseRef:      "master",
+		}
+	case 2:
+		return jobLabel{
+			jobNamespace: "ns3",
+			jobName:      "job3",
+			jobType:      "postsubmit",
+			state:        "failure",
+			org:          "openshift",
+			repo:         "openshift-azure",
+			baseRef:      "master",
+		}
+	}
+	return jobLabel{}
 }

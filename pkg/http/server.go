@@ -192,6 +192,18 @@ func generateRandomMetricsData() {
 			time.Sleep(100 * time.Second)
 		}
 	}()
+
+	go func() {
+		for {
+			n := random.GetRandom(50)
+			jobLabel := generateJobLabel(n)
+			log.WithFields(logrus.Fields{
+				"n": n,
+			}).Debug("generated fake prowJobTransitions")
+			prowJobTransitions.WithLabelValues(jobLabel.values()...).Inc()
+			time.Sleep(300 * time.Second)
+		}
+	}()
 }
 
 func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbService db.ServiceI, reg *prometheus.Registry) *gin.Engine {
