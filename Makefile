@@ -124,7 +124,7 @@ ifeq ($(confirm), true)
 	skopeo copy docker://quay.io/hongkailiu/ci-staging:$(testctl_travis_tag) docker://quay.io/hongkailiu/test-go:$(testctl_travis_tag)
 else
 	@echo "testctl_travis_tag is $(testctl_travis_tag)"
-	@echo "run with confirm var"
+	@echo "run with confirm var after: podman login quay.io -u hongkailiu"
 	@echo "make confirm=true copy-images"
 endif
 
