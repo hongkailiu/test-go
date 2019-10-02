@@ -1,4 +1,5 @@
 appID: abc
+key: xyz
 cities:
   - name: vancouver
     country: ca

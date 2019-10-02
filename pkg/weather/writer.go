@@ -3,6 +3,7 @@ package weather
 import (
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -13,15 +14,15 @@ import (
 )
 
 type Writer interface {
-	Write(response Response) error
+	Write(r Record) error
 }
 
 type Logger struct {
 	logger *logrus.Entry
 }
 
-func (w *Logger) Write(response Response) error {
-	bytes, err := json.Marshal(response)
+func (w *Logger) Write(r Record) error {
+	bytes, err := json.Marshal(r)
 	if err != nil {
 		return nil
 	}
@@ -37,10 +38,14 @@ type CSV struct {
 	OutputDir string
 }
 
-func (w *CSV) Write(response Response) (returnE error) {
+func (w *CSV) Write(r Record) (returnE error) {
 	now := time.Now()
+	rec, err := getRecord(now, r)
+	if err != nil {
+		return err
+	}
 	records := [][]string{
-		getRecord(now, response),
+		rec,
 	}
 
 	f, err := os.OpenFile(path.Join(w.OutputDir, "weather.csv"),
@@ -58,30 +63,39 @@ func (w *CSV) Write(response Response) (returnE error) {
 	return csvWriter.WriteAll(records)
 }
 
-func getRecord(now time.Time, r Response) []string {
+func getRecord(now time.Time, r Record) ([]string, error) {
 	//{"first_name", "last_name", "username"}
 	utcTime := r.Date.UTC()
-	logrus.WithField("utcTime.Format(http.TimeFormat)", utcTime.Format(http.TimeFormat)).Debug("get record")
+	location, err := time.LoadLocation(r.TimeZone)
+	if err != nil {
+		return nil, err
+	}
+	timeInLocation := r.Date.In(location)
+	logrus.WithField("utcTime.Format(http.TimeFormat)", utcTime.Format(http.TimeFormat)).
+		WithField("r.TimeZone", r.TimeZone).
+		WithField("location", fmt.Sprintf("%+v", location)).
+		WithField("timeInLocation", timeInLocation).
+		Debug("get record")
 	return []string{
 		now.UTC().Format(http.TimeFormat),
 		r.Name,
 		r.Sys.Country,
-		utcTime.Format(http.TimeFormat),
-		strconv.Itoa(utcTime.Year()),
-		utcTime.Month().String(),
-		strconv.Itoa(utcTime.Day()),
-		strconv.Itoa(utcTime.Hour()),
+		timeInLocation.Format(http.TimeFormat),
+		strconv.Itoa(timeInLocation.Year()),
+		timeInLocation.Month().String(),
+		strconv.Itoa(timeInLocation.Day()),
+		strconv.Itoa(timeInLocation.Hour()),
 		r.Weather[0].Main,
 		r.Weather[0].Description,
 		r.Weather[0].Icon,
 		strconv.FormatFloat(r.Main.Temp, 'f', 1, 64),
-	}
+	}, nil
 }
 
 type YAML struct {
 }
 
-func (w *YAML) Write(response Response) error {
+func (w *YAML) Write(r Record) error {
 	logrus.Warnf("not implemented yet! '%s'", "yaml")
 	return nil
 }

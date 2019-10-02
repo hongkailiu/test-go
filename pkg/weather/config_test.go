@@ -23,6 +23,7 @@ func TestLoadConfig(t *testing.T) {
 			path:        "test_files/test_config.yaml",
 			expectedConfig: Config{
 				AppID: "abc",
+				Key:   "xyz",
 				Cities: []City{
 					{
 						Name:    "vancouver",

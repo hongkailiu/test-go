@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -46,15 +47,40 @@ func main() {
 	logrus.Info("starting weather processing ...")
 
 	service := weather.NewOpenWeatherMap(c.AppID, c.OutputDir)
+	tzService := weather.NewTimeZoneDB(c.Key)
 
+	var cities []weather.City
+	var save = false
 	for _, city := range c.Cities {
 		r, err := service.GetWeather(city.Name, city.Country, false)
 		if err != nil {
 			logrus.WithError(err).WithField("city.Name", city.Name).WithField("city.Country", city.Country).Fatal("Failed to get weather.")
 		}
-		if err := service.HandleResponse(r, c.Writers); err != nil {
-			logrus.WithError(err).WithField("response", fmt.Sprintf("%v", r)).Fatal("Failed to handle response.")
+		if len(city.TimeZone) == 0 {
+			tzRes, err := tzService.GetTimeZone(r.CoOrd.Lat, r.CoOrd.Lon)
+			if err != nil {
+				logrus.WithError(err).WithField("r.CoOrd.Lon", r.CoOrd.Lon).
+					WithField("r.CoOrd.Lat", r.CoOrd.Lat).
+					WithField("response", fmt.Sprintf("%v", r)).
+					Fatal("Failed to get timezone.")
+			}
+			save = true
+			cities = append(cities, weather.City{Name: city.Name, Country: city.Country, TimeZone: tzRes.ZoneName})
+			logrus.WithField("city.TimeZone", city.TimeZone).WithField("city.Name", city.Name).Debug("found the time zone of the city")
+			logrus.Info("Sleeping 1 second due to TimeZoneDB limit")
+			time.Sleep(1 * time.Second)
+		} else {
+			cities = append(cities, city)
+		}
+		record := weather.Record{Response: r, TimeZone: city.TimeZone}
+		if err := service.HandleRecord(record, c.Writers); err != nil {
+			logrus.WithError(err).WithField("record", fmt.Sprintf("%v", record)).Fatal("Failed to handle record.")
 		}
 	}
-
+	if save {
+		c.Cities = cities
+		if err := c.Save(o.configPath); err != nil {
+			logrus.WithError(err).Fatal("Failed to save config.")
+		}
+	}
 }

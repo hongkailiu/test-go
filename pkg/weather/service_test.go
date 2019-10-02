@@ -24,8 +24,8 @@ func TestGetWeather(t *testing.T) {
 				ID:   2643743,
 				Name: "London",
 				CoOrd: CoOrd{
-					Lat: -0.13,
-					Lon: 51.51,
+					Lat: 51.51,
+					Lon: -0.13,
 				},
 				Weather: []Weather{
 					{

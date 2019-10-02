@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/resty.v1"
@@ -13,11 +14,14 @@ const (
 	apiUrl       = "http://api.openweathermap.org/data/2.5/weather"
 	apiSampleUrl = "https://samples.openweathermap.org/data/2.5/weather"
 	//http://api.openweathermap.org/data/2.5/weather?q=surrey,ca&appid=secret
+
+	apiTimeZoneUrl = "http://api.timezonedb.com/v2.1/get-time-zone"
+	//http://api.timezonedb.com/v2.1/get-time-zone?key=value&format=json&by=position&lat=43.65&lng=-79.39
 )
 
 type Service interface {
 	GetWeather(city, country string, sample bool) (Response, error)
-	HandleResponse(r Response, names []string) error
+	HandleRecord(r Record, names []string) error
 }
 
 type OpenWeatherMap struct {
@@ -78,7 +82,7 @@ func getWriters(writerNames []string, outputDir string) ([]Writer, error) {
 	return writers, nil
 }
 
-func (w *OpenWeatherMap) HandleResponse(r Response, writerNames []string) error {
+func (w *OpenWeatherMap) HandleRecord(r Record, writerNames []string) error {
 	writers, err := getWriters(writerNames, w.outputFolder)
 	if err != nil {
 		return err
@@ -89,4 +93,48 @@ func (w *OpenWeatherMap) HandleResponse(r Response, writerNames []string) error 
 		}
 	}
 	return nil
+}
+
+type TimeZoneService interface {
+	GetWeather(city, country string, sample bool) (TimezoneResponse, error)
+}
+
+func NewTimeZoneDB(key string) *TimeZoneDB {
+	return &TimeZoneDB{client: resty.New(), key: key}
+}
+
+type TimeZoneDB struct {
+	client *resty.Client
+	key    string
+}
+
+func (tz *TimeZoneDB) GetTimeZone(lat, lng float64) (TimezoneResponse, error) {
+	url := apiTimeZoneUrl
+	params := map[string]string{
+		"lat":    strconv.FormatFloat(lat, 'f', 2, 64),
+		"lng":    strconv.FormatFloat(lng, 'f', 2, 64),
+		"key":    tz.key,
+		"format": "json",
+		"by":     "position",
+	}
+	resp, err := tz.client.R().
+		SetQueryParams(params).
+		Get(url)
+	if err != nil {
+		return TimezoneResponse{}, err
+	}
+
+	bytes := resp.Body()
+	logrus.WithField("string(bytes)", string(bytes)).Debugf("response from '%s'", apiTimeZoneUrl)
+
+	if resp.StatusCode() != http.StatusOK {
+		return TimezoneResponse{}, fmt.Errorf("status code from '%s' is '%d', instead of 200", apiTimeZoneUrl, resp.StatusCode())
+	}
+
+	var response TimezoneResponse
+	err = json.Unmarshal(bytes, &response)
+	if err != nil {
+		return TimezoneResponse{}, err
+	}
+	return response, nil
 }

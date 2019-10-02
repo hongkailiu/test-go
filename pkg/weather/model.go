@@ -52,8 +52,8 @@ type Weather struct {
 }
 
 type CoOrd struct {
-	Lat float64 `json:"lon"`
-	Lon float64 `json:"lat"`
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
 }
 
 type Main struct {
@@ -75,4 +75,25 @@ type Sys struct {
 
 type Marshaler interface {
 	MarshalJSON() ([]byte, error)
+}
+
+type Record struct {
+	Response
+	TimeZone string
+}
+
+type TimezoneResponse struct {
+	Status           string `json:"status"`
+	Message          string `json:"message"`
+	CountryCode      string `json:"countryCode"`
+	CountryName      string `json:"countryName"`
+	ZoneName         string `json:"zoneName"`
+	Abbreviation     string `json:"abbreviation"`
+	GmtOffset        int    `json:"gmtOffset"`
+	Dst              string `json:"dst"`
+	ZoneStart        int    `json:"zoneStart"`
+	ZoneEnd          int    `json:"zoneEnd"`
+	NextAbbreviation string `json:"nextAbbreviation"`
+	Timestamp        int    `json:"timestamp"`
+	Formatted        string `json:"formatted"`
 }

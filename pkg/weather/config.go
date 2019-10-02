@@ -11,14 +11,16 @@ import (
 
 type Config struct {
 	AppID     string   `json:"appID"`
+	Key       string   `json:"key"`
 	Cities    []City   `json:"cities"`
 	Writers   []string `json:"writer"`
 	OutputDir string   `json:"outputDir"`
 }
 
 type City struct {
-	Name    string `json:"name"`
-	Country string `json:"country"`
+	Name     string `json:"name"`
+	Country  string `json:"country"`
+	TimeZone string `json:"timezone"`
 }
 
 func LoadConfig(path string) (Config, error) {
@@ -33,6 +35,15 @@ func LoadConfig(path string) (Config, error) {
 		return c, err
 	}
 	return c, nil
+}
+
+func (c Config) Save(path string) error {
+	logrus.WithField("c", c).Debug("saving config")
+	bytes, err := yaml.Marshal(&c)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, bytes, 0644)
 }
 
 func (c Config) Validate() error {

@@ -1,0 +1,15 @@
+{
+  "status": "OK",
+  "message": "",
+  "countryCode": "CA",
+  "countryName": "Canada",
+  "zoneName": "America\/Toronto",
+  "abbreviation": "EDT",
+  "gmtOffset": -14400,
+  "dst": "1",
+  "zoneStart": 1552201200,
+  "zoneEnd": 1572760800,
+  "nextAbbreviation": "EST",
+  "timestamp": 1569966478,
+  "formatted": "2019-10-01 21:47:58"
+}
