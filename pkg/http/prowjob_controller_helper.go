@@ -23,6 +23,7 @@ func (c *ProwJobControllerForTest) List(opts metav1.ListOptions) (*prowapi.ProwJ
 		return &prowapi.ProwJobList{
 			Items: []prowapi.ProwJob{
 				{
+					Spec: prowapi.ProwJobSpec{Job:"job2"},
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "ns2",
 						Name:      "job2",
@@ -41,6 +42,7 @@ func (c *ProwJobControllerForTest) List(opts metav1.ListOptions) (*prowapi.ProwJ
 		return &prowapi.ProwJobList{
 			Items: []prowapi.ProwJob{
 				{
+					Spec: prowapi.ProwJobSpec{Job:"job1"},
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "ns1",
 						Name:      "job1",
@@ -50,6 +52,17 @@ func (c *ProwJobControllerForTest) List(opts metav1.ListOptions) (*prowapi.ProwJ
 					},
 				},
 				{
+					Spec: prowapi.ProwJobSpec{Job:"job1"},
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "ns1",
+						Name:      "job1",
+						Labels: map[string]string{
+							"event-GUID": "bcb9fc8c-e3b3-11e9-98b0-2da0529ae97c",
+						},
+					},
+				},
+				{
+					Spec: prowapi.ProwJobSpec{Job:"job3"},
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace: "ns3",
 						Name:      "job3",

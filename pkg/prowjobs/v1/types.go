@@ -20,11 +20,18 @@ const (
 
 type ProwJob struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              ProwJobSpec `json:"spec,omitempty"`
+	Spec              ProwJobSpec   `json:"spec,omitempty"`
+	Status            ProwJobStatus `json:"status,omitempty"`
 }
 
 type ProwJobSpec struct {
 	Agent ProwJobAgent `json:"agent,omitempty"`
+	// Job is the name of the job
+	Job string `json:"job,omitempty"`
+}
+
+type ProwJobStatus struct {
+	StartTime metav1.Time `json:"startTime,omitempty"`
 }
 
 type ProwJobList struct {

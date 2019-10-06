@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
@@ -57,11 +58,12 @@ func (pjc prowJobCollector) Collect(ch chan<- prometheus.Metric) {
 		logrus.WithError(err).Errorf("Failed to list prow jobs with selector '%s'", pjc.selector)
 		return
 	}
-	for _, pj := range prowJobs.Items {
+	latestJobs := getLatest(prowJobs.Items)
+	for _, pj := range latestJobs {
 		agent := string(pj.Spec.Agent)
 		pjLabelKeys, pjLabelValues := kubeLabelsToPrometheusLabels(pj.Labels, "label_")
 		pjLabelKeys = append([]string{"prow_job_name", "prow_job_namespace", "prow_job_agent"}, pjLabelKeys...)
-		pjLabelValues = append([]string{pj.Name, pj.Namespace, agent}, pjLabelValues...)
+		pjLabelValues = append([]string{pj.Spec.Job, pj.Namespace, agent}, pjLabelValues...)
 		labelDesc := prometheus.NewDesc(
 			"prow_job_labels",
 			"Kubernetes labels converted to Prometheus labels.",
@@ -119,4 +121,21 @@ func sanitizeLabelName(s string) string {
 // https://github.com/kubernetes/kube-state-metrics/blob/1d69c1e637564aec4591b5b03522fa8b5fca6597/pkg/metric/metric.go#L96
 func escapeString(v string) string {
 	return escapeWithDoubleQuote.Replace(v)
+}
+
+func getLatest(jobs []prowapi.ProwJob) map[string]prowapi.ProwJob {
+	latest := map[string]time.Time{}
+	latestJobs := map[string]prowapi.ProwJob{}
+	for _, job := range jobs {
+		if _, ok := latest[job.Spec.Job]; !ok {
+			latest[job.Spec.Job] = job.Status.StartTime.Time
+			latestJobs[job.Spec.Job] = job
+			continue
+		}
+		if job.Status.StartTime.Time.After(latest[job.Spec.Job]) {
+			latest[job.Spec.Job] = job.Status.StartTime.Time
+			latestJobs[job.Spec.Job] = job
+		}
+	}
+	return latestJobs
 }
