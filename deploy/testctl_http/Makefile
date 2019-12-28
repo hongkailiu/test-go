@@ -6,11 +6,14 @@ oc_project := $(shell echo $(current_oc_context) | cut -d "/" -f1)
 oc_server := $(shell echo $(current_oc_context) | cut -d "/" -f2)
 oc_user := $(shell echo $(current_oc_context) | cut -d "/" -f3)
 
-expected_oc_server := api-ca-central-1-starter-openshift-online-com:6443
+expected_oc_server := api-us-west-1-starter-openshift-online-com:6443
 expected_oc_user := hongkliu
-web_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/web_secret.yaml
-grafana_secret_file := /home/hongkliu/repo/me/svt-secret/test_go/grafana_secret.yaml
-slack_api_secret_value := $(shell head -n 1 /home/hongkliu/repo/me/svt-secret/test_go/slack_api_secret.txt)
+
+secret_path := $(HOME)/repo/me/svt-secret
+web_secret_file := $(secret_path)/test_go/web_secret.yaml
+grafana_secret_file := $(secret_path)/test_go/grafana_secret.yaml
+slack_api_secret_value := $(shell head -n 1 $(secret_path)/test_go/slack_api_secret.txt)
+
 
 .PHONY : oc-deploy-testctl
 oc-deploy-testctl:
@@ -37,6 +40,7 @@ endif
 	oc apply -f ./web_deploy.yaml
 	oc create configmap -n hongkliu-run prometheus --from-file=./prometheus.yml --from-file=alert.rules.yml=./prometheus_alert.rules.yml --dry-run -o yaml | oc apply -f -
 	oc apply -f ./prometheus_deploy.yaml
+	oc apply -f ./status_rbac.yaml
 	oc apply -f ./status_deploy.yaml
 	oc apply -f $(grafana_secret_file)
 	oc create -n hongkliu-run configmap grafana-config --from-file=./grafana.ini --dry-run -o yaml | oc apply -f -
