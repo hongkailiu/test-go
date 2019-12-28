@@ -17,8 +17,7 @@ go_version := $(shell go version)
 
 validate-modules:
 	go mod tidy
-	go mod vendor
-	git status -s ./vendor/ go.mod go.sum
+	git status -s go.mod go.sum
 ifeq ($(TRAVIS)$(findstring devel,$(go_version)), truedevel)
 	echo "skipping checks on go-mod files for golang master/devel"
 else
