@@ -177,7 +177,7 @@ ci-before-script:
 	go env
 	docker version
 	make --version
-	java -version
+	#java -version
 	bazel version
 
 CI_SCRIPT_DEPS += validate-modules
