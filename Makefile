@@ -7,11 +7,17 @@
 update-bazel:
 	bazel run //:gazelle
 
+uname_s := $(shell uname -s)
+
 .PHONY : fix-bazel
 fix-bazel:
 	# gazelle:resolve did not work out
 	# https://github.com/bazelbuild/bazel-gazelle/issues/432#issuecomment-457789836
+ifeq ($(uname_s), Darwin)
 	sed -i .bak -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
+else
+	sed -i -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
+endif
 
 go_version := $(shell go version)
 
@@ -138,11 +144,15 @@ build_version := $(shell git describe --tags --always --dirty)
 
 .PHONY : build-testctl
 build-testctl:
+ifeq ($(uname_s), Darwin)
 	sed -i .bak -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/config/version.go
+	rm -rfv ./pkg/testctl/cmd/config/version.go.bak
+else
+	sed -i -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/config/version.go
+endif
 	go build -o ./build/testctl ./cmd/testctl/
 	cp -rv pkg/http/static build/
 	cp -rv pkg/http/swagger build/
-	rm -rfv ./pkg/testctl/cmd/config/version.go.bak
 	git checkout ./pkg/testctl/cmd/config/version.go
 
 BAZELISK_VERSION := v1.2.1
