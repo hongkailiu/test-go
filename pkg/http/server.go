@@ -242,11 +242,13 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 		h := github.WebhookHeaders{}
 		if err := c.ShouldBindHeader(&h); err != nil {
 			c.JSON(http.StatusBadRequest, webhook.Response{Message: err.Error()})
+			return
 		}
 		log.WithFields(logrus.Fields{"h": fmt.Sprintf("%+v", h)}).Debug("webhook headers")
 		payload, err := c.GetRawData()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, webhook.Response{Message: "cannot read request body"})
+			return
 		}
 		status, msg := github.Handle(payload, h, log)
 		c.JSON(status, webhook.Response{Message: msg})
@@ -328,6 +330,7 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 		if err != nil {
 			msg := err.Error()
 			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
+			return
 		}
 		if cities == nil {
 			cities = &[]model.City{}
@@ -342,6 +345,7 @@ func setupRouter(hc *cmdconfig.HttpConfig, githubLogin, googleLogin login, dbSer
 		if err != nil {
 			msg := err.Error()
 			c.JSON(http.StatusInternalServerError, models.Error{Code: int64(http.StatusInternalServerError), Message: &msg})
+			return
 		}
 		log.WithFields(logrus.Fields{"tokenString": tokenString}).Debug("generated token")
 		c.JSON(200, gin.H{"token": tokenString})
