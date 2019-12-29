@@ -156,13 +156,9 @@ ifneq ($(CI), true)
 	echo "not supported CI environment ... failing"
 	false
 endif
-ifeq ($(TRAVIS), true)
-	echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-	curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
-	sudo apt-get update
-	sudo apt-get install bazel
+ifeq ($(CIRCLECI), true)
+	sudo apt-get install patch
 endif
-	# install bazelisk
 	curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
@@ -177,7 +173,6 @@ ci-before-script:
 	go env
 	docker version
 	make --version
-	#java -version
 	bazel version
 
 CI_SCRIPT_DEPS += validate-modules
