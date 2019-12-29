@@ -11,7 +11,7 @@ update-bazel:
 fix-bazel:
 	# gazelle:resolve did not work out
 	# https://github.com/bazelbuild/bazel-gazelle/issues/432#issuecomment-457789836
-	sed -i -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
+	sed -i .bak -e "s|//vendor/google.golang.org/grpc/naming:go_default_library|@org_golang_google_grpc//naming:go_default_library|g" ./vendor/google.golang.org/api/internal/BUILD.bazel
 
 go_version := $(shell go version)
 
@@ -93,7 +93,8 @@ ifeq ($(TRAVIS), true)
 	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=travis-ci
 endif
 ifeq ($(CIRCLECI), true)
-	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci
+	#"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci
+	@echo "skipping coverage report on circleci"
 endif
 
 .PHONY : gen-images
@@ -106,11 +107,6 @@ ifeq ($(TRAVIS)$(findstring go1.13,$(go_version)), truego1.13)
 	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 	echo "$(quay_cli_password)" | docker login -u hongkailiu quay.io --password-stdin
 	docker push "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
-endif
-ifeq ($(TRAVIS)$(findstring go1.13,$(go_version))$(build_circleci_image), truego1.13true)
-	docker build --label "version=$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go" --label "build_time=$(date --utc +%FT%TZ)" -f test_files/docker/Dockerfile.circleci.txt -t quay.io/hongkailiu/test-go:circleci-travis .
-	docker tag quay.io/hongkailiu/test-go:circleci-travis "quay.io/hongkailiu/ci-staging:circleci-$(USER)-${TRAVIS_JOB_NUMBER}"
-	docker push "quay.io/hongkailiu/ci-staging:circleci-$(USER)-${TRAVIS_JOB_NUMBER}"
 endif
 	docker images
 
@@ -142,10 +138,11 @@ build_version := $(shell git describe --tags --always --dirty)
 
 .PHONY : build-testctl
 build-testctl:
-	sed -i -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/config/version.go
+	sed -i .bak -e "s|{buildVersion}|$(build_version)|g" ./pkg/testctl/cmd/config/version.go
 	go build -o ./build/testctl ./cmd/testctl/
 	cp -rv pkg/http/static build/
 	cp -rv pkg/http/swagger build/
+	rm -rfv ./pkg/testctl/cmd/config/version.go.bak
 	git checkout ./pkg/testctl/cmd/config/version.go
 
 BAZELISK_VERSION := v1.2.1
