@@ -93,9 +93,7 @@ ifeq ($(TRAVIS), true)
 	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=travis-ci
 endif
 ifeq ($(CIRCLECI), true)
-	###https://github.com/lemurheavy/coveralls-public/issues/632
-	#"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci -repotoken="${COVERALLS_TOKEN}"
-	echo "skipping coveralls on circleci ..."
+	"${GOPATH}/bin/goveralls" -coverprofile=build/coverage.out -service=circle-ci
 endif
 
 .PHONY : gen-images
@@ -150,7 +148,7 @@ build-testctl:
 	cp -rv pkg/http/swagger build/
 	git checkout ./pkg/testctl/cmd/config/version.go
 
-BAZELISK_VERSION := v1.0
+BAZELISK_VERSION := v1.2.1
 
 .PHONY : ci-install
 ci-install:
@@ -163,11 +161,11 @@ ifeq ($(TRAVIS), true)
 	curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
 	sudo apt-get update
 	sudo apt-get install bazel
+endif
 	# install bazelisk
 	curl -OL https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64
 	sudo mv ./bazelisk-linux-amd64 /usr/bin/bazel
 	sudo chmod +x /usr/bin/bazel
-endif
 
 .PHONY : ci-before-script
 ci-before-script:
