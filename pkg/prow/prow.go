@@ -1,6 +1,7 @@
 package prow
 
 import (
+	"bufio"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -12,6 +13,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/sirupsen/logrus"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/homedir"
@@ -60,7 +62,7 @@ type content struct {
 	desired   int32
 	updated   int32
 	available int32
-	logs      []string
+	logs      string
 }
 
 func (c *content) Header() string {
@@ -80,6 +82,40 @@ func (c *content) Header() string {
 		message = aurora.Sprintf("%s %s", message, aurora.Green("OK"))
 	}
 	return message
+}
+
+const (
+	warnKeyword  = `"level":"warning"`
+	errorKeyword = `"level":"error"`
+	fatalKeyword = `"level":"fatal"`
+)
+
+func containerLog(clientset *kubernetes.Clientset, projectName string, podName string, container string) (ret string, returnedErr error) {
+	since := int64(20 * 60)
+	logOptions := &corev1.PodLogOptions{
+		Container:    container,
+		SinceSeconds: &since,
+	}
+	readCloser, err := clientset.CoreV1().Pods(projectName).GetLogs(podName, logOptions).Stream()
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err := readCloser.Close()
+		if err != nil {
+			returnedErr = err
+		}
+	}()
+	scanner := bufio.NewScanner(readCloser)
+	for scanner.Scan() {
+		text := scanner.Text()
+		if strings.Contains(text, warnKeyword) {
+			ret += aurora.Sprintf("%s\n", aurora.Yellow(text))
+		} else if strings.Contains(text, errorKeyword) || strings.Contains(text, fatalKeyword) {
+			ret += aurora.Sprintf("%s\n", aurora.Red(text))
+		}
+	}
+	return strings.TrimSuffix(ret, "\n"), nil
 }
 
 type outputHandler interface {
@@ -110,7 +146,7 @@ func (h *memoryOutputHandler) getAndSave(name string) {
 		h.Unlock()
 		d, err := c.AppsV1().Deployments("ci").Get(name, metav1.GetOptions{})
 		if err != nil {
-			content.logs = []string{err.Error()}
+			content.logs = aurora.Sprintf(aurora.Red(err.Error()))
 			continue
 		}
 		content.desired = *d.Spec.Replicas
@@ -119,12 +155,42 @@ func (h *memoryOutputHandler) getAndSave(name string) {
 		content.available = d.Status.AvailableReplicas
 		content.version = "<unknown-version>"
 		for _, container := range d.Spec.Template.Spec.Containers {
-			if container.Name == name {
+			containerName := name
+			if name == "boskos-metrics" {
+				containerName = "metrics"
+			}
+			if name == "jenkins-dev-operator" {
+				containerName = "jenkins-operator"
+			}
+			if name == "deck-internal" {
+				containerName = "deck"
+			}
+			if container.Name == containerName {
 				parts := strings.Split(container.Image, ":")
 				content.version = parts[len(parts)-1]
 			}
 		}
-		//TODO get logs
+		pods, err := c.CoreV1().Pods("ci").List(metav1.ListOptions{LabelSelector: fmt.Sprintf("component=%s", name)})
+		if err != nil {
+			content.logs = err.Error()
+			continue
+		}
+		var logs string
+		for _, pod := range pods.Items {
+			container := ""
+			if name == "deck-internal" {
+				container = "deck"
+			}
+			if name == "boskos" {
+				container = "boskos"
+			}
+			lines, err := containerLog(h.clinetset, "ci", pod.Name, container)
+			if err != nil {
+				lines = aurora.Sprintf(aurora.Red(err.Error()))
+			}
+			logs += lines
+		}
+		content.logs = logs
 		time.Sleep(60 * time.Second)
 	}
 }
@@ -143,8 +209,8 @@ func (h *memoryOutputHandler) display() error {
 		for _, k := range keys {
 			content := h.contents[k]
 			lines += fmt.Sprintf("%s\n", content.Header())
-			for _, logLine := range content.logs {
-				lines += fmt.Sprintf("%s\n", logLine)
+			if content.logs != "" {
+				lines += fmt.Sprintf("%s\n", content.logs)
 			}
 		}
 		h.RUnlock()
