@@ -178,94 +178,103 @@ func newMemoryOutputHandler(clientset *kubernetes.Clientset) *memoryOutputHandle
 }
 
 func (h *memoryOutputHandler) getAndSave(name string) {
-	c := h.clinetset
 	for {
-		content := content{name: name}
+		content := h.getContent(name)
 		h.Lock()
-		h.contents[name] = &content
+		h.contents[name] = content
 		h.Unlock()
-		d, err := c.AppsV1().Deployments("ci").Get(name, metav1.GetOptions{})
-		if err != nil {
-			content.logs = aurora.Sprintf(aurora.Red(err.Error()))
-			continue
-		}
-		content.desired = *d.Spec.Replicas
-		content.current = d.Status.Replicas
-		content.updated = d.Status.UpdatedReplicas
-		content.available = d.Status.AvailableReplicas
-		content.version = "<unknown-version>"
-		for _, container := range d.Spec.Template.Spec.Containers {
-			containerName := name
-			if name == "boskos-metrics" {
-				containerName = "metrics"
-			}
-			if name == "jenkins-dev-operator" {
-				containerName = "jenkins-operator"
-			}
-			if name == "deck-internal" {
-				containerName = "deck"
-			}
-			if container.Name == containerName {
-				parts := strings.Split(container.Image, ":")
-				content.version = parts[len(parts)-1]
-			}
-		}
-		pods, err := c.CoreV1().Pods("ci").List(metav1.ListOptions{LabelSelector: fmt.Sprintf("component=%s", name)})
-		if err != nil {
-			content.logs = err.Error()
-			continue
-		}
-		var logs []string
-		for _, pod := range pods.Items {
-			lines, err := renderFlavor(h.clinetset, "ci", pod.Name, name)
-			if err != nil {
-				lines = aurora.Sprintf("Failed to render flavor: '%s'", aurora.Red(err.Error()))
-			}
-			if lines != "" {
-				logs = append(logs, lines)
-			}
-			container := ""
-			if name == "deck-internal" {
-				container = "deck"
-			}
-			if name == "boskos" {
-				container = "boskos"
-			}
-			lines, err = containerLog(h.clinetset, "ci", pod.Name, container)
-			if err != nil {
-				lines = aurora.Sprintf("Failed to get container log: '%s'", aurora.Red(err.Error()))
-			}
-			if lines != "" {
-				logs = append(logs, lines)
-			}
-		}
-		content.logs = strings.Join(logs, "\n")
 		time.Sleep(60 * time.Second)
 	}
+}
+
+func (h *memoryOutputHandler) getContent(name string) *content {
+	c := h.clinetset
+	content := &content{name: name}
+	d, err := c.AppsV1().Deployments("ci").Get(name, metav1.GetOptions{})
+	if err != nil {
+		content.logs = aurora.Sprintf("Failed to get deployment '%s': '%s'", name, aurora.Red(err.Error()))
+		return content
+	}
+	content.desired = *d.Spec.Replicas
+	content.current = d.Status.Replicas
+	content.updated = d.Status.UpdatedReplicas
+	content.available = d.Status.AvailableReplicas
+	content.version = "<unknown-version>"
+	for _, container := range d.Spec.Template.Spec.Containers {
+		containerName := name
+		if name == "boskos-metrics" {
+			containerName = "metrics"
+		}
+		if name == "jenkins-dev-operator" {
+			containerName = "jenkins-operator"
+		}
+		if name == "deck-internal" {
+			containerName = "deck"
+		}
+		if container.Name == containerName {
+			parts := strings.Split(container.Image, ":")
+			content.version = parts[len(parts)-1]
+		}
+	}
+	pods, err := c.CoreV1().Pods("ci").List(metav1.ListOptions{LabelSelector: fmt.Sprintf("component=%s", name)})
+	if err != nil {
+		content.logs = aurora.Sprintf("Failed to list pod of component '%s': '%s'", name, aurora.Red(err.Error()))
+		return content
+	}
+	var logs []string
+	for _, pod := range pods.Items {
+		lines, err := renderFlavor(h.clinetset, "ci", pod.Name, name)
+		if err != nil {
+			lines = aurora.Sprintf("Failed to render flavor: '%s'", aurora.Red(err.Error()))
+		}
+		if lines != "" {
+			logs = append(logs, lines)
+		}
+		container := ""
+		if name == "deck-internal" {
+			container = "deck"
+		}
+		if name == "boskos" {
+			container = "boskos"
+		}
+		lines, err = containerLog(h.clinetset, "ci", pod.Name, container)
+		if err != nil {
+			lines = aurora.Sprintf("Failed to get container log: '%s'", aurora.Red(err.Error()))
+		}
+		if lines != "" {
+			logs = append(logs, lines)
+		}
+	}
+	content.logs = strings.Join(logs, "\n")
+	return content
 }
 
 func (h *memoryOutputHandler) display() error {
 	writer := uilive.New()
 	writer.Start()
 	for {
-		var lines []string
-		h.RLock()
-		keys := make([]string, 0, len(h.contents))
-		for k := range h.contents {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			content := h.contents[k]
-			lines = append(lines, content.Header())
-			if content.logs != "" {
-				lines = append(lines, content.logs)
-			}
-		}
-		h.RUnlock()
-		if _, err := fmt.Fprintf(writer, fmt.Sprintf("%s\n", strings.Join(lines, "\n"))); err != nil {
+		if _, err := fmt.Fprintf(writer, fmt.Sprintf("%s\n", h.displayString())); err != nil {
 			return err
 		}
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func (h *memoryOutputHandler) displayString() string {
+	var lines []string
+	//h.RLock()
+	//defer h.RUnlock()
+	keys := make([]string, 0, len(h.contents))
+	for k := range h.contents {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		content := h.contents[k]
+		lines = append(lines, content.Header())
+		if content.logs != "" {
+			lines = append(lines, content.logs)
+		}
+	}
+	return strings.Join(lines, "\n")
 }
