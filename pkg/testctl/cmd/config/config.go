@@ -11,3 +11,8 @@ type HttpConfig struct {
 	PProf   bool
 	Version string
 }
+
+type ProwConfig struct {
+	Config
+	KubeConfigPath string
+}
