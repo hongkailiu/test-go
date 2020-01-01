@@ -50,7 +50,7 @@ func Monitor(pc *cmdconfig.ProwConfig) error {
 		logrus.WithField("d.Name", d.Name).Debugf("found d")
 		go handler.getAndSave(d.Name)
 	}
-	if err := handler.display(); err != nil {
+	if err := display(handler); err != nil {
 		return err
 	}
 	return nil
@@ -66,7 +66,7 @@ type content struct {
 	logs      string
 }
 
-func (c *content) Header() string {
+func header(c *content) string {
 	message := fmt.Sprintf("%s at %s [%d/%d]", c.name, c.version, c.current, c.desired)
 	if c.updated != c.desired {
 		message += fmt.Sprintf(" (%d stale replicas)", c.desired-c.updated)
@@ -160,7 +160,7 @@ func containerLog(clientset *kubernetes.Clientset, projectName string, podName s
 
 type outputHandler interface {
 	getAndSave(name string)
-	display() error
+	displayString() string
 }
 
 type memoryOutputHandler struct {
@@ -179,7 +179,7 @@ func newMemoryOutputHandler(clientset *kubernetes.Clientset) *memoryOutputHandle
 
 func (h *memoryOutputHandler) getAndSave(name string) {
 	for {
-		content := h.getContent(name)
+		content := getContent(h.clinetset, name)
 		h.Lock()
 		h.contents[name] = content
 		h.Unlock()
@@ -187,8 +187,7 @@ func (h *memoryOutputHandler) getAndSave(name string) {
 	}
 }
 
-func (h *memoryOutputHandler) getContent(name string) *content {
-	c := h.clinetset
+func getContent(c *kubernetes.Clientset, name string) *content {
 	content := &content{name: name}
 	d, err := c.AppsV1().Deployments("ci").Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -223,7 +222,7 @@ func (h *memoryOutputHandler) getContent(name string) *content {
 	}
 	var logs []string
 	for _, pod := range pods.Items {
-		lines, err := renderFlavor(h.clinetset, "ci", pod.Name, name)
+		lines, err := renderFlavor(c, "ci", pod.Name, name)
 		if err != nil {
 			lines = aurora.Sprintf("Failed to render flavor: '%s'", aurora.Red(err.Error()))
 		}
@@ -237,7 +236,7 @@ func (h *memoryOutputHandler) getContent(name string) *content {
 		if name == "boskos" {
 			container = "boskos"
 		}
-		lines, err = containerLog(h.clinetset, "ci", pod.Name, container)
+		lines, err = containerLog(c, "ci", pod.Name, container)
 		if err != nil {
 			lines = aurora.Sprintf("Failed to get container log: '%s'", aurora.Red(err.Error()))
 		}
@@ -249,11 +248,11 @@ func (h *memoryOutputHandler) getContent(name string) *content {
 	return content
 }
 
-func (h *memoryOutputHandler) display() error {
+func display(handler outputHandler) error {
 	writer := uilive.New()
 	writer.Start()
 	for {
-		if _, err := fmt.Fprintf(writer, fmt.Sprintf("%s\n", h.displayString())); err != nil {
+		if _, err := fmt.Fprintf(writer, fmt.Sprintf("%s\n", handler.displayString())); err != nil {
 			return err
 		}
 		time.Sleep(5 * time.Second)
@@ -271,7 +270,7 @@ func (h *memoryOutputHandler) displayString() string {
 	sort.Strings(keys)
 	for _, k := range keys {
 		content := h.contents[k]
-		lines = append(lines, content.Header())
+		lines = append(lines, header(content))
 		if content.logs != "" {
 			lines = append(lines, content.logs)
 		}
