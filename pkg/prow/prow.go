@@ -45,9 +45,11 @@ func Monitor(pc *cmdconfig.ProwConfig) error {
 	outputHandler := newMemoryOutputHandler(clientset)
 	for _, d := range deployments.Items {
 		logrus.WithField("d.Name", d.Name).Debugf("found d")
-		go handle(d.Name, &outputHandler)
+		go outputHandler.getAndSave(d.Name)
 	}
-	outputHandler.display()
+	if err := outputHandler.display(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -81,7 +83,7 @@ func (c *content) Header() string {
 }
 
 type outputHandler interface {
-	getAndSave(name string) error
+	getAndSave(name string)
 	display() error
 }
 
@@ -99,7 +101,7 @@ func newMemoryOutputHandler(clientset *kubernetes.Clientset) memoryOutputHandler
 	return ret
 }
 
-func (h *memoryOutputHandler) getAndSave(name string) error {
+func (h *memoryOutputHandler) getAndSave(name string) {
 	c := h.clinetset
 	for {
 		content := content{name: name}
@@ -125,7 +127,6 @@ func (h *memoryOutputHandler) getAndSave(name string) error {
 		//TODO get logs
 		time.Sleep(60 * time.Second)
 	}
-	return nil
 }
 
 func (h *memoryOutputHandler) display() error {
@@ -152,8 +153,4 @@ func (h *memoryOutputHandler) display() error {
 		}
 		time.Sleep(5 * time.Second)
 	}
-}
-
-func handle(name string, outputHandler outputHandler) {
-	outputHandler.getAndSave(name)
 }
