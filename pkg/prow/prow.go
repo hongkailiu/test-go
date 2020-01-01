@@ -41,13 +41,13 @@ func Monitor(pc *cmdconfig.ProwConfig) error {
 	if err != nil {
 		return err
 	}
-
-	outputHandler := newMemoryOutputHandler(clientset)
+	var handler outputHandler
+	handler = newMemoryOutputHandler(clientset)
 	for _, d := range deployments.Items {
 		logrus.WithField("d.Name", d.Name).Debugf("found d")
-		go outputHandler.getAndSave(d.Name)
+		go handler.getAndSave(d.Name)
 	}
-	if err := outputHandler.display(); err != nil {
+	if err := handler.display(); err != nil {
 		return err
 	}
 	return nil
@@ -93,12 +93,12 @@ type memoryOutputHandler struct {
 	sync.RWMutex
 }
 
-func newMemoryOutputHandler(clientset *kubernetes.Clientset) memoryOutputHandler {
+func newMemoryOutputHandler(clientset *kubernetes.Clientset) *memoryOutputHandler {
 	ret := memoryOutputHandler{
 		clinetset: clientset,
 		contents:  map[string]*content{},
 	}
-	return ret
+	return &ret
 }
 
 func (h *memoryOutputHandler) getAndSave(name string) {
