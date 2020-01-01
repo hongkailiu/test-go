@@ -15,6 +15,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/homedir"
 
@@ -90,6 +91,41 @@ const (
 	fatalKeyword = `"level":"fatal"`
 )
 
+func renderFlavor(clientset *kubernetes.Clientset, project, podName, dc string) (string, error) {
+	var lines []string
+	pod, err := clientset.CoreV1().Pods(project).Get(podName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	if pod.Status.Phase != corev1.PodRunning {
+		text := fmt.Sprintf("pod %s is %s: %s, %s", pod.Name, pod.Status.Phase, pod.Status.Reason, pod.Status.Message)
+		line := aurora.Sprintf(aurora.Yellow(text))
+		if sets.NewString("Failed", "Unknown", "CrashLoopBackOff").Has(string(pod.Status.Phase)) {
+			line = aurora.Sprintf(aurora.Red(text))
+		}
+		lines = append(lines, line)
+	}
+
+	for _, container := range pod.Status.ContainerStatuses {
+		if container.Name == dc {
+			if container.State.Running == nil {
+				if container.State.Waiting != nil {
+					lines = append(lines, aurora.Sprintf(aurora.Yellow(fmt.Sprintf("pod %s is waitng: %s", podName, container.State.Waiting.Reason))))
+					lines = append(lines, aurora.Sprintf(aurora.Yellow(fmt.Sprintf("\t%s", container.State.Waiting.Message))))
+				}
+				if container.State.Terminated != nil {
+					lines = append(lines, aurora.Sprintf(aurora.Red(fmt.Sprintf("pod %s is waitng: %s", podName, container.State.Terminated.Reason))))
+					lines = append(lines, aurora.Sprintf(aurora.Red(fmt.Sprintf("\t%s", container.State.Terminated.Message))))
+				}
+			}
+		}
+		if container.RestartCount != 0 {
+			lines = append(lines, aurora.Sprintf(aurora.Red(fmt.Sprintf("pod %s has restarted %d times", podName, container.RestartCount))))
+		}
+	}
+	return strings.Join(lines, "\n"), nil
+}
+
 func containerLog(clientset *kubernetes.Clientset, projectName string, podName string, container string) (ret string, returnedErr error) {
 	since := int64(20 * 60)
 	logOptions := &corev1.PodLogOptions{
@@ -106,16 +142,20 @@ func containerLog(clientset *kubernetes.Clientset, projectName string, podName s
 			returnedErr = err
 		}
 	}()
+	var lines []string
 	scanner := bufio.NewScanner(readCloser)
 	for scanner.Scan() {
 		text := scanner.Text()
 		if strings.Contains(text, warnKeyword) {
-			ret += aurora.Sprintf("%s\n", aurora.Yellow(text))
+			lines = append(lines, aurora.Sprintf(aurora.Yellow(text)))
 		} else if strings.Contains(text, errorKeyword) || strings.Contains(text, fatalKeyword) {
-			ret += aurora.Sprintf("%s\n", aurora.Red(text))
+			lines = append(lines, aurora.Sprintf(aurora.Red(text)))
 		}
 	}
-	return strings.TrimSuffix(ret, "\n"), nil
+	if len(lines) > 5 {
+		lines = lines[len(lines)-5:]
+	}
+	return strings.Join(lines, "\n"), nil
 }
 
 type outputHandler interface {
@@ -175,8 +215,15 @@ func (h *memoryOutputHandler) getAndSave(name string) {
 			content.logs = err.Error()
 			continue
 		}
-		var logs string
+		var logs []string
 		for _, pod := range pods.Items {
+			lines, err := renderFlavor(h.clinetset, "ci", pod.Name, name)
+			if err != nil {
+				lines = aurora.Sprintf("Failed to render flavor: '%s'", aurora.Red(err.Error()))
+			}
+			if lines != "" {
+				logs = append(logs, lines)
+			}
 			container := ""
 			if name == "deck-internal" {
 				container = "deck"
@@ -184,13 +231,15 @@ func (h *memoryOutputHandler) getAndSave(name string) {
 			if name == "boskos" {
 				container = "boskos"
 			}
-			lines, err := containerLog(h.clinetset, "ci", pod.Name, container)
+			lines, err = containerLog(h.clinetset, "ci", pod.Name, container)
 			if err != nil {
-				lines = aurora.Sprintf(aurora.Red(err.Error()))
+				lines = aurora.Sprintf("Failed to get container log: '%s'", aurora.Red(err.Error()))
 			}
-			logs += lines
+			if lines != "" {
+				logs = append(logs, lines)
+			}
 		}
-		content.logs = logs
+		content.logs = strings.Join(logs, "\n")
 		time.Sleep(60 * time.Second)
 	}
 }
@@ -199,7 +248,7 @@ func (h *memoryOutputHandler) display() error {
 	writer := uilive.New()
 	writer.Start()
 	for {
-		var lines string
+		var lines []string
 		h.RLock()
 		keys := make([]string, 0, len(h.contents))
 		for k := range h.contents {
@@ -208,13 +257,13 @@ func (h *memoryOutputHandler) display() error {
 		sort.Strings(keys)
 		for _, k := range keys {
 			content := h.contents[k]
-			lines += fmt.Sprintf("%s\n", content.Header())
+			lines = append(lines, content.Header())
 			if content.logs != "" {
-				lines += fmt.Sprintf("%s\n", content.logs)
+				lines = append(lines, content.logs)
 			}
 		}
 		h.RUnlock()
-		if _, err := fmt.Fprintf(writer, lines); err != nil {
+		if _, err := fmt.Fprintf(writer, fmt.Sprintf("%s\n", strings.Join(lines, "\n"))); err != nil {
 			return err
 		}
 		time.Sleep(5 * time.Second)
