@@ -3,6 +3,7 @@ package prow
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -133,7 +134,13 @@ func (h *memoryOutputHandler) display() error {
 	for {
 		var lines string
 		h.RLock()
-		for _, content := range h.contents {
+		keys := make([]string, 0, len(h.contents))
+		for k := range h.contents {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			content := h.contents[k]
 			lines += fmt.Sprintf("%s\n", content.Header())
 			for _, logLine := range content.logs {
 				lines += fmt.Sprintf("%s\n", logLine)
