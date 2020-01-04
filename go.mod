@@ -44,6 +44,7 @@ require (
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
+	github.com/nlopes/slack v0.6.0
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0
 	github.com/openshift/api v3.9.1-0.20190927132434-86c3b775619d+incompatible
