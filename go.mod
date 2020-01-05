@@ -47,8 +47,8 @@ require (
 	github.com/nlopes/slack v0.6.0
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0
-	github.com/openshift/api v3.9.1-0.20190927132434-86c3b775619d+incompatible
-	github.com/openshift/client-go v0.0.0-20190923180330-3b6373338c9b
+	github.com/openshift/api v0.0.0-20191219222812-2987a591a72c
+	github.com/openshift/client-go v0.0.0-20191125132246-f6563a70e19a
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
 	github.com/prometheus/common v0.2.0 // indirect
@@ -77,9 +77,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.7
-	k8s.io/api v0.0.0-20190927115716-5d581ce610b0
-	k8s.io/apimachinery v0.0.0-20190927035529-0104e33c351d
-	k8s.io/client-go v0.0.0-20190620085101-78d2af792bab
-	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d // indirect
-	k8s.io/utils v0.0.0-20190923111123-69764acb6e8e // indirect
+	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
+	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655
+	k8s.io/client-go v0.0.0-20190918160344-1fbdaa4c8d90
 )
