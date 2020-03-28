@@ -1,10 +1,13 @@
 ---
 groupName: abc
-  - at: '2021-01-01T00:00:00Z'
+scheduledActions:
+  -
+    at: "2021-01-01T00:00:00Z"
     members:
       - a
       - b
-  - at: '2020-01-01T00:00:00Z'
+  -
+    at: "2020-01-01T00:00:00Z"
     members:
       - a
       - b
