@@ -32,6 +32,8 @@ var (
 	ss       *ServiceStatus
 	log      *logrus.Logger
 	helper   k8sHelper
+
+	client = resty.New()
 )
 
 // Check ...
@@ -228,7 +230,7 @@ func getK8SHelper() k8sHelper {
 }
 
 func updateStatus(now time.Time) {
-	resp, err := resty.R().Get(ss.Url)
+	resp, err := client.R().Get(ss.Url)
 	if err != nil {
 		log.WithError(err).Error("error occurred when getting status from web server")
 	}
