@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/resty.v1"
 )
 
 const (

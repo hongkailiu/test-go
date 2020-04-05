@@ -22,6 +22,7 @@ require (
 	github.com/go-openapi/swag v0.19.5
 	github.com/go-openapi/validate v0.18.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-resty/resty/v2 v2.2.0
 	github.com/go-stomp/stomp v2.0.2+incompatible
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -62,7 +63,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	go.opencensus.io v0.22.1 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
-	golang.org/x/net v0.0.0-20190926025831-c00fd9afed17
+	golang.org/x/net v0.0.0-20200222125558-5a598a2470a0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0 // indirect
@@ -75,7 +76,6 @@ require (
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/gormigrate.v1 v1.6.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/resty.v1 v1.12.0
 	gopkg.in/yaml.v2 v2.2.7
 	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655

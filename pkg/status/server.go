@@ -14,11 +14,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/gorilla/websocket"
 	"github.com/robfig/cron"
 	"github.com/sirupsen/logrus"
-
-	"gopkg.in/resty.v1"
 
 	"github.com/hongkailiu/test-go/pkg/quay"
 )
