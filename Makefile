@@ -106,10 +106,10 @@ endif
 .PHONY : gen-images
 gen-images:
 	docker build --label "version=$$(git describe --tags --always --dirty)" --label "url=https://github.com/hongkailiu/test-go" -f test_files/docker/Dockerfile.testctl.txt -t quay.io/hongkailiu/test-go:testctl-travis .
-ifeq ($(TRAVIS)$(findstring go1.13,$(go_version))$(build_ocptf_image), truego1.13true)
+ifeq ($(TRAVIS)$(findstring go1.14,$(go_version))$(build_ocptf_image), truego1.14true)
 	docker build -f test_files/docker/Dockerfile.ocptf.txt -t quay.io/hongkailiu/test-go:ocptf-travis .
 endif
-ifeq ($(TRAVIS)$(findstring go1.13,$(go_version)), truego1.13)
+ifeq ($(TRAVIS)$(findstring go1.14,$(go_version)), truego1.14)
 	docker tag quay.io/hongkailiu/test-go:testctl-travis "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
 	echo "$(quay_cli_password)" | docker login -u hongkailiu quay.io --password-stdin
 	docker push "quay.io/hongkailiu/ci-staging:testctl-$(USER)-${TRAVIS_JOB_NUMBER}"
