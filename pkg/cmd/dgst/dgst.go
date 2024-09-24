@@ -52,8 +52,7 @@ func Run(o Option, key string) error {
 		if err != nil {
 			return fmt.Errorf("failed to parse the private key: %w", err)
 		}
-
-		signature, err := rsa.SignPSS(rand.Reader, privateKey.(*rsa.PrivateKey), crypto.SHA1, msgHashSum, nil)
+		signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey.(*rsa.PrivateKey), crypto.SHA1, msgHashSum)
 		if err != nil {
 			return fmt.Errorf("failed to sign: %w", err)
 		}
@@ -76,7 +75,7 @@ func Run(o Option, key string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
-		err = rsa.VerifyPSS(publicKey.(*rsa.PublicKey), crypto.SHA1, msgHashSum, signature, nil)
+		err = rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA1, msgHashSum, signature)
 		if err != nil {
 			return fmt.Errorf("failed to verify: %w", err)
 		}
