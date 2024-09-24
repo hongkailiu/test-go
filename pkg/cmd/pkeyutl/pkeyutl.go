@@ -3,7 +3,6 @@ package pkeyutl
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha512"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -46,7 +45,7 @@ func Run(o Option) error {
 			return fmt.Errorf("failed to parse the public key: %w", err)
 		}
 
-		ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey.(*rsa.PublicKey), inBytes, nil)
+		ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, publicKey.(*rsa.PublicKey), inBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt: %w", err)
 		}
@@ -54,6 +53,7 @@ func Run(o Option) error {
 		if err := os.WriteFile(o.Out, ciphertext, 0644); err != nil {
 			return fmt.Errorf("failed to write to file: %w", err)
 		}
+		log.WithField("out", o.Out).Info("Saved output")
 	}
 
 	if o.Decrypt {
@@ -67,8 +67,7 @@ func Run(o Option) error {
 			return fmt.Errorf("failed to parse the private key: %w", err)
 		}
 
-		hash := sha512.New()
-		plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey.(*rsa.PrivateKey), inBytes, nil)
+		plaintext, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey.(*rsa.PrivateKey), inBytes)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt: %w", err)
 		}
@@ -76,6 +75,7 @@ func Run(o Option) error {
 		if err := os.WriteFile(o.Out, plaintext, 0644); err != nil {
 			return fmt.Errorf("failed to write to file: %w", err)
 		}
+		log.WithField("out", o.Out).Info("Saved output")
 	}
 	return nil
 }

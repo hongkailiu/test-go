@@ -7,9 +7,10 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Option struct {
@@ -20,6 +21,8 @@ type Option struct {
 	Md        string
 	In        string
 	Out       string
+	// TODO support -k key and -iv IV
+	// It seems how generation of key/IV depends on the implementation
 }
 
 func Run(o Option) error {
@@ -50,7 +53,18 @@ func Run(o Option) error {
 		return fmt.Errorf("failed to hash: %w", err)
 	}
 	iv := d.Sum(nil)[:aes.BlockSize]
-
+	if o.P {
+		fmt.Printf("key=")
+		for _, b := range key {
+			fmt.Printf("%02X", b)
+		}
+		fmt.Println()
+		fmt.Printf("iv =")
+		for _, b := range iv {
+			fmt.Printf("%02X", b)
+		}
+		fmt.Println()
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return fmt.Errorf("failed to create aes cipher: %w", err)
@@ -77,6 +91,7 @@ func Run(o Option) error {
 		if err := os.WriteFile(o.Out, plaintext, 0644); err != nil {
 			return fmt.Errorf("failed to write to file: %w", err)
 		}
+		log.WithField("out", o.Out).Info("Saved output")
 	} else {
 		plaintext := pad(inBytes, aes.BlockSize)
 		ciphertext := make([]byte, len(plaintext))
@@ -85,6 +100,7 @@ func Run(o Option) error {
 		if err := os.WriteFile(o.Out, ciphertext, 0644); err != nil {
 			return fmt.Errorf("failed to write to file: %w", err)
 		}
+		log.WithField("out", o.Out).Info("Saved output")
 	}
 	return nil
 }
