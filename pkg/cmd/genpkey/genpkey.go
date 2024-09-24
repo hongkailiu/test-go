@@ -43,20 +43,22 @@ func Run(o Option) error {
 
 	log.Debug("Private key generated")
 
-	// Get ASN.1 DER format
-	privDER := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal the private key: %w", err)
+	}
 
 	// pem.Block
 	privBlock := pem.Block{
-		Type:    "RSA PRIVATE KEY",
+		Type:    "PRIVATE KEY",
 		Headers: nil,
-		Bytes:   privDER,
+		Bytes:   privateKeyBytes,
 	}
 
 	// Private key in PEM format
-	privateKeyBytes := pem.EncodeToMemory(&privBlock)
+	pemBytes := pem.EncodeToMemory(&privBlock)
 
-	if err := os.WriteFile(o.Out, privateKeyBytes, 0600); err != nil {
+	if err := os.WriteFile(o.Out, pemBytes, 0600); err != nil {
 		return fmt.Errorf("failed to write to file: %w", err)
 	}
 

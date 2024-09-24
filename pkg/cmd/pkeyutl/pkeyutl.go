@@ -41,12 +41,12 @@ func Run(o Option) error {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
 		block, _ := pem.Decode(bytes)
-		publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+		publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse the public key: %w", err)
 		}
 
-		ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, inBytes, nil)
+		ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey.(*rsa.PublicKey), inBytes, nil)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt: %w", err)
 		}
@@ -62,13 +62,13 @@ func Run(o Option) error {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
 		block, _ := pem.Decode(bytes)
-		privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse the private key: %w", err)
 		}
 
 		hash := sha512.New()
-		plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey, inBytes, nil)
+		plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privateKey.(*rsa.PrivateKey), inBytes, nil)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt: %w", err)
 		}

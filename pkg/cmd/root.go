@@ -48,6 +48,7 @@ func init() {
 	genpkeyCmd.Flags().StringVarP(&genpkeyOption.Out, "out", "", "", "Output (private key) file")
 
 	pkeyCmd.Flags().StringVarP(&pkeyOption.In, "in", "", "", "Input key")
+	pkeyCmd.Flags().BoolVarP(&pkeyOption.PubIn, "pubin", "", false, "Read only public components from key input")
 	pkeyCmd.Flags().BoolVarP(&pkeyOption.PubOut, "pubout", "", false, "Restrict encoded output to public components")
 	pkeyCmd.Flags().BoolVarP(&pkeyOption.Text, "text", "", false, "Output key components in plaintext")
 	pkeyCmd.Flags().BoolVarP(&pkeyOption.NoOut, "noout", "", false, "Do not output the key in encoded form")

@@ -48,12 +48,12 @@ func Run(o Option, key string) error {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
 		block, _ := pem.Decode(bytes)
-		privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse the private key: %w", err)
 		}
 
-		signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA1, msgHashSum, nil)
+		signature, err := rsa.SignPSS(rand.Reader, privateKey.(*rsa.PrivateKey), crypto.SHA1, msgHashSum, nil)
 		if err != nil {
 			return fmt.Errorf("failed to sign: %w", err)
 		}
@@ -67,7 +67,7 @@ func Run(o Option, key string) error {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
 		block, _ := pem.Decode(bytes)
-		publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+		publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
 			return fmt.Errorf("failed to parse the public key: %w", err)
 		}
@@ -76,7 +76,7 @@ func Run(o Option, key string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read file: %w", err)
 		}
-		err = rsa.VerifyPSS(publicKey, crypto.SHA1, msgHashSum, signature, nil)
+		err = rsa.VerifyPSS(publicKey.(*rsa.PublicKey), crypto.SHA1, msgHashSum, signature, nil)
 		if err != nil {
 			return fmt.Errorf("failed to verify: %w", err)
 		}

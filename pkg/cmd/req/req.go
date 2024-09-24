@@ -2,6 +2,7 @@ package req
 
 import (
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -42,7 +43,8 @@ func Run(o Option) error {
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 	block, _ := pem.Decode(bytes)
-	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	privateKey := key.(*rsa.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse the private key: %w", err)
 	}
@@ -112,11 +114,11 @@ func Run(o Option) error {
 		if err != nil {
 			return fmt.Errorf("failed to create certificate request: %w", err)
 		}
-		certificateReqestbytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes})
+		certificateReqestBytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes})
 
 		log.Debug("Certificate request generated")
 
-		if err := os.WriteFile(o.Out, certificateReqestbytes, 0644); err != nil {
+		if err := os.WriteFile(o.Out, certificateReqestBytes, 0644); err != nil {
 			return fmt.Errorf("failed to write to file: %w", err)
 		}
 

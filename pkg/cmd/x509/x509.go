@@ -40,7 +40,10 @@ func Run(o Option) error {
 		WithField("in", o.In).
 		WithField("out", o.Out).
 		WithField("pubkey", o.PubKey).
-		Debug("pkey")
+		Debug("x509")
+
+	// TODO Aside: viewing the certificate as text
+	// openssl x509 -in Alice.crt -text -noout
 
 	if o.PubKey {
 		bytes, err := os.ReadFile(o.In)
@@ -75,7 +78,8 @@ func Run(o Option) error {
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 	block, _ := pem.Decode(bytes)
-	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	privateKey := key.(*rsa.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("failed to parse the private key: %w", err)
 	}
