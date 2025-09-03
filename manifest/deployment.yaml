@@ -30,12 +30,17 @@ spec:
           startupProbe:
             periodSeconds: 30
             httpGet:
-              path: /graph
+              path: /healthz
               port: 8080
               scheme: HTTP
           readinessProbe:
             httpGet:
-              path: /graph
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+          livenessProbe:
+            httpGet:
+              path: /healthz
               port: 8080
               scheme: HTTP
           ports:
