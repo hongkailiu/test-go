@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -16,14 +15,15 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/leaderelection"
 	rl "k8s.io/client-go/tools/leaderelection/resourcelock"
+	"resty.dev/v3"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/prow/pkg/interrupts"
 )
 
 var (
-	leader          atomic.Value
-	identity        = fmt.Sprintf("%d", os.Getpid())
-	registryService RegistryService
+	leader       atomic.Value
+	myIdentity   = fmt.Sprintf("%d", os.Getpid())
+	graphService GraphService
 )
 
 type options struct {
@@ -38,15 +38,16 @@ func main() {
 	flag.IntVar(&opts.port, "port", 8080, "port to serve on")
 	flag.StringVar(&opts.lockNamespace, "lock-namespace", "hongkliu-test", "namespace of lock")
 	flag.StringVar(&opts.lockName, "lock-name", "graph-builder-lock", "namespace of lock")
-	flag.DurationVar(&opts.registryLoadInterval, "registry-load-interval", 30*time.Second, "Timeout for the operation")
+	flag.DurationVar(&opts.registryLoadInterval, "registry-load-interval", 30*time.Minute, "Timeout for the operation")
 
-	registryService = &simpleRegistryService{interval: opts.registryLoadInterval}
-	registryService.Start()
+	flag.Parse()
+
+	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 
 	// pod name first
 	podName := os.Getenv("HOSTNAME")
 	if podName != "" {
-		identity = podName
+		myIdentity = podName
 	}
 
 	// Get the active kubernetes context
@@ -61,7 +62,7 @@ func main() {
 		opts.lockNamespace,
 		opts.lockName,
 		rl.ResourceLockConfig{
-			Identity: identity,
+			Identity: myIdentity,
 		},
 		cfg,
 		time.Second*10,
@@ -82,7 +83,7 @@ func main() {
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
 				logrus.Info("I am the leader!")
-				if err := registryService.Load(); err != nil {
+				if err := graphService.Load(ctx); err != nil {
 					logrus.WithError(err).Error("Error loading registry")
 				}
 			},
@@ -90,9 +91,12 @@ func main() {
 				logrus.Info("I am not the leader anymore!")
 			},
 			OnNewLeader: func(identity string) {
-				fmt.Printf("the leader is %s\n", identity)
-				logrus.WithField("identity", identity).Info("The new leader is elected")
 				leader.Store(identity)
+				logrus.WithField("isLeader", isLeader()).
+					WithField("myIdentity", myIdentity).
+					WithField("identity", identity).
+					Info("The new leader is elected")
+
 			},
 		},
 	})
@@ -101,106 +105,63 @@ func main() {
 	}
 
 	ctx := interrupts.Context()
-
 	// Begin the leader election process. This will block.
 	go func() {
 		el.Run(ctx)
 	}()
 
+	if err := wait.PollUntilContextTimeout(ctx, time.Second, time.Minute, true, func(_ context.Context) (done bool, err error) {
+		_, err = GetLeader()
+		if err != nil {
+			if errors.Is(err, NoLeaderError) {
+				return false, nil
+			}
+			return false, fmt.Errorf("failed to get leader: %w", err)
+		}
+		return true, nil
+	}); err != nil {
+		logrus.WithError(err).Fatal("Error getting leader")
+	}
+
+	client := resty.New()
+	defer func() {
+		if err := client.Close(); err != nil {
+			logrus.WithError(err).Error("failed to close client")
+		}
+	}()
+
+	graphService = &simpleGraphService{interval: opts.registryLoadInterval, port: opts.port, client: client, inCluster: podName != ""}
+	graphService.Start(ctx)
+
 	server := &http.Server{
-		Addr:    ":" + strconv.Itoa(opts.port),
-		Handler: getRouter(ctx, registryService),
+		Addr: ":" + strconv.Itoa(opts.port),
+		//Addr:    ":" + strconv.Itoa(8081),
+		Handler: getRouter(ctx, graphService),
 	}
 	interrupts.ListenAndServe(server, time.Second*10)
-
 	interrupts.WaitForGracefulShutdown()
 }
 
-func getRouter(ctx context.Context, registryService RegistryService) *http.ServeMux {
-	handler := http.NewServeMux()
-
-	handler.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprintf(w, "ok")
-	})
-
-	handler.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
-		registry, err := registryService.Get(ctx)
-		if err != nil {
-			logrus.WithError(err).Error("Error loading registry data")
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(registry); err != nil {
-			logrus.WithError(err).WithField("registry", registry).Error("failed to encode page")
-		}
-	})
-
-	return handler
-}
-
-type Registry struct {
+type Graph struct {
 	Data string `json:"data"`
 }
 
-type RegistryService interface {
-	Start()
-	Get(ctx context.Context) (*Registry, error)
-	Load() error
-}
-
-type simpleRegistryService struct {
-	lock         sync.Mutex
-	registry     *Registry
-	lastModified time.Time
-	interval     time.Duration
-}
-
-func (s *simpleRegistryService) Start() {
-	interrupts.TickLiteral(func() {
-		if err := s.Load(); err != nil {
-			logrus.WithError(err).Error("Error loading registry")
-		}
-	}, s.interval)
-}
-
-func (s *simpleRegistryService) Load() error {
-	if s.registry != nil && time.Since(s.lastModified) < s.interval {
-		return nil
-	}
-
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	if isLeader() {
-		logrus.Info("Leader loading ...")
-		// simulate the hard work
-		time.Sleep(30 * time.Second)
-		s.registry = &Registry{Data: "Cool registry Data"}
-		s.lastModified = time.Now()
-		logrus.Info("Leader loaded")
-	} else {
-		// TODO cache is from the leader
-		return fmt.Errorf("not a leader")
-	}
-	return nil
-}
-
-func (s *simpleRegistryService) Get(ctx context.Context) (*Registry, error) {
-	err := wait.PollUntilContextCancel(ctx, 1*time.Second, true, func(_ context.Context) (done bool, err error) {
-		if s.registry == nil {
-			logrus.Info("No registry available, waiting...")
-			return false, nil
-		}
-		return true, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return s.registry, nil
+type GraphService interface {
+	Start(ctx context.Context)
+	Get(ctx context.Context) (*Graph, error)
+	Load(ctx context.Context) error
 }
 
 func isLeader() bool {
 	s, ok := leader.Load().(string)
-	return ok && s == identity
+	return ok && s == myIdentity
+}
+
+var NoLeaderError = errors.New("no leader found")
+
+func GetLeader() (string, error) {
+	if s, ok := leader.Load().(string); ok {
+		return s, nil
+	}
+	return "", NoLeaderError
 }

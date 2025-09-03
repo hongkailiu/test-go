@@ -6,6 +6,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	k8s.io/apimachinery v0.34.0
 	k8s.io/client-go v0.34.0
+	resty.dev/v3 v3.0.0-beta.3
 	sigs.k8s.io/controller-runtime v0.22.0
 	sigs.k8s.io/prow v0.0.0-20250902114313-ccceec7a2ab4
 )
