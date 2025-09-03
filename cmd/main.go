@@ -108,8 +108,8 @@ func main() {
 	}
 
 	ctx := interrupts.Context()
-	// Begin the leader election process. This will block.
 	go func() {
+		// Begin the leader election process. This will block.
 		el.Run(ctx)
 	}()
 
