@@ -33,7 +33,9 @@ func getRouter(ctx context.Context, graphService GraphService) *http.ServeMux {
 			return
 		}
 		_, err = fmt.Fprintf(w, "OK")
-		logrus.WithError(err).Error("failed to write response")
+		if err != nil {
+			logrus.WithError(err).Error("failed to write response")
+		}
 	})
 
 	return handler
