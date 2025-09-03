@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 func getRouter(ctx context.Context, graphService GraphService) *http.ServeMux {

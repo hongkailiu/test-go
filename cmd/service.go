@@ -76,6 +76,9 @@ func getGraphFromLeader(client *resty.Client, podNamespace, ip string, port int)
 	var g Graph
 	res, err := client.R().
 		SetResult(&g).
+		// TODO: access the service (instead of leader's pod) to get the graph?
+		// It should work as the pod has readiness probe
+		// It helps distribute workload to all pods
 		Get(fmt.Sprintf("http://%s.%s.pod.cluster.local:%d/graph", ip, podNamespace, port))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get graph from leader: %w", err)
