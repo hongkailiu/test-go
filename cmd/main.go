@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/leaderelection"
@@ -53,7 +53,6 @@ func main() {
 
 	podNamespace := os.Getenv("POD_NAMESPACE")
 
-	// Get the active kubernetes context
 	cfg, err := ctrl.GetConfig()
 	if err != nil {
 		logrus.WithError(err).Fatal("Error getting config")
@@ -74,9 +73,7 @@ func main() {
 		logrus.WithError(err).Fatal("Error creating lock")
 	}
 
-	// Create a new leader election configuration with a 15 second lease duration.
-	// Visit https://pkg.go.dev/k8s.io/client-go/tools/leaderelection#LeaderElectionConfig
-	// for more information on the LeaderElectionConfig struct fields
+	// Create a new leader election configuration with a 15s lease duration.
 	el, err := leaderelection.NewLeaderElector(leaderelection.LeaderElectionConfig{
 		Lock:          l,
 		LeaseDuration: time.Second * 15,
