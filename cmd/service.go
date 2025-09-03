@@ -38,12 +38,12 @@ func (s *simpleGraphService) Start(ctx context.Context) {
 }
 
 func (s *simpleGraphService) Load(_ context.Context) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
 	if s.graph != nil && time.Since(s.lastModified) < s.interval {
 		return nil
 	}
-
-	s.lock.Lock()
-	defer s.lock.Unlock()
 
 	if isLeader() {
 		logrus.Info("Leader loading ...")

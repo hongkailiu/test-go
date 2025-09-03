@@ -17,7 +17,7 @@ spec:
       serviceAccountName: graph-builder
       containers:
         - name: graph-builder
-          image: quay.io/hongkliu/test:graph-builder-011
+          image: quay.io/hongkliu/test:graph-builder-012
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -27,6 +27,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+          startupProbe:
+            periodSeconds: 30
+            httpGet:
+              path: /graph
+              port: 8080
+              scheme: HTTP
           readinessProbe:
             httpGet:
               path: /graph
