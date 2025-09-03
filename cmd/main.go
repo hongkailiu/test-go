@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
 	"strconv"
@@ -132,13 +133,18 @@ func main() {
 		}
 	}()
 
-	graphService = &simpleGraphService{interval: opts.registryLoadInterval, port: opts.port, client: client, inCluster: os.Getenv("KUBERNETES_SERVICE_HOST") != "" && os.Getenv("KUBERNETES_SERVICE_PORT") != "", podNamespace: podNamespace}
+	graphService = &simpleGraphService{
+		interval: opts.registryLoadInterval,
+		port:     opts.port, client: client,
+		inCluster:    os.Getenv("KUBERNETES_SERVICE_HOST") != "" && os.Getenv("KUBERNETES_SERVICE_PORT") != "",
+		podNamespace: podNamespace,
+		myIdentity:   myIdentity,
+	}
 	graphService.Start(ctx)
 
 	server := &http.Server{
-		Addr: ":" + strconv.Itoa(opts.port),
-		//Addr:    ":" + strconv.Itoa(8081),
-		Handler: getRouter(ctx, graphService),
+		Addr:    ":" + strconv.Itoa(opts.port),
+		Handler: handlers.LoggingHandler(os.Stdout, getRouter(ctx, graphService)),
 	}
 	interrupts.ListenAndServe(server, time.Second*10)
 	interrupts.WaitForGracefulShutdown()

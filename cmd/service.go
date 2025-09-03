@@ -21,14 +21,20 @@ type simpleGraphService struct {
 	graph        *Graph
 	lastModified time.Time
 	interval     time.Duration
+	myIdentity   string
 }
 
 func (s *simpleGraphService) Start(ctx context.Context) {
+	interval := 30 * time.Second
+	if isLeader() {
+		interval = s.interval
+	}
+
 	interrupts.TickLiteral(func() {
 		if err := s.Load(ctx); err != nil {
-			logrus.WithError(err).WithField("interval", s.interval).Error("Error loading graph and will retry")
+			logrus.WithError(err).WithField("myIdentity", s.myIdentity).WithField("interval", interval).Error("Error loading graph and will retry")
 		}
-	}, s.interval)
+	}, interval)
 }
 
 func (s *simpleGraphService) Load(_ context.Context) error {
@@ -46,7 +52,7 @@ func (s *simpleGraphService) Load(_ context.Context) error {
 		s.refresh(&Graph{Data: "Cool graph Data"})
 		logrus.Info("Leader loaded")
 	} else {
-		logrus.Info("Leader loading as non-leader ...")
+		logrus.WithField("myIdentity", s.myIdentity).Info("Leader loading as non-leader ...")
 		if !s.inCluster {
 			return errors.New("cannot load from non-leader if not running in cluster")
 		}
@@ -56,10 +62,12 @@ func (s *simpleGraphService) Load(_ context.Context) error {
 		}
 		graph, err := getGraphFromLeader(s.client, s.podNamespace, leaderIdentity, s.port)
 		if err != nil {
-			return fmt.Errorf("failed to get graph from leader: %w", err)
+			return fmt.Errorf("failed to get graph from leader %s: %w", leaderIdentity, err)
 		}
 		s.refresh(graph)
-		logrus.Info("Leader loaded as non-leader")
+		logrus.WithField("myIdentity", s.myIdentity).
+			WithField("leader", leaderIdentity).
+			Info("Leader loaded as non-leader")
 	}
 	return nil
 }

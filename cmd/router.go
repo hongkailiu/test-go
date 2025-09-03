@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-	
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func getRouter(ctx context.Context, graphService GraphService) *http.ServeMux {
 	handler := http.NewServeMux()
 
 	handler.HandleFunc("/graph", func(w http.ResponseWriter, r *http.Request) {
+
 		registry, err := graphService.Get(ctx)
 		if err != nil {
 			logrus.WithError(err).Error("Error loading registry data")

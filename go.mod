@@ -3,6 +3,7 @@ module github.com/hongkailiu/test-go/cmd
 go 1.24.0
 
 require (
+	github.com/gorilla/handlers v1.4.2
 	github.com/sirupsen/logrus v1.9.3
 	k8s.io/apimachinery v0.34.0
 	k8s.io/client-go v0.34.0
