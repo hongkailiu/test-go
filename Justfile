@@ -4,13 +4,16 @@ deploy_cincinnati:
     oc apply -n "{{cincinnati_namespace}}" -f './manifest/*.yaml'
 
 
-test_cincinnati: deploy_cincinnati
-    #!/usr/bin/env bash
+scale-exercise: deploy_cincinnati
+    oc -n "{{cincinnati_namespace}}" scale --replicas=0 deployment graph-builder --timeout=120s
     oc -n "{{cincinnati_namespace}}" delete pod -l app=graph-builder --wait
-    oc -n "{{cincinnati_namespace}}" scale --replicas=2 deployment graph-builder --timeout=30s
+    oc -n "{{cincinnati_namespace}}" scale --replicas=2 deployment graph-builder --timeout=120s
     oc -n "{{cincinnati_namespace}}" wait --timeout=180s --for=condition=Available deployment -l app=graph-builder
     oc -n "{{cincinnati_namespace}}" scale --replicas=3 deployment graph-builder --timeout=30s
-    oc -n "{{cincinnati_namespace}}" wait --timeout=180s --for=condition=Available deployment -l app=graph-builder
+    oc -n "{{cincinnati_namespace}}" wait --timeout=60s --for=condition=Available deployment -l app=graph-builder
+
+test_cincinnati: deploy_cincinnati scale-exercise
+    #!/usr/bin/env bash
     set -euxo pipefail
     while read -r pod_name
     do

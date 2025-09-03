@@ -48,7 +48,7 @@ func (s *simpleGraphService) Load(_ context.Context) error {
 	if isLeader() {
 		logrus.Info("Leader loading ...")
 		// simulate the hard work
-		time.Sleep(30 * time.Second)
+		time.Sleep(100 * time.Second)
 		s.refresh(&Graph{Data: "Cool graph Data"})
 		logrus.Info("Leader loaded")
 	} else {
