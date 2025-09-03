@@ -17,7 +17,7 @@ spec:
       serviceAccountName: graph-builder
       containers:
         - name: graph-builder
-          image: quay.io/hongkliu/test:graph-builder-012
+          image: quay.io/hongkliu/test:graph-builder-013
           env:
             - name: POD_NAMESPACE
               valueFrom:
