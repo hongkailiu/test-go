@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -44,11 +45,12 @@ func main() {
 
 	logrus.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
 
-	// pod name first
-	podName := os.Getenv("HOSTNAME")
-	if podName != "" {
-		myIdentity = podName
+	podIP := os.Getenv("POD_IP")
+	if podIP != "" {
+		myIdentity = strings.ReplaceAll(podIP, ".", "-")
 	}
+
+	podNamespace := os.Getenv("POD_NAMESPACE")
 
 	// Get the active kubernetes context
 	cfg, err := ctrl.GetConfig()
@@ -130,7 +132,7 @@ func main() {
 		}
 	}()
 
-	graphService = &simpleGraphService{interval: opts.registryLoadInterval, port: opts.port, client: client, inCluster: podName != ""}
+	graphService = &simpleGraphService{interval: opts.registryLoadInterval, port: opts.port, client: client, inCluster: os.Getenv("KUBERNETES_SERVICE_HOST") != "" && os.Getenv("KUBERNETES_SERVICE_PORT") != "", podNamespace: podNamespace}
 	graphService.Start(ctx)
 
 	server := &http.Server{

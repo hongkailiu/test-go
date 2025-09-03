@@ -14,6 +14,7 @@ import (
 
 type simpleGraphService struct {
 	inCluster    bool
+	podNamespace string
 	client       *resty.Client
 	port         int
 	lock         sync.Mutex
@@ -25,7 +26,7 @@ type simpleGraphService struct {
 func (s *simpleGraphService) Start(ctx context.Context) {
 	interrupts.TickLiteral(func() {
 		if err := s.Load(ctx); err != nil {
-			logrus.WithError(err).WithField("interval", s.interval).Error("Error loading registry and will retry")
+			logrus.WithError(err).WithField("interval", s.interval).Error("Error loading graph and will retry")
 		}
 	}, s.interval)
 }
@@ -42,34 +43,34 @@ func (s *simpleGraphService) Load(_ context.Context) error {
 		logrus.Info("Leader loading ...")
 		// simulate the hard work
 		time.Sleep(30 * time.Second)
-		s.refresh(&Graph{Data: "Cool registry Data"})
+		s.refresh(&Graph{Data: "Cool graph Data"})
 		logrus.Info("Leader loaded")
 	} else {
 		logrus.Info("Leader loading as non-leader ...")
 		if !s.inCluster {
 			return errors.New("cannot load from non-leader if not running in cluster")
 		}
-		leaderHostname, err := GetLeader()
+		leaderIdentity, err := GetLeader()
 		if err != nil {
 			return fmt.Errorf("failed to get leader: %w", err)
 		}
-		registry, err := getGraphFromLeader(s.client, leaderHostname, s.port)
+		graph, err := getGraphFromLeader(s.client, s.podNamespace, leaderIdentity, s.port)
 		if err != nil {
-			return fmt.Errorf("failed to get registry from leader: %w", err)
+			return fmt.Errorf("failed to get graph from leader: %w", err)
 		}
-		s.refresh(registry)
+		s.refresh(graph)
 		logrus.Info("Leader loaded as non-leader")
 	}
 	return nil
 }
 
-func getGraphFromLeader(client *resty.Client, hostname string, port int) (*Graph, error) {
+func getGraphFromLeader(client *resty.Client, podNamespace, ip string, port int) (*Graph, error) {
 	var g Graph
 	res, err := client.R().
 		SetResult(&g).
-		Get(fmt.Sprintf("http://%s:%d/registry", hostname, port))
+		Get(fmt.Sprintf("http://%s.%s.pod.cluster.local:%d/graph", ip, podNamespace, port))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get registry from leader: %w", err)
+		return nil, fmt.Errorf("failed to get graph from leader: %w", err)
 	}
 	if statusCode := res.StatusCode(); statusCode != 200 {
 		return nil, fmt.Errorf("received an unexpected status code from from leader: %d", statusCode)
