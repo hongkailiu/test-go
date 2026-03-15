@@ -3,22 +3,36 @@ package cincinnati
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-func Start(addr ...string) error {
-	r := gin.Default()
-	repo := Repo{}
-	g := NewGraphGenerator(repo.tagsToNode)
+type Options struct {
+	Address      string
+	Registry     string
+	Repo         string
+	GraphDataDir string
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+	MockDir        string
+	GraphFile      string
+	GracePeriod    time.Duration
+	MaxConcurrency int
+}
+
+func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
+	r := gin.Default()
+
+	r.GET("/readyz", func(c *gin.Context) {
+		if ready := gb.Ready(); ready {
+			c.Status(http.StatusOK)
+		} else {
+			c.Status(http.StatusServiceUnavailable)
+		}
 	})
+
 	r.GET("/upgrades_info/v1/graph", func(c *gin.Context) {
 		channel := c.Query("channel")
 		if channel == "" {
@@ -49,7 +63,7 @@ func Start(addr ...string) error {
 			params.Id = id
 		}
 
-		graph, err := g.Generate(params)
+		graph, err := gb.Build(params)
 		if err != nil {
 			logrus.WithError(err).Error("Error generating graph")
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -59,5 +73,6 @@ func Start(addr ...string) error {
 		}
 		c.JSON(http.StatusOK, graph)
 	})
-	return r.Run(addr...)
+
+	return r.Handler()
 }

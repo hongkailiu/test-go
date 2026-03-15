@@ -5,15 +5,23 @@ imports:
 	gci write --custom-order -s standard -s default -s "prefix(k8s.io)" -s "prefix(github.com/openshift)" -s localmodule --skip-vendor .
 .PHONY: imports
 
-verify-go:
+generate-go:
 	go fmt ./...
 	go mod tidy
-	git diff --exit-code
-.PHONY: verify-go
+.PHONY: generate-go
 
-verify: imports verify-go
+unit:
+	go test ./...
+.PHONY: unit
+
+test: unit
+.PHONY: test
+
+verify: test imports generate-go
+	git diff --exit-code
 .PHONY: verify
 
-run:
-	go run ./cmd/cincinnati
-.PHONY: run
+
+image:
+	echo TODO
+.PHONY: image

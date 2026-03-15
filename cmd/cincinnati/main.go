@@ -2,17 +2,20 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
+	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/prow/pkg/interrupts"
 
 	"github.com/hongkailiu/test-go/pkg/cincinnati"
 )
 
-var (
-	port int
-)
+var opts cincinnati.Options
 
 var rootCmd = &cobra.Command{
 	Use:   "cincinnati",
@@ -21,14 +24,59 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: get the level from an arg
 		logrus.SetLevel(logrus.DebugLevel)
-		if err := cincinnati.Start(fmt.Sprintf(":%d", port)); err != nil {
-			logrus.WithError(err).Error("Error starting server")
+
+		client := retryablehttp.NewClient()
+		client.HTTPClient.Timeout = 30 * time.Second
+		client.RetryMax = 3
+		client.RetryWaitMin = 1 * time.Second
+		client.RetryWaitMax = 5 * time.Second
+
+		c := cache.New(5*time.Minute, 10*time.Minute)
+
+		ctx := interrupts.Context()
+
+		repo := cincinnati.NewRepo(ctx, client.StandardClient(),
+			opts.Registry, opts.Repo, opts.MockDir, opts.MaxConcurrency, c)
+		gb := cincinnati.NewGraphBuilder(ctx, opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
+		if err := gb.Start(); err != nil {
+			logrus.WithError(err).Fatal("Failed to start server")
 		}
+
+		server := &http.Server{
+			Addr:    opts.Address,
+			Handler: cincinnati.GetHandler(opts, gb),
+		}
+
+		server.RegisterOnShutdown(func() {
+			logrus.Info("Shutting down server")
+			interrupts.Terminate()
+		})
+		interrupts.ListenAndServe(server, opts.GracePeriod)
+
+		interrupts.WaitForGracefulShutdown()
+		logrus.Info("Process ended gracefully")
 	},
 }
 
 func init() {
-	rootCmd.Flags().IntVarP(&port, "port", "p", 8080, "Port to run the server on")
+	rootCmd.Flags().StringVar(&opts.Address, "address", ":8080", "Address to run the server with")
+	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
+	rootCmd.Flags().StringVar(&opts.MockDir, "graph-data-dir", "/tmp/cincinnati/graph-data", "Path to the directory containing graph data")
+	rootCmd.Flags().StringVar(&opts.Registry, "registry", "https://quay.io", "Registry URL")
+	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
+	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "./data/graph.json", "Graph file path")
+	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
+	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "concurrency", 3, "Maximum number of concurrent in-flight goroutines to scrape the registry")
+
+	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
+		opts.Registry = v
+	}
+	if v := os.Getenv("CINCINNATI_REPO"); v != "" {
+		opts.Repo = v
+	}
+	if v := os.Getenv("MOCK_DIR"); v != "" {
+		opts.MockDir = v
+	}
 }
 
 func main() {
