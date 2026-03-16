@@ -8,6 +8,8 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+
+	"github.com/hongkailiu/test-go/pkg/version"
 )
 
 type Options struct {
@@ -24,6 +26,13 @@ type Options struct {
 
 func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 	r := gin.Default()
+
+	r.GET("/version", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"name":    version.Name,
+			"version": version.Version,
+		})
+	})
 
 	r.GET("/readyz", func(c *gin.Context) {
 		if ready := gb.Ready(); ready {

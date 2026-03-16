@@ -2,10 +2,11 @@ package cincinnati
 
 import (
 	"encoding/json"
-	"github.com/google/go-cmp/cmp"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func Test_getPrevious(t *testing.T) {

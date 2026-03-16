@@ -2,9 +2,10 @@ package cincinnati
 
 import (
 	"io/fs"
-	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
 	"path/filepath"
+
+	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 type BlockedEdge struct {

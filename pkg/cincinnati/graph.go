@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -14,11 +11,14 @@ import (
 	"time"
 
 	"github.com/blang/semver/v4"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/prow/pkg/interrupts"
 
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type Graph struct {
