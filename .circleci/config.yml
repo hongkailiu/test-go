@@ -1,9 +1,5 @@
 version: 2.1
 
-defaults:
-  run:
-    shell: /bin/bash
-
 jobs:
   build:
     docker:
@@ -30,6 +26,7 @@ jobs:
 
       - run:
           name: Build binary
+          shell: /bin/bash
           command: hack/build.sh
 
 # Define the workflow to run the job
