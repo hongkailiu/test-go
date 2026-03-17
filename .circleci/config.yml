@@ -22,7 +22,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: go test -v
+          command: make verify
 
       - run:
           name: Build binary
