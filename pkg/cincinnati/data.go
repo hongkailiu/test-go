@@ -1,10 +1,16 @@
 package cincinnati
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
+	"github.com/sirupsen/logrus"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -25,10 +31,8 @@ type Feeder struct {
 }
 
 type Channel struct {
-	Feeder     Feeder
-	Name       string
-	Versions   []string
-	Tombstones []string
+	Name     string
+	Versions []string
 }
 
 type CincinnatiGraphData struct {
@@ -86,6 +90,91 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 }
 
 func (gd CincinnatiGraphData) Shape(graph Graph) (Graph, error) {
-	// TODO
+	var remove []int
+	for i, node := range graph.Nodes {
+		channels := gd.listChannels(node.Version.String())
+		if len(channels) > 0 {
+			graph.Channels = sets.List[string](sets.New[string](graph.Channels...).Insert(channels...))
+			graph.Nodes[i].AddMetadata(MetadataKeyChannels, strings.Join(channels, ","))
+		} else {
+			graph.Nodes[i].DeleteMetadata(MetadataKeyChannels)
+			remove = append(remove, i)
+		}
+	}
+	if len(remove) > 0 {
+		graph = graph.RemoveNodes(remove...)
+	}
+
+	var edges []Edge
+	graph.ConditionalEdges = nil
+	for _, edge := range graph.Edges {
+		if ce := gd.BecomeConditional(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); len(ce.Risks) > 0 {
+			var found bool
+			for i, exiting := range graph.ConditionalEdges {
+				if ce.RisksKey == exiting.RisksKey {
+					found = true
+					graph.ConditionalEdges[i].Edges = append(graph.ConditionalEdges[i].Edges, ce.Edges...)
+				}
+			}
+			if !found {
+				graph.ConditionalEdges = append(graph.ConditionalEdges, ce)
+			}
+			continue
+		}
+		edges = append(edges, edge)
+	}
+	graph.Edges = edges
 	return graph, nil
+}
+
+func (gd CincinnatiGraphData) listChannels(version string) []string {
+	var channels []string
+	for _, channel := range gd.Channels {
+		for _, v := range channel.Versions {
+			if v == version {
+				channels = append(channels, channel.Name)
+			}
+		}
+	}
+	return channels
+}
+
+func (gd CincinnatiGraphData) BecomeConditional(from Node, to string) ConditionalEdge {
+	var risks []ConditionalUpdateRisk
+	var key []int
+	for i, blockedEdge := range gd.BlockedEdges {
+		if to != blockedEdge.To {
+			continue
+		}
+		re, err := regexp.Compile(blockedEdge.From)
+		if err != nil {
+			logrus.WithError(err).
+				WithField("name", blockedEdge.Name).
+				WithField("from", blockedEdge.From).
+				WithField("to", blockedEdge.To).
+				Error("Failed to compile regex")
+			continue
+		}
+		if re.MatchString(from.Tag) {
+			logrus.WithField("from", from.Tag).WithField("to", to).Debug("Found blocked edge")
+			key = append(key, i)
+			risks = append(risks, ConditionalUpdateRisk{
+				Name:          blockedEdge.Name,
+				URL:           blockedEdge.URL,
+				Message:       blockedEdge.Message,
+				MatchingRules: blockedEdge.MatchingRules,
+			})
+		}
+	}
+
+	return ConditionalEdge{
+		Risks: risks,
+		Edges: []ConditionalUpdate{
+			{
+				From: from.Version.String(),
+				To:   to,
+			},
+		},
+		RisksKey: fmt.Sprintf("%v", key),
+	}
 }

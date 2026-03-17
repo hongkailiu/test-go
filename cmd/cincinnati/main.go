@@ -24,6 +24,10 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: get the level from an arg
 		logrus.SetLevel(logrus.DebugLevel)
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp: true,
+		})
+		logrus.SetReportCaller(true)
 
 		client := retryablehttp.NewClient()
 		client.HTTPClient.Timeout = 30 * time.Second
@@ -47,10 +51,6 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(opts, gb),
 		}
 
-		server.RegisterOnShutdown(func() {
-			logrus.Info("Shutting down server")
-			interrupts.Terminate()
-		})
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()

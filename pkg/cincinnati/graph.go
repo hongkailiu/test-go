@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"sigs.k8s.io/prow/pkg/interrupts"
 
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -25,6 +27,8 @@ type Graph struct {
 	Nodes            []Node            `json:"nodes"`
 	Edges            []Edge            `json:"edges"`
 	ConditionalEdges []ConditionalEdge `json:"conditionalEdges"`
+
+	Channels []string `json:"channels,omitempty"`
 }
 
 type Node struct {
@@ -74,11 +78,19 @@ func (n Node) AddMetadata(k, v string) {
 	n.Metadata[k] = v
 }
 
+func (n Node) DeleteMetadata(k string) {
+	if _, ok := n.Metadata[k]; ok {
+		delete(n.Metadata, k)
+	}
+}
+
 type Edge [2]int
 
 type ConditionalEdge struct {
 	Edges []ConditionalUpdate     `json:"edges"`
 	Risks []ConditionalUpdateRisk `json:"risks"`
+
+	RisksKey string `json:"risksKey,omitempty"`
 }
 
 type ConditionalUpdate struct {
@@ -117,23 +129,59 @@ type GraphParams struct {
 }
 
 func (p *GraphParams) shape(g Graph) (Graph, error) {
-	var nodes []Node
-	for _, node := range g.Nodes {
+	//TODO remove
+	if g.Nodes != nil {
+		return g, nil
+	}
+	var remove []int
+	for i, node := range g.Nodes {
 		if node.Version.LT(p.Version) {
 			logrus.WithField("node.version", node.Version.String()).WithField("params.version", p.Version.String()).
 				Debug("Ignored a smaller version")
+			remove = append(remove, i)
 			continue
 		}
 		if !archMatch(node.Tag, p.Arch) {
+			remove = append(remove, i)
 			continue
 		}
-		node.Tag = ""
-		node.Previous = nil
-		nodes = append(nodes, node)
+		if !strings.Contains(node.Metadata["io.openshift.upgrades.graph.release.channels"], p.Channel) {
+			remove = append(remove, i)
+			continue
+		}
+	}
+	return g.RemoveNodes(remove...), nil
+}
+
+func (g Graph) RemoveNodes(remove ...int) Graph {
+	if len(remove) == 0 {
+		return g
+	}
+	logrus.WithField("remove", remove).Info("Removing nodes ...")
+	removeVersions := sets.New[string]()
+	for _, index := range remove {
+		removeVersions.Insert(g.Nodes[index].Version.String())
+	}
+	var nodes []Node
+	indexSet := sets.New[int](remove...)
+	for i, node := range g.Nodes {
+		if indexSet.Has(i) {
+			nodes = append(nodes, node)
+		}
 	}
 	g.Nodes = nodes
-	// TODO: use p to shape graph
-	return g, nil
+	var conditionalEdges []ConditionalEdge
+	for _, ce := range g.ConditionalEdges {
+		for _, edge := range ce.Edges {
+			if removeVersions.Has(edge.From) || removeVersions.Has(edge.To) {
+				continue
+			}
+		}
+		conditionalEdges = append(conditionalEdges, ce)
+	}
+	g.Edges = g.RemoveEdges(remove)
+	g.ConditionalEdges = conditionalEdges
+	return g
 }
 
 func archMatch(tag string, arch string) bool {
@@ -168,33 +216,43 @@ type GraphBuilder struct {
 	cache Cache
 }
 
-func generateEmptyGraph() Graph {
-	return Graph{
-		Nodes:            []Node{},
-		Edges:            []Edge{},
-		ConditionalEdges: []ConditionalEdge{},
-	}
-}
-
 func (g *GraphBuilder) Build(p GraphParams) (Graph, error) {
-	var zero Graph
+	zero := Graph{}.compatible()
 	v, ok := g.cache.Get(cacheKeyOpenshiftUpgradeGraph)
 	if !ok {
 		return zero, fmt.Errorf("graph not found in cache")
 	}
-	shaped, err := p.shape(v.(Graph))
+	graph := v.(Graph)
+	var found bool
+	for _, c := range graph.Channels {
+		if c == p.Channel {
+			found = true
+		}
+	}
+	if !found {
+		return zero, nil
+	}
+	shaped, err := p.shape(graph)
 	if err != nil {
-		return zero.compatible(), err
+		return zero, err
 	}
 	return shaped.compatible(), nil
 }
 
 func (g Graph) compatible() Graph {
+	for i := range g.Nodes {
+		g.Nodes[i].Tag = ""
+		g.Nodes[i].Previous = nil
+	}
 	if g.Nodes == nil {
 		g.Nodes = []Node{}
 	}
 	if g.Edges == nil {
 		g.Edges = []Edge{}
+	}
+	g.Channels = nil
+	for i := range g.ConditionalEdges {
+		g.ConditionalEdges[i].RisksKey = ""
 	}
 	if g.ConditionalEdges == nil {
 		g.ConditionalEdges = []ConditionalEdge{}
@@ -232,8 +290,8 @@ func (g *GraphBuilder) Start() error {
 			logrus.WithError(err).Warn("Cincinnati graph data not loaded (using empty instead)")
 		}
 
-		handles := []GraphHandlerFunc{g.repo.tagsToNodes, gd.Shape}
-		graph, err := buildOpenshiftUpgradeGraph(g.graphFile, handles)
+		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape}
+		graph, err := buildOpenshiftUpgradeGraph(g.graphFile, handles, g.cache.Set, cache.NoExpiration)
 		if err != nil {
 			logrus.WithError(err).Error("Failed to build openshift upgrade graph")
 		}
@@ -280,8 +338,8 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 	return nil
 }
 
-func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc) (Graph, error) {
-	graph := generateEmptyGraph()
+func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
+	var graph Graph
 	var loaded bool
 	if graphFile != "" {
 		logrus.Info("Loading OpenShift upgrade graph from file ...")
@@ -296,6 +354,8 @@ func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc) (
 				logrus.WithField("file", graphFile).Info("Loaded openshift upgrade graph from file")
 				graph = graphFromFile
 				loaded = true
+				logrus.Info("Storing OpenShift upgrade graph loaded from file (to be refreshed if stale)")
+				set(cacheKeyOpenshiftUpgradeGraph, graph, d)
 			}
 		}
 	}
@@ -385,17 +445,6 @@ func (g Graph) Find(tag string) int {
 	return -1
 }
 
-func EnsureEdges(g *Graph, edges []Edge) {
-	if g == nil {
-		panic("nil graph cannot not contain any edges")
-	}
-	for _, edge := range edges {
-		if g.FindEdge(edge) == -1 {
-			g.Edges = append(g.Edges, edge)
-		}
-	}
-}
-
 func (g Graph) FindEdge(edge Edge) int {
 	for i, e := range g.Edges {
 		if e == edge {
@@ -403,4 +452,28 @@ func (g Graph) FindEdge(edge Edge) int {
 		}
 	}
 	return -1
+}
+
+func (g Graph) RemoveEdges(removedNodes []int) []Edge {
+	removeSet := sets.New[int](removedNodes...)
+	var edges []Edge
+	for _, edge := range g.Edges {
+		if removeSet.Has(edge[0]) || removeSet.Has(edge[1]) {
+			continue
+		}
+		edges = append(edges, Edge{newIndex(removedNodes, edge[0]), newIndex(removedNodes, edge[1])})
+	}
+	return edges
+}
+
+func newIndex(removed []int, e int) int {
+	if !sort.IntsAreSorted(removed) {
+		panic(fmt.Sprintf("unsorted remove: %v", removed))
+	}
+	for i, r := range removed {
+		if r > e {
+			return e - i
+		}
+	}
+	return e - len(removed)
 }

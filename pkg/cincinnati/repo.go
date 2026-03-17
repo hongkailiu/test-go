@@ -147,14 +147,18 @@ func allTags(client Client, url string) ([]string, string, error) {
 	return data.Tags, link, nil
 }
 
-func (r *Repo) tagsToNodes(graph Graph) (Graph, error) {
+func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
+		Info("Scraping the repository for nodes and edges ...")
 	tags, err := r.tags()
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
 	sem := semaphore.NewWeighted(int64(r.maxConcurrency))
+	var missed []string
 	for _, tag := range tags {
 		var found bool
+		// TODO: define the func on the struct
 		for _, node := range graph.Nodes {
 			if tag == node.Tag {
 				found = true
@@ -163,8 +167,9 @@ func (r *Repo) tagsToNodes(graph Graph) (Graph, error) {
 		if found {
 			continue
 		}
+		missed = append(missed, tag)
 		if _, ok := r.cache.Get(cacheKeyImageInfo(tag)); !ok {
-			logrus.WithField("tag", tag).Debugf("Tag not found in cache")
+			logrus.WithField("tag", tag).Debug("Tag not found in cache")
 			image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
 			if err := sem.Acquire(r.ctx, 1); err != nil {
 				logrus.WithError(err).WithField("tag", tag).Warn("Failed to acquire semaphore")
@@ -172,6 +177,7 @@ func (r *Repo) tagsToNodes(graph Graph) (Graph, error) {
 			}
 			go func(i string) {
 				defer sem.Release(1)
+				logrus.WithField("tag", tag).Debug("Fetching metadata")
 				info, err := getImageInfo(i)
 				if err != nil {
 					logrus.WithError(err).WithField("image", image).Warn("Failed to fetch image info")
@@ -185,38 +191,67 @@ func (r *Repo) tagsToNodes(graph Graph) (Graph, error) {
 		logrus.WithError(err).Warn("Failed to acquire semaphore")
 	}
 
-	for _, tag := range tags {
+	for _, tag := range missed {
 		if value, ok := r.cache.Get(cacheKeyImageInfo(tag)); ok {
+			logrus.WithField("tag", tag).Debug("Adding a missing tag into the graph")
 			info := value.(ImageInfo)
 			v, err := semver.Make(info.Version)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", tag).WithField("version", info.Version).Warn("Failed to parse info.version for tag (ignored)")
 				continue
 			}
-			graph.Nodes = append(graph.Nodes, nodeWithImageInfo(r.registry, r.repo, tag, v, info))
+			// TODO: define the func on the struct
+			EnsureNode(&graph, nodeWithImageInfo(r.registry, r.repo, tag, v, info))
+		} else {
+			logrus.WithField("tag", tag).Warn("Tag not found in cache (ignored until the next try)")
 		}
 	}
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
+		// TODO: define the func on the struct
 		EnsureEdges(&graph, edges)
 	}
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
+		Info("Scraped the repository for nodes and edges")
 	return graph, nil
 }
 
+func EnsureNode(graph *Graph, n Node) {
+	for i, node := range graph.Nodes {
+		if node.Tag == n.Tag {
+			graph.Nodes[i] = n
+		}
+	}
+	graph.Nodes = append(graph.Nodes, n)
+}
+
+func EnsureEdges(g *Graph, edges []Edge) {
+	if g == nil {
+		panic("nil graph cannot not contain any edges")
+	}
+	for _, edge := range edges {
+		if g.FindEdge(edge) == -1 {
+			g.Edges = append(g.Edges, edge)
+		}
+	}
+}
+
 func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info ImageInfo) Node {
-	return Node{
+	node := Node{
 		Version: version,
 		Image:   fmt.Sprintf("%s/%s@%s", strings.TrimPrefix(registry, "https://"), repo, info.Digest),
 		Metadata: map[string]string{
 			"io.openshift.upgrades.graph.previous.remove_regex": "todo",
-			"io.openshift.upgrades.graph.release.channels":      "todo",
-			"io.openshift.upgrades.graph.release.manifestref":   info.Digest,
-			"url": info.CincinnatiMetadata.Metadata["url"],
+			MetadataKeyManifestRef:                              info.Digest,
 		},
 		Tag:      tag,
 		Previous: info.CincinnatiMetadata.Previous,
 	}
+	if url := info.CincinnatiMetadata.Metadata["url"]; url != "" {
+		node.AddMetadata("url", url)
+	}
+	return node
 }
 
 type CincinnatiMetadata struct {
