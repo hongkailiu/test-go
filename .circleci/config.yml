@@ -1,5 +1,9 @@
 version: 2.1
 
+defaults:
+  run:
+    shell: /bin/bash
+
 jobs:
   build:
     docker:
