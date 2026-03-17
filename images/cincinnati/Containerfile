@@ -5,7 +5,7 @@ FROM registry.access.redhat.com/ubi10/go-toolset:10.1 AS builder
 COPY . .
 
 # Build the binary
-RUN git config --global --add safe.directory . && OUT_DIR=/tmp hack/build.sh
+RUN OUT_DIR=/tmp hack/build.sh
 
 # Runtime stage
 FROM registry.access.redhat.com/ubi10-minimal:10.1
