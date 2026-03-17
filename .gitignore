@@ -17,6 +17,7 @@
 *.iml
 .idea/
 /build/
+_out
 
 bazel-bin
 bazel-genfiles

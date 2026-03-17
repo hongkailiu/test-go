@@ -20,8 +20,3 @@ test: unit
 verify: test imports generate-go
 	git diff --exit-code
 .PHONY: verify
-
-
-image:
-	echo TODO
-.PHONY: image

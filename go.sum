@@ -162,7 +162,7 @@ k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 h1:SjGebBtkBqHFOli+05xYbK8YF1Dzk
 k8s.io/utils v0.0.0-20251002143259-bc988d571ff4/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 h1:IpInykpT6ceI+QxKBbEflcR5EXP7sU1kvOlxwZh5txg=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730/go.mod h1:mdzfpAEoE6DHQEN0uh9ZbOCuHbLK5wOm7dK4ctXE9Tg=
-sigs.k8s.io/prow v0.0.0-20260313164137-c94d0199c05f h1:qVXh5nmZzghvktshEjfCmxHpjovTyI/zBijBP/qWL0E=
-sigs.k8s.io/prow v0.0.0-20260313164137-c94d0199c05f/go.mod h1:LkFUWvukcR88tO0JBhMpKFh0rnzBkWa3fbM37/1eBjU=
+sigs.k8s.io/prow v0.0.0-20260227184331-937f24a5dcd2 h1:WmO1hZGFozg+27fZJe2Jw/LapRzfOPHtjIVGYcZCKdQ=
+sigs.k8s.io/prow v0.0.0-20260227184331-937f24a5dcd2/go.mod h1:mp/tLCcvJyJAIk8+QL7zyS2SzI28HDP0LPV91Z73pGU=
 sigs.k8s.io/yaml v1.6.0 h1:G8fkbMSAFqgEFgh4b1wmtzDnioxFCUgTZhlbj5P9QYs=
 sigs.k8s.io/yaml v1.6.0/go.mod h1:796bPqUfzR/0jLAl6XjHl3Ck7MiyVv8dbTdyT3/pMf4=

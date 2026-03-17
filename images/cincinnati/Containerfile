@@ -1,0 +1,20 @@
+# Build stage
+FROM registry.access.redhat.com/ubi10/go-toolset:10.1 AS builder
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN git config --global --add safe.directory . && OUT_DIR=/tmp hack/build.sh
+
+# Runtime stage
+FROM registry.access.redhat.com/ubi10-minimal:10.1
+
+# Copy the binary from builder stage
+COPY --from=builder /tmp/cincinnati /usr/local/bin/
+
+# Expose port 8080
+EXPOSE 8080
+
+# Run the binary
+ENTRYPOINT ["/usr/local/bin/cincinnati"]

@@ -1,6 +1,6 @@
 module github.com/hongkailiu/test-go
 
-go 1.25.8
+go 1.25.7
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -13,7 +13,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	golang.org/x/sync v0.20.0
 	k8s.io/apimachinery v0.35.2
-	sigs.k8s.io/prow v0.0.0-20260313164137-c94d0199c05f
+	sigs.k8s.io/prow v0.0.0-20260227184331-937f24a5dcd2
 )
 
 require (

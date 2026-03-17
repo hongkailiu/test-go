@@ -1,18 +1,36 @@
-version: 2
+version: 2.1
+
 jobs:
-  build-golang-114:
+  build:
     docker:
-      - image: circleci/golang:1.14
-        environment:
-          GO111MODULE: "on"
-          GOPROXY: "https://goproxy.io"
-    working_directory: /go/src/github.com/hongkailiu/test-go
+      - image: cimg/go:1.25 # Using Go version 1.22
+    working_directory: ~/repo
     steps:
       - checkout
-      - setup_remote_docker
-      - run: make CI="${CI}" CIRCLECI="${CIRCLECI}" COVERALLS_TOKEN="${COVERALLS_TOKEN}" ci-all
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
+
+      - run:
+          name: Install Dependencies
+          command: go get ./...
+
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+
+      - run:
+          name: Run tests
+          command: go test -v
+
+      - run:
+          name: Build binary
+          command: hack/build.sh
+
+# Define the workflow to run the job
 workflows:
   version: 2
-  build_and_test:
+  build_workflow:
     jobs:
-      - build-golang-114
+      - build
