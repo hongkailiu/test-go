@@ -248,8 +248,11 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 		Tag:      tag,
 		Previous: info.CincinnatiMetadata.Previous,
 	}
-	if url := info.CincinnatiMetadata.Metadata["url"]; url != "" {
+	if url, ok := info.CincinnatiMetadata.Metadata["url"]; ok {
 		node.AddMetadata("url", url)
+	}
+	if arch, ok := info.CincinnatiMetadata.Metadata[MetadataKeyArchitecture]; ok {
+		node.AddMetadata(MetadataKeyArchitecture, arch)
 	}
 	return node
 }

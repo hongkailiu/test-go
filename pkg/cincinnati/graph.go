@@ -129,23 +129,23 @@ type GraphParams struct {
 }
 
 func (p *GraphParams) shape(g Graph) (Graph, error) {
-	//TODO remove
-	if g.Nodes != nil {
-		return g, nil
-	}
 	var remove []int
 	for i, node := range g.Nodes {
-		if node.Version.LT(p.Version) {
+		if node.Version.LTE(p.Version) {
 			logrus.WithField("node.version", node.Version.String()).WithField("params.version", p.Version.String()).
 				Debug("Ignored a smaller version")
 			remove = append(remove, i)
 			continue
 		}
 		if !archMatch(node.Tag, p.Arch) {
+			logrus.WithField("node.version", node.Version.String()).WithField("node.tag", node.Tag).WithField("params.arch", p.Arch).
+				Debug("Ignored a version not matching arch")
 			remove = append(remove, i)
 			continue
 		}
-		if !strings.Contains(node.Metadata["io.openshift.upgrades.graph.release.channels"], p.Channel) {
+		if channels := node.Metadata["io.openshift.upgrades.graph.release.channels"]; !strings.Contains(channels, p.Channel) {
+			logrus.WithField("node.channels", node.Version.String()).WithField("params.channel", p.Channel).
+				Debug("Ignored a version not in the channel")
 			remove = append(remove, i)
 			continue
 		}
@@ -157,7 +157,11 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	if len(remove) == 0 {
 		return g
 	}
-	logrus.WithField("remove", remove).Info("Removing nodes ...")
+	logrus.WithField("nodes", len(g.Nodes)).
+		WithField("edges", len(g.Edges)).
+		WithField("conditionalEdges", len(g.ConditionalEdges)).
+		WithField("remove", remove).
+		Info("Removing nodes ...")
 	removeVersions := sets.New[string]()
 	for _, index := range remove {
 		removeVersions.Insert(g.Nodes[index].Version.String())
@@ -165,7 +169,7 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	var nodes []Node
 	indexSet := sets.New[int](remove...)
 	for i, node := range g.Nodes {
-		if indexSet.Has(i) {
+		if !indexSet.Has(i) {
 			nodes = append(nodes, node)
 		}
 	}
@@ -181,6 +185,11 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	}
 	g.Edges = g.RemoveEdges(remove)
 	g.ConditionalEdges = conditionalEdges
+	logrus.WithField("nodes", len(g.Nodes)).
+		WithField("edges", len(g.Edges)).
+		WithField("conditionalEdges", len(g.ConditionalEdges)).
+		WithField("remove", remove).
+		Info("Removed nodes")
 	return g
 }
 
