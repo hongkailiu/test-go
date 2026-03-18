@@ -157,14 +157,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 	sem := semaphore.NewWeighted(int64(r.maxConcurrency))
 	var missed []string
 	for _, tag := range tags {
-		var found bool
-		// TODO: define the func on the struct
-		for _, node := range graph.Nodes {
-			if tag == node.Tag {
-				found = true
-			}
-		}
-		if found {
+		if graph.Find(tag) > -1 {
 			continue
 		}
 		missed = append(missed, tag)
@@ -200,8 +193,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 				logrus.WithError(err).WithField("tag", tag).WithField("version", info.Version).Warn("Failed to parse info.version for tag (ignored)")
 				continue
 			}
-			// TODO: define the func on the struct
-			EnsureNode(&graph, nodeWithImageInfo(r.registry, r.repo, tag, v, info))
+			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, tag, v, info))
 		} else {
 			logrus.WithField("tag", tag).Warn("Tag not found in cache (ignored until the next try)")
 		}
@@ -209,32 +201,11 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
-		// TODO: define the func on the struct
-		EnsureEdges(&graph, edges)
+		graph = graph.EnsureEdges(edges)
 	}
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraped the repository for nodes and edges")
 	return graph, nil
-}
-
-func EnsureNode(graph *Graph, n Node) {
-	for i, node := range graph.Nodes {
-		if node.Tag == n.Tag {
-			graph.Nodes[i] = n
-		}
-	}
-	graph.Nodes = append(graph.Nodes, n)
-}
-
-func EnsureEdges(g *Graph, edges []Edge) {
-	if g == nil {
-		panic("nil graph cannot not contain any edges")
-	}
-	for _, edge := range edges {
-		if g.FindEdge(edge) == -1 {
-			g.Edges = append(g.Edges, edge)
-		}
-	}
 }
 
 func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info ImageInfo) Node {

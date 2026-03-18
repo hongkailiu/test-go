@@ -445,6 +445,23 @@ func (n Node) getPrevious(graph Graph) []Edge {
 	return edges
 }
 
+func (g Graph) EnsureNode(n Node) Graph {
+	if i := g.Find(n.Tag); i > -1 {
+		g.Nodes[i] = n
+	}
+	g.Nodes = append(g.Nodes, n)
+	return g
+}
+
+func (g Graph) EnsureEdges(edges []Edge) Graph {
+	for _, edge := range edges {
+		if g.FindEdge(edge) == -1 {
+			g.Edges = append(g.Edges, edge)
+		}
+	}
+	return g
+}
+
 func (g Graph) Find(tag string) int {
 	for i, from := range g.Nodes {
 		if tag == from.Tag {

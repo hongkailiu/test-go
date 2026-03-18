@@ -32,7 +32,7 @@ func Test_getPrevious(t *testing.T) {
 		t.Errorf("edges not match (-want +got):\n%s", diff)
 	}
 
-	EnsureEdges(&g, edges)
+	g = g.EnsureEdges(edges)
 	if len(g.Edges) == 0 {
 		t.Errorf("Edges not match")
 	}
