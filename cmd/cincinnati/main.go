@@ -51,6 +51,8 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(opts, gb),
 		}
 
+		// TODO: replace interrupts
+		// TODO: make metrics on http response
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()

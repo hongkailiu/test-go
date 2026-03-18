@@ -151,6 +151,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
 	tags, err := r.tags()
+	// TODO: ignore the tags that are not in channels
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
