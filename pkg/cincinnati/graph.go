@@ -131,7 +131,7 @@ type GraphParams struct {
 func (p *GraphParams) shape(g Graph) (Graph, error) {
 	var remove []int
 	for i, node := range g.Nodes {
-		if node.Version.LTE(p.Version) {
+		if node.Version.LT(p.Version) {
 			logrus.WithField("node.version", node.Version.String()).WithField("params.version", p.Version.String()).
 				Debug("Ignored a smaller version")
 			remove = append(remove, i)
@@ -150,7 +150,60 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 			continue
 		}
 	}
-	return g.RemoveNodes(remove...), nil
+	g = g.RemoveNodes(remove...)
+	return p.directTargets(g), nil
+}
+
+func getTag(version, arch string) string {
+	return fmt.Sprintf("%s%s", version, arch)
+}
+
+func archToTagSuffix(arch string) string {
+	switch arch {
+	case "amd64":
+		return "-x86_64"
+	case "arm64":
+		return "-aarch64"
+	default:
+		return fmt.Sprintf("-%s", arch)
+	}
+}
+
+func (p *GraphParams) directTargets(g Graph) Graph {
+	keep := sets.New[int]()
+	suffix := archToTagSuffix(p.Arch)
+	fromTag := getTag(p.Version.String(), suffix)
+	if i := g.Find(fromTag); i > -1 {
+		logrus.WithField("tag", fromTag).WithField("i", i).Debug("Keep a node")
+		keep.Insert(i)
+	} else {
+		logrus.WithField("version", p.Version.String()).WithField("arch", p.Arch).
+			Debug("Could not find the node for the given params")
+	}
+	for _, edge := range g.Edges {
+		if p.Version.Equals(g.Nodes[edge[0]].Version) {
+			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("Keep a node")
+			keep.Insert(edge[1])
+		}
+	}
+	for _, edge := range g.ConditionalEdges {
+		for _, riskEdge := range edge.Edges {
+			if p.Version.String() == riskEdge.From {
+				tag := getTag(riskEdge.To, suffix)
+				if i := g.Find(tag); i > -1 {
+					logrus.WithField("tag", tag).WithField("i", i).Debug("Keep a node")
+					keep.Insert(i)
+				}
+			}
+		}
+	}
+	var remove []int
+	for i := range g.Nodes {
+		if !keep.Has(i) {
+			remove = append(remove, i)
+		}
+	}
+	return g.RemoveNodes(remove...)
 }
 
 func (g Graph) RemoveNodes(remove ...int) Graph {
@@ -176,12 +229,16 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	g.Nodes = nodes
 	var conditionalEdges []ConditionalEdge
 	for _, ce := range g.ConditionalEdges {
+		var edges []ConditionalUpdate
 		for _, edge := range ce.Edges {
-			if removeVersions.Has(edge.From) || removeVersions.Has(edge.To) {
-				continue
+			if !removeVersions.Has(edge.From) && !removeVersions.Has(edge.To) {
+				edges = append(edges, edge)
 			}
 		}
-		conditionalEdges = append(conditionalEdges, ce)
+		ce.Edges = edges
+		if len(ce.Edges) > 0 {
+			conditionalEdges = append(conditionalEdges, ce)
+		}
 	}
 	g.Edges = g.RemoveEdges(remove)
 	g.ConditionalEdges = conditionalEdges
@@ -205,7 +262,7 @@ func archMatch(tag string, arch string) bool {
 }
 
 func hasArchSuffix(tag string) bool {
-	for _, s := range []string{"-x86_64", "-aarch64", "-s390x", "-ppc64le"} {
+	for _, s := range []string{"-x86_64", "-aarch64", "-s390x", "-ppc64le", "-multi"} {
 		if strings.HasSuffix(tag, s) {
 			return true
 		}
