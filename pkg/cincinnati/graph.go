@@ -26,6 +26,10 @@ import (
 // TODO: Generate Go struct from OpenAPI Specs or the other way around
 // TODO: more test on arch and relevant suffix
 
+// multi-arch since 4.3: tag 4.2.23 -> 4.3.1-x86_64 with version 4.3.1
+// condition update since 4.7?: default blocking -> conditional blocking with MatchRules
+// tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
+
 type Graph struct {
 	Nodes            []Node            `json:"nodes"`
 	Edges            []Edge            `json:"edges"`
@@ -133,7 +137,7 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 }
 
 func getTag(version, arch string) string {
-	return fmt.Sprintf("%s%s", version, arch)
+	return version + arch
 }
 
 func archToTagSuffix(arch string) string {

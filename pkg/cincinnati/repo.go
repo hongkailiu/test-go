@@ -315,10 +315,6 @@ type ImageInfo struct {
 	Tag string
 }
 
-func cacheKeyImageInfo(tag string) string {
-	return "imageInfo-" + tag
-}
-
 func getImageInfo(image string) (ImageInfo, error) {
 	var ret ImageInfo
 

@@ -16,8 +16,8 @@ import (
 )
 
 type BlockedEdge struct {
-	To            string
-	From          string
+	RemovedEdge
+
 	FixedIn       string
 	URL           string
 	Name          string
@@ -36,9 +36,16 @@ type Channel struct {
 	Versions []string
 }
 
+// RemovedEdge is an edge removed from the upgrade graph.
+type RemovedEdge struct {
+	To   string
+	From string
+}
 type CincinnatiGraphData struct {
 	BlockedEdges []BlockedEdge
+
 	Channels     []Channel
+	RemovedEdges []RemovedEdge
 }
 
 func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
@@ -66,6 +73,7 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 		}
 
 		graphData.Channels = append(graphData.Channels, c)
+		// TODO: set up graphData.RemovedEdges
 
 		return nil
 	})
@@ -127,6 +135,7 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 
 	graph.ConditionalEdges = nil
 	for _, edge := range graph.Edges {
+		// TODO handle blocked edges if matchingRules is empty
 		if ce := gd.BecomeConditional(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); len(ce.Risks) > 0 {
 			var found bool
 
