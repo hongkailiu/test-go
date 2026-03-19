@@ -48,12 +48,6 @@ func (n Node) AddMetadata(k, v string) {
 	n.Metadata[k] = v
 }
 
-func (n Node) DeleteMetadata(k string) {
-	if _, ok := n.Metadata[k]; ok {
-		delete(n.Metadata, k)
-	}
-}
-
 type Edge [2]int
 
 type ConditionalEdge struct {

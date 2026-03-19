@@ -20,3 +20,5 @@ test: unit
 verify: test imports generate-go
 	git diff --exit-code
 .PHONY: verify
+
+# TODO gotestsum golangci-lint

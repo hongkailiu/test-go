@@ -27,7 +27,6 @@ type Repo struct {
 	repo           string
 	mockDir        string
 	cache          Cache
-	queue          Queue
 	maxConcurrency int
 }
 
@@ -41,11 +40,6 @@ func NewRepo(ctx context.Context, client Client, registry, repo, mockDir string,
 		cache:          cache,
 		maxConcurrency: maxConcurrency,
 	}
-}
-
-type Queue interface {
-	Add(string)
-	Get() (string, bool)
 }
 
 type Client interface {
@@ -75,6 +69,8 @@ func (r *Repo) tags() ([]string, error) {
 		if err := json.Unmarshal(raw, &data); err != nil {
 			return nil, err
 		}
+		// TODO: caching is useless here because it is going to expire faster than the internal of scraping
+		// Remove
 		r.cache.Set(fmt.Sprintf("tagsWithCache-%s/%s", r.registry, r.repo), data.Tags, time.Duration(0))
 		return data.Tags, nil
 	}
@@ -162,6 +158,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 			continue
 		}
 		missed = append(missed, tag)
+		// TODO: Remove the caching here. Use channel receive the image info
 		if _, ok := r.cache.Get(cacheKeyImageInfo(tag)); !ok {
 			logrus.WithField("tag", tag).Debug("Tag not found in cache")
 			image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
@@ -218,12 +215,12 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 			MetadataKeyManifestRef:                              info.Digest,
 		},
 		Tag:      tag,
-		Previous: info.CincinnatiMetadata.Previous,
+		Previous: info.Previous,
 	}
-	if url, ok := info.CincinnatiMetadata.Metadata["url"]; ok {
+	if url, ok := info.Metadata["url"]; ok {
 		node.AddMetadata("url", url)
 	}
-	if arch, ok := info.CincinnatiMetadata.Metadata[MetadataKeyArchitecture]; ok {
+	if arch, ok := info.Metadata[MetadataKeyArchitecture]; ok {
 		node.AddMetadata(MetadataKeyArchitecture, arch)
 	}
 	return node

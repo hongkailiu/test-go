@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -51,13 +52,33 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(opts, gb),
 		}
 
-		// TODO: replace interrupts
 		// TODO: make metrics on http response
+		ok, err := available(opts.Address)
+		if err != nil {
+			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
+		}
+		if !ok {
+			logrus.WithField("address", opts.Address).Fatal("Address is not available")
+		}
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()
 		logrus.Info("Process ended gracefully")
 	},
+}
+
+func available(addr string) (ok bool, retError error) {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return false, nil
+	}
+	defer func() {
+		if err := ln.Close(); err != nil {
+			ok = false
+			retError = err
+		}
+	}()
+	return true, nil
 }
 
 func init() {

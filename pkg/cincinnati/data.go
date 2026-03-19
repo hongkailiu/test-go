@@ -97,7 +97,7 @@ func (gd CincinnatiGraphData) Shape(graph Graph) (Graph, error) {
 			graph.Channels = sets.List[string](sets.New[string](graph.Channels...).Insert(channels...))
 			graph.Nodes[i].AddMetadata(MetadataKeyChannels, strings.Join(channels, ","))
 		} else {
-			graph.Nodes[i].DeleteMetadata(MetadataKeyChannels)
+			delete(graph.Nodes[i].Metadata, MetadataKeyChannels)
 			remove = append(remove, i)
 		}
 	}
