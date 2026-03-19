@@ -16,7 +16,11 @@ import (
 	"github.com/hongkailiu/test-go/pkg/cincinnati"
 )
 
+// TODO: accept config file
+
 var opts cincinnati.Options
+
+var ctx = interrupts.Context()
 
 var rootCmd = &cobra.Command{
 	Use:   "cincinnati",
@@ -38,12 +42,10 @@ var rootCmd = &cobra.Command{
 
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
-		ctx := interrupts.Context()
-
-		repo := cincinnati.NewRepo(ctx, client.StandardClient(),
+		repo := cincinnati.NewRepo(client.StandardClient(),
 			opts.Registry, opts.Repo, opts.MockDir, opts.MaxConcurrency, c)
-		gb := cincinnati.NewGraphBuilder(ctx, opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
-		if err := gb.Start(); err != nil {
+		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
+		if err := gb.Start(ctx); err != nil {
 			logrus.WithError(err).Fatal("Failed to start server")
 		}
 
@@ -63,7 +65,7 @@ var rootCmd = &cobra.Command{
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()
-		logrus.Info("Process ended gracefully")
+		logrus.Info("Process language gracefully")
 	},
 }
 
@@ -103,7 +105,7 @@ func init() {
 }
 
 func main() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

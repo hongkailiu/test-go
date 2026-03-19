@@ -4,7 +4,7 @@ set -euo pipefail
 
 command="cincinnati"
 
-if [[ -z "$CIRCLE_SHA1" ]]; then
+if [[ -z "${CIRCLE_SHA1:-}" ]]; then
   git_commit="$( git describe --tags --always --dirty )"
 else
   git_commit="$( expr substr "$CIRCLE_SHA1" 1 7 )"

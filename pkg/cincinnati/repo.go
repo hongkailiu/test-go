@@ -21,7 +21,6 @@ import (
 )
 
 type Repo struct {
-	ctx            context.Context
 	client         Client
 	registry       string
 	repo           string
@@ -30,9 +29,8 @@ type Repo struct {
 	maxConcurrency int
 }
 
-func NewRepo(ctx context.Context, client Client, registry, repo, mockDir string, maxConcurrency int, cache Cache) *Repo {
+func NewRepo(client Client, registry, repo, mockDir string, maxConcurrency int, cache Cache) *Repo {
 	return &Repo{
-		ctx:            ctx,
 		client:         client,
 		registry:       registry,
 		repo:           repo,
@@ -143,7 +141,7 @@ func allTags(client Client, url string) ([]string, string, error) {
 	return data.Tags, link, nil
 }
 
-func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
+func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
 	tags, err := r.tags()
@@ -162,7 +160,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 		if _, ok := r.cache.Get(cacheKeyImageInfo(tag)); !ok {
 			logrus.WithField("tag", tag).Debug("Tag not found in cache")
 			image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
-			if err := sem.Acquire(r.ctx, 1); err != nil {
+			if err := sem.Acquire(ctx, 1); err != nil {
 				logrus.WithError(err).WithField("tag", tag).Warn("Failed to acquire semaphore")
 				continue
 			}
@@ -178,7 +176,7 @@ func (r *Repo) tagsToNodesAndEdges(graph Graph) (Graph, error) {
 			}(image)
 		}
 	}
-	if err := sem.Acquire(r.ctx, int64(r.maxConcurrency)); err != nil {
+	if err := sem.Acquire(ctx, int64(r.maxConcurrency)); err != nil {
 		logrus.WithError(err).Warn("Failed to acquire semaphore")
 	}
 

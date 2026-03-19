@@ -1,6 +1,7 @@
 package cincinnati
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
@@ -89,7 +90,7 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 	return &graphData, nil
 }
 
-func (gd CincinnatiGraphData) Shape(graph Graph) (Graph, error) {
+func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, error) {
 	var remove []int
 	for i, node := range graph.Nodes {
 		channels := gd.listChannels(node.Version.String())

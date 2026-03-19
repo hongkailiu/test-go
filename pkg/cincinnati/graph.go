@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -234,10 +235,9 @@ func hasArchSuffix(tag string) bool {
 	return false
 }
 
-type GraphHandlerFunc func(Graph) (Graph, error)
+type GraphHandlerFunc func(context.Context, Graph) (Graph, error)
 
 type GraphBuilder struct {
-	ctx          context.Context
 	graphFile    string
 	graphDataDir string
 	mockDir      string
@@ -303,12 +303,12 @@ func (g *GraphBuilder) Ready() bool {
 	return true
 }
 
-func (g *GraphBuilder) Start() error {
+func (g *GraphBuilder) Start(ctx context.Context) error {
 	interrupts.TickLiteral(func() {
 		logrus.Info("Building OpenShift upgrade graph ...")
 
 		var gd CincinnatiGraphData
-		if err := wait.PollUntilContextCancel(g.ctx, 3*time.Second, true, func(context.Context) (done bool, err error) {
+		if err := wait.PollUntilContextCancel(ctx, 3*time.Second, true, func(context.Context) (done bool, err error) {
 			value, ok := g.cache.Get(cacheKeyCincinnatiGraphData)
 			if !ok {
 				logrus.Info("Loading Cincinnati graph data...")
@@ -321,7 +321,7 @@ func (g *GraphBuilder) Start() error {
 		}
 
 		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape}
-		graph, err := buildOpenshiftUpgradeGraph(g.graphFile, handles, g.cache.Set, cache.NoExpiration)
+		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, g.cache.Set, cache.NoExpiration)
 		if err != nil {
 			logrus.WithError(err).Error("Failed to build openshift upgrade graph")
 		}
@@ -357,7 +357,13 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 		return fmt.Errorf("graph not found in cache")
 	}
 	graph := v.(Graph)
-	raw, err := json.Marshal(graph)
+	var raw []byte
+	var err error
+	if gin.Mode() == gin.ReleaseMode {
+		raw, err = json.Marshal(graph)
+	} else {
+		raw, err = json.MarshalIndent(graph, "", "  ")
+	}
 	if err != nil {
 		return fmt.Errorf("error serializing graph: %w", err)
 	}
@@ -368,7 +374,7 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 	return nil
 }
 
-func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
+func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers []GraphHandlerFunc, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
 	var graph Graph
 	var loaded bool
 	if graphFile != "" {
@@ -398,7 +404,7 @@ func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc, s
 
 	var errs []error
 	for _, h := range handlers {
-		newGraph, err := h(graph)
+		newGraph, err := h(ctx, graph)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error generating graph by %s: %w", reflect.TypeOf(h), err))
 			return graph, kerrors.NewAggregate(errs)
@@ -408,9 +414,8 @@ func buildOpenshiftUpgradeGraph(graphFile string, handlers []GraphHandlerFunc, s
 	return graph, kerrors.NewAggregate(errs)
 }
 
-func NewGraphBuilder(ctx context.Context, file, graphDataDir, mockDir string, cache Cache, repo *Repo) *GraphBuilder {
+func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo) *GraphBuilder {
 	return &GraphBuilder{
-		ctx:          ctx,
 		graphFile:    file,
 		graphDataDir: graphDataDir,
 		mockDir:      mockDir,
