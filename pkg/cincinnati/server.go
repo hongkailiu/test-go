@@ -24,6 +24,10 @@ type Options struct {
 	MaxConcurrency int
 }
 
+func releaseMode() bool {
+	return gin.Mode() == gin.ReleaseMode
+}
+
 func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 	r := gin.Default()
 

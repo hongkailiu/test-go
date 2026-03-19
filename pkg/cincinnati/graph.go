@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -359,7 +358,7 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 	graph := v.(Graph)
 	var raw []byte
 	var err error
-	if gin.Mode() == gin.ReleaseMode {
+	if releaseMode() {
 		raw, err = json.Marshal(graph)
 	} else {
 		raw, err = json.MarshalIndent(graph, "", "  ")

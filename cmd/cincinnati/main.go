@@ -86,7 +86,7 @@ func available(addr string) (ok bool, retError error) {
 func init() {
 	rootCmd.Flags().StringVar(&opts.Address, "address", ":8080", "Address to run the server with")
 	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
-	rootCmd.Flags().StringVar(&opts.MockDir, "graph-data-dir", "/tmp/cincinnati/graph-data", "Path to the directory containing graph data")
+	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data", "Path to the directory containing graph data")
 	rootCmd.Flags().StringVar(&opts.Registry, "registry", "https://quay.io", "Registry URL")
 	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
 	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "./data/graph.json", "Graph file path")

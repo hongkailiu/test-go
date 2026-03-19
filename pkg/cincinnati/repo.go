@@ -75,8 +75,14 @@ func (r *Repo) tags() ([]string, error) {
 
 	var ret []string
 	url := fmt.Sprintf("%s/v2/%s/tags/list", r.registry, r.repo)
+	var count int
+	notReleaseMode := !releaseMode()
 	for {
-		tags, next, err := allTags(r.client, url)
+		count++
+		if notReleaseMode && count > 2 {
+			break
+		}
+		tags, next, err := fetchTags(r.client, url)
 		if err != nil {
 			return nil, err
 		}
@@ -105,9 +111,10 @@ func getNextURL(next string) (string, error) {
 	return strings.Trim(splits[0], "<>"), nil
 }
 
-func allTags(client Client, url string) ([]string, string, error) {
+func fetchTags(client Client, url string) ([]string, string, error) {
 	// Reference https://oneuptime.com/blog/post/2026-02-08-how-to-list-all-tags-of-a-docker-image-on-docker-hub/view
 	// https://quay.io/v2/openshift-release-dev/ocp-release/tags/list
+	logrus.WithField("url", url).Info("Fetching tags ...")
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, "", err
@@ -125,9 +132,9 @@ func allTags(client Client, url string) ([]string, string, error) {
 		return nil, "", fmt.Errorf("unexpected status code %d for url %s", res.StatusCode, req.URL)
 	}
 
-	link := res.Header.Get("link")
+	link := res.Header.Get("Link")
 	if link != "" {
-		logrus.WithField("link", link).Debugf("Found link")
+		logrus.WithField("link", link).Debugf("Found Link")
 	}
 
 	raw, err := io.ReadAll(res.Body)
