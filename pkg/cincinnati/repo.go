@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -29,7 +30,8 @@ type Repo struct {
 	maxConcurrency int
 }
 
-func NewRepo(client Client, registry, repo, mockDir string, maxConcurrency int, cache Cache) *Repo {
+// NewRepo returns a repo.
+func NewRepo(client Client, registry, repo, mockDir string, maxConcurrency int) *Repo {
 	return &Repo{
 		client:         client,
 		registry:       registry,
@@ -98,6 +100,8 @@ func (r *Repo) tags() ([]string, error) {
 			break
 		}
 	}
+
+	sort.Strings(ret)
 
 	return ret, nil
 }
