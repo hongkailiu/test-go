@@ -44,6 +44,7 @@ var rootCmd = &cobra.Command{
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
 			opts.Registry, opts.Repo, opts.MockDir, opts.MaxConcurrency, c)
+
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {
 			logrus.WithError(err).Fatal("Failed to start server")
@@ -59,9 +60,11 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
 		}
+
 		if !ok {
 			logrus.WithField("address", opts.Address).Fatal("Address is not available")
 		}
+
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()
@@ -74,12 +77,15 @@ func available(addr string) (ok bool, retError error) {
 	if err != nil {
 		return false, nil
 	}
+
 	defer func() {
-		if err := ln.Close(); err != nil {
+		err := ln.Close()
+		if err != nil {
 			ok = false
 			retError = err
 		}
 	}()
+
 	return true, nil
 }
 
@@ -98,17 +104,21 @@ func init() {
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
 		opts.Registry = v
 	}
+
 	if v := os.Getenv("CINCINNATI_REPO"); v != "" {
 		opts.Repo = v
 	}
+
 	if v := os.Getenv("MOCK_DIR"); v != "" {
 		opts.MockDir = v
 	}
 }
 
 func main() {
-	if err := rootCmd.ExecuteContext(ctx); err != nil {
+	err := rootCmd.ExecuteContext(ctx)
+	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+
 		os.Exit(1)
 	}
 }

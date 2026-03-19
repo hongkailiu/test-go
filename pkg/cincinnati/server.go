@@ -1,7 +1,6 @@
 package cincinnati
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -54,6 +53,7 @@ func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 				"value": "mandatory client parameters missing: channel",
 			})
 		}
+
 		arch := c.DefaultQuery("arch", "amd64")
 		params := GraphParams{
 			Channel: channel,
@@ -65,10 +65,12 @@ func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
 					"kind":  "invalid_params",
-					"value": fmt.Sprintf("invalid parameter version: %s", versionStr),
+					"value": "invalid parameter version: " + versionStr,
 				})
+
 				return
 			}
+
 			params.Version = v
 		}
 
@@ -82,8 +84,10 @@ func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": http.StatusText(http.StatusInternalServerError),
 			})
+
 			return
 		}
+
 		c.JSON(http.StatusOK, graph)
 	})
 

@@ -25,6 +25,7 @@ func IsNodesSuperset(small, big []Node) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -34,5 +35,6 @@ func (n Node) isMemberOf(nodes []Node) bool {
 			return true
 		}
 	}
+
 	return false
 }
