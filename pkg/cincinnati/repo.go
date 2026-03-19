@@ -75,13 +75,16 @@ func (r *Repo) tags() ([]string, error) {
 
 	var ret []string
 	url := fmt.Sprintf("%s/v2/%s/tags/list", r.registry, r.repo)
+
 	var count int
+
 	notReleaseMode := !releaseMode()
 	for {
 		count++
 		if notReleaseMode && count > 2 {
 			break
 		}
+
 		tags, next, err := fetchTags(r.client, url)
 		if err != nil {
 			return nil, err

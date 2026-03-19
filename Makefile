@@ -10,15 +10,22 @@ generate-go:
 	go mod tidy
 .PHONY: generate-go
 
-unit:
-	go test ./...
+unit: gotestsum
+	gotestsum --packages="./..."
 .PHONY: unit
 
 test: unit
 .PHONY: test
 
-verify: test imports generate-go
+verify: test imports generate-go lint
 	git diff --exit-code
 .PHONY: verify
 
-# TODO gotestsum golangci-lint
+gotestsum:
+	which gotestsum || go install go install gotest.tools/gotestsum@v1.13.0
+.PHONY: gotestsum
+
+lint:
+	which golangci-lint || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
+	golangci-lint run --default all --new --disable wsl
+.PHONY: lint

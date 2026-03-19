@@ -357,7 +357,9 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 	}
 	graph := v.(Graph)
 	var raw []byte
+
 	var err error
+
 	if releaseMode() {
 		raw, err = json.Marshal(graph)
 	} else {

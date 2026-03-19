@@ -86,12 +86,14 @@ func available(addr string) (ok bool, retError error) {
 func init() {
 	rootCmd.Flags().StringVar(&opts.Address, "address", ":8080", "Address to run the server with")
 	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
-	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data", "Path to the directory containing graph data")
+	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data",
+		"Path to the directory containing graph data")
 	rootCmd.Flags().StringVar(&opts.Registry, "registry", "https://quay.io", "Registry URL")
 	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
 	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "./data/graph.json", "Graph file path")
 	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
-	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "concurrency", 3, "Maximum number of concurrent in-flight goroutines to scrape the registry")
+	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "concurrency", cincinnati.DefaultMaxConcurrency,
+		"Maximum number of concurrent in-flight goroutines to scrape the registry")
 
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
 		opts.Registry = v
