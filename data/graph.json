@@ -1,14 +1,14 @@
 {
   "nodes": [
     {
-      "version": "4.10.0-rc.8",
-      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:65e8dbc576556e0296e29ac1ae7496743e3494ad65a111e134c6e7202a498d11",
+      "version": "4.10.0-rc.7",
+      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:a1e6c5ad9f3e7a6faa93508d7c1458f3fcd13869fdb1ac6e2dab7cc0f9269847",
       "metadata": {
         "io.openshift.upgrades.graph.previous.remove_regex": "todo",
         "io.openshift.upgrades.graph.release.channels": "candidate-4.10,candidate-4.11",
-        "io.openshift.upgrades.graph.release.manifestref": "sha256:65e8dbc576556e0296e29ac1ae7496743e3494ad65a111e134c6e7202a498d11"
+        "io.openshift.upgrades.graph.release.manifestref": "sha256:a1e6c5ad9f3e7a6faa93508d7c1458f3fcd13869fdb1ac6e2dab7cc0f9269847"
       },
-      "tag": "4.10.0-rc.8-x86_64",
+      "tag": "4.10.0-rc.7-x86_64",
       "previous": [
         "4.10.0-fc.0",
         "4.10.0-fc.1",
@@ -55,14 +55,14 @@
       ]
     },
     {
-      "version": "4.10.0-rc.7",
-      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:a1e6c5ad9f3e7a6faa93508d7c1458f3fcd13869fdb1ac6e2dab7cc0f9269847",
+      "version": "4.10.0-rc.8",
+      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:65e8dbc576556e0296e29ac1ae7496743e3494ad65a111e134c6e7202a498d11",
       "metadata": {
         "io.openshift.upgrades.graph.previous.remove_regex": "todo",
         "io.openshift.upgrades.graph.release.channels": "candidate-4.10,candidate-4.11",
-        "io.openshift.upgrades.graph.release.manifestref": "sha256:a1e6c5ad9f3e7a6faa93508d7c1458f3fcd13869fdb1ac6e2dab7cc0f9269847"
+        "io.openshift.upgrades.graph.release.manifestref": "sha256:65e8dbc576556e0296e29ac1ae7496743e3494ad65a111e134c6e7202a498d11"
       },
-      "tag": "4.10.0-rc.7-x86_64",
+      "tag": "4.10.0-rc.8-x86_64",
       "previous": [
         "4.10.0-fc.0",
         "4.10.0-fc.1",
@@ -262,11 +262,11 @@
       3
     ],
     [
-      2,
+      0,
       3
     ],
     [
-      0,
+      2,
       3
     ],
     [
@@ -278,11 +278,11 @@
       4
     ],
     [
-      2,
+      0,
       4
     ],
     [
-      0,
+      2,
       4
     ],
     [
@@ -290,11 +290,11 @@
       6
     ],
     [
-      2,
+      0,
       6
     ],
     [
-      0,
+      2,
       6
     ],
     [

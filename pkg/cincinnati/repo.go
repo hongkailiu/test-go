@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -101,9 +100,7 @@ func (r *Repo) tags() ([]string, error) {
 		}
 	}
 
-	sort.Strings(ret)
-
-	return ret, nil
+	return sets.List[string](sets.New[string](ret...)), nil
 }
 
 func getNextURL(next string) (string, error) {
@@ -201,14 +198,14 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
 
-	missing := sets.New[string]()
+	var missing []string
 	for _, tag := range tags {
 		if graph.Find(tag) > -1 {
 			logrus.WithField("tag", tag).Debug("Ignored fetching metadata for an existing tag")
 			continue
 		}
 
-		missing.Insert(tag)
+		missing = append(missing, tag)
 	}
 
 	results := make(chan result, len(missing))
@@ -223,7 +220,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 	logrus.WithField("total", len(missing)).Debug("Fetching image metadata ...")
 
-	for i, tag := range missing.UnsortedList() {
+	for i, tag := range missing {
 		image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
 		logrus.WithField("image", image).WithField("tag", tag).WithField("index", i).Debug("Sending a job")
 
@@ -340,7 +337,7 @@ func getImageInfo(image string) (ImageInfo, error) {
 
 	layers, err := img.Layers()
 	if err != nil {
-		return ret, fmt.Errorf("error getting layers for image %q: %v", image, err)
+		return ret, fmt.Errorf("error getting layers for image %q: %w", image, err)
 	}
 
 	target := "release-manifests/release-metadata"
@@ -360,7 +357,7 @@ func getImageInfo(image string) (ImageInfo, error) {
 			}
 
 			if err != nil {
-				return ret, fmt.Errorf("error getting the next tar archive: %v", err)
+				return ret, fmt.Errorf("error getting the next tar archive: %w", err)
 			}
 
 			if hdr.Name == target {
