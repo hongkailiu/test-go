@@ -21,7 +21,7 @@ jobs:
             - "/go/pkg/mod"
 
       - run:
-          name: Run tests
+          name: Verify code
           command: make verify
 
       - run:
