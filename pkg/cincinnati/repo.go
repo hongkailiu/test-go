@@ -238,7 +238,12 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 	var nodes int
 
+	var received int
+
 	for result := range results {
+		logrus.WithField("received", received).WithField("total", len(missing)).Debug("Received result")
+		received++
+
 		if result.err != nil {
 			logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
 
@@ -279,8 +284,7 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 		Version: version,
 		Image:   fmt.Sprintf("%s/%s@%s", strings.TrimPrefix(registry, "https://"), repo, info.Digest),
 		Metadata: map[string]string{
-			"io.openshift.upgrades.graph.previous.remove_regex": "todo",
-			MetadataKeyManifestRef:                              info.Digest,
+			MetadataKeyManifestRef: info.Digest,
 		},
 		Tag:      tag,
 		Previous: info.Previous,

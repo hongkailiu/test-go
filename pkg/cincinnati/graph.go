@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -20,6 +19,8 @@ import (
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
+
+	"github.com/hongkailiu/test-go/pkg/util"
 )
 
 // TODO: Generate Go struct from OpenAPI Specs or the other way around
@@ -428,7 +429,7 @@ func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
 		return fmt.Errorf("error serializing graph: %w", err)
 	}
 
-	err = os.WriteFile(g.graphFile, raw, 0644)
+	err = util.WriteBytesMaybeGZIP(g.graphFile, raw)
 	if err != nil {
 		return fmt.Errorf("error write graph to file %s: %w", g.graphFile, err)
 	}
@@ -445,7 +446,7 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 	if graphFile != "" {
 		logrus.Info("Loading OpenShift upgrade graph from file ...")
 
-		raw, err := os.ReadFile(graphFile)
+		raw, err := util.ReadFileMaybeGZIP(graphFile)
 		if err != nil {
 			logrus.WithError(err).Warning("Failed to read openshift upgrade graph")
 		} else {
