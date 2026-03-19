@@ -132,12 +132,12 @@ func fetchTags(client Client, url string) ([]string, string, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to create request with url %s: %w", url, err)
 	}
 
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to get response to fetch tags: %w", err)
 	}
 
 	defer func() {
@@ -155,12 +155,12 @@ func fetchTags(client Client, url string) ([]string, string, error) {
 
 	raw, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("error reading body: %w", err)
 	}
 
 	data := TagsListData{}
 	if err := json.Unmarshal(raw, &data); err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to unmarshal tags: %w", err)
 	}
 
 	return data.Tags, link, nil
@@ -294,24 +294,24 @@ func getImageInfo(image string) (ImageInfo, error) {
 
 	ref, err := name.ParseReference(image)
 	if err != nil {
-		return ret, err
+		return ret, fmt.Errorf("failed to parse reference of image %s: %w", image, err)
 	}
 
 	img, err := remote.Image(ref)
 	if err != nil {
-		return ret, err
+		return ret, fmt.Errorf("failed to fetch image %s: %w", image, err)
 	}
 
 	hash, err := img.Digest()
 	if err != nil {
-		return ret, err
+		return ret, fmt.Errorf("failed to get digest for image %s: %w", image, err)
 	}
 
 	digest := hash.String()
 
 	layers, err := img.Layers()
 	if err != nil {
-		return ret, err
+		return ret, fmt.Errorf("error getting layers for image %q: %v", image, err)
 	}
 
 	target := "release-manifests/release-metadata"
@@ -319,7 +319,7 @@ func getImageInfo(image string) (ImageInfo, error) {
 	for _, layer := range layers {
 		rc, err := layer.Uncompressed()
 		if err != nil {
-			return ret, err
+			return ret, fmt.Errorf("failed to uncompress layer: %w", err)
 		}
 
 		tr := tar.NewReader(rc)
@@ -331,18 +331,18 @@ func getImageInfo(image string) (ImageInfo, error) {
 			}
 
 			if err != nil {
-				return ret, err
+				return ret, fmt.Errorf("error getting the next tar archive: %v", err)
 			}
 
 			if hdr.Name == target {
 				data, err := io.ReadAll(tr)
 				if err != nil {
-					return ret, err
+					return ret, fmt.Errorf("error reading tar archive: %w", err)
 				}
 
 				var m CincinnatiMetadata
 				if err := json.Unmarshal(data, &m); err != nil {
-					return ret, err
+					return ret, fmt.Errorf("failed to unmarshal image info: %w", err)
 				}
 
 				ret.Digest = digest
