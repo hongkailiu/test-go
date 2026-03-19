@@ -10,14 +10,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/sync/semaphore"
+
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type Repo struct {
@@ -25,7 +26,6 @@ type Repo struct {
 	registry       string
 	repo           string
 	mockDir        string
-	cache          Cache
 	maxConcurrency int
 }
 
@@ -35,7 +35,6 @@ func NewRepo(client Client, registry, repo, mockDir string, maxConcurrency int, 
 		registry:       registry,
 		repo:           repo,
 		mockDir:        mockDir,
-		cache:          cache,
 		maxConcurrency: maxConcurrency,
 	}
 }
@@ -54,11 +53,6 @@ type TagsListData struct {
 }
 
 func (r *Repo) tags() ([]string, error) {
-	key := fmt.Sprintf("tagsWithCache-%s/%s", r.registry, r.repo)
-	if v, ok := r.cache.Get(key); ok {
-		return v.([]string), nil
-	}
-
 	if r.mockDir != "" {
 		raw, err := os.ReadFile(filepath.Join(r.mockDir, "repo.tags.list.json"))
 		if err != nil {
@@ -69,10 +63,6 @@ func (r *Repo) tags() ([]string, error) {
 		if err := json.Unmarshal(raw, &data); err != nil {
 			return nil, err
 		}
-		// TODO: caching is useless here because it is going to expire faster than the internal of scraping
-		// Remove
-		r.cache.Set(fmt.Sprintf("tagsWithCache-%s/%s", r.registry, r.repo), data.Tags, time.Duration(0))
-
 		return data.Tags, nil
 	}
 
@@ -108,9 +98,6 @@ func (r *Repo) tags() ([]string, error) {
 			break
 		}
 	}
-
-	logrus.WithField("key", key).WithField("value", ret).Info("Cache set")
-	r.cache.Set(key, ret, time.Duration(0))
 
 	return ret, nil
 }
@@ -166,7 +153,41 @@ func fetchTags(client Client, url string) ([]string, string, error) {
 	return data.Tags, link, nil
 }
 
-func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
+type result struct {
+	info ImageInfo
+	err  error
+}
+type job struct {
+	i     int
+	tag   string
+	image string
+}
+
+func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	logger := logrus.WithField("worker.id", id)
+	for job := range jobs {
+		logJ := logger.WithField("image", job.image).WithField("tag", job.tag).WithField("job.index", job.i)
+		logJ.Debug("Worker processing job ...")
+
+		info, err := getImageInfo(job.image)
+		if err != nil {
+			logJ.WithError(err).Warn("Failed to fetch image info")
+
+			results <- result{err: fmt.Errorf("failed to get image info for tag %s and image %s: %w", job.tag, job.image, err)}
+
+			return
+		}
+
+		logJ.Debug("Fetched image info successfully")
+
+		info.Tag = job.tag
+		results <- result{info: info}
+	}
+}
+
+func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error) {
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
 
@@ -176,68 +197,70 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
 
-	sem := semaphore.NewWeighted(int64(r.maxConcurrency))
-
-	var missed []string
-
+	missing := sets.New[string]()
 	for _, tag := range tags {
 		if graph.Find(tag) > -1 {
+			logrus.WithField("tag", tag).Debug("Ignored fetching metadata for an existing tag")
 			continue
 		}
 
-		missed = append(missed, tag)
-		// TODO: Remove the caching here. Use channel receive the image info
-		if _, ok := r.cache.Get(cacheKeyImageInfo(tag)); !ok {
-			logrus.WithField("tag", tag).Debug("Tag not found in cache")
+		missing.Insert(tag)
+	}
 
-			image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
+	results := make(chan result, len(missing))
+	jobs := make(chan job, len(missing))
 
-			err := sem.Acquire(ctx, 1)
-			if err != nil {
-				logrus.WithError(err).WithField("tag", tag).Warn("Failed to acquire semaphore")
+	var waitGroup sync.WaitGroup
+	for i := 1; i <= r.maxConcurrency; i++ {
+		waitGroup.Add(1)
 
-				continue
-			}
+		go worker(i, jobs, results, &waitGroup)
+	}
 
-			go func(i string) {
-				defer sem.Release(1)
+	logrus.WithField("total", len(missing)).Debug("Fetching image metadata ...")
 
-				logrus.WithField("tag", tag).Debug("Fetching metadata")
+	for i, tag := range missing.UnsortedList() {
+		image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
+		logrus.WithField("image", image).WithField("tag", tag).WithField("index", i).Debug("Sending a job")
 
-				info, err := getImageInfo(i)
-				if err != nil {
-					logrus.WithError(err).WithField("image", image).Warn("Failed to fetch image info")
+		jobs <- job{i: i, tag: tag, image: image}
+	}
 
-					return
-				}
+	close(jobs)
 
-				r.cache.Set(cacheKeyImageInfo(tag), info, cache.NoExpiration)
-			}(image)
+	go func() {
+		logrus.Debug("Waiting for fetching image info ...")
+		waitGroup.Wait()
+		close(results)
+		logrus.Debug("Done with waiting for fetching image info ...")
+	}()
+
+	var nodes int
+
+	for result := range results {
+		if result.err != nil {
+			logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
+
+			continue
 		}
-	}
 
-	if err := sem.Acquire(ctx, int64(r.maxConcurrency)); err != nil {
-		logrus.WithError(err).Warn("Failed to acquire semaphore")
-	}
+		info := result.info
+		logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 
-	for _, tag := range missed {
-		if value, ok := r.cache.Get(cacheKeyImageInfo(tag)); ok {
-			logrus.WithField("tag", tag).Debug("Adding a missing tag into the graph")
+		version, err := semver.Make(info.Version)
+		if err != nil {
+			logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
+				Warn("Failed to parse info.version for tag (ignored)")
 
-			info := value.(ImageInfo)
-
-			v, err := semver.Make(info.Version)
-			if err != nil {
-				logrus.WithError(err).WithField("tag", tag).WithField("version", info.Version).Warn("Failed to parse info.version for tag (ignored)")
-
-				continue
-			}
-
-			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, tag, v, info))
-		} else {
-			logrus.WithField("tag", tag).Warn("Tag not found in cache (ignored until the next try)")
+			continue
 		}
+
+		nodes++
+		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
 	}
+
+	logrus.WithField("messing", len(missing)).WithField("nodes", nodes).WithField("tags", len(tags)).
+		Debug("Finished scraping the repository graph ...")
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
@@ -283,6 +306,8 @@ type ImageInfo struct {
 	CincinnatiMetadata
 
 	Digest string
+
+	Tag string
 }
 
 func cacheKeyImageInfo(tag string) string {
