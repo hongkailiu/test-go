@@ -2,6 +2,7 @@ package cincinnati
 
 import (
 	"encoding/json"
+	"github.com/blang/semver/v4"
 	"os"
 	"path/filepath"
 	"testing"
@@ -45,7 +46,7 @@ func Test_getPrevious(t *testing.T) {
 	}
 }
 
-func Test_RemoveEdges(t *testing.T) {
+func TestGraph_RemoveEdges(t *testing.T) {
 	tests := []struct {
 		name         string
 		g            Graph
@@ -86,6 +87,79 @@ func Test_RemoveEdges(t *testing.T) {
 	}
 }
 
+func TestGraph_getTag(t *testing.T) {
+	tests := []struct {
+		name        string
+		g           Graph
+		version     string
+		suffix      ArchTagSuffix
+		expectTag   string
+		expectIndex int
+	}{
+		{
+			name: "4.2.11",
+			g: Graph{Nodes: []Node{
+				{
+					Version: semver.MustParse("4.2.11"),
+					Tag:     "4.2.11",
+				},
+			}},
+			version:   "4.2.11",
+			suffix:    ArchTagSuffixAMD64,
+			expectTag: "4.2.11",
+		},
+		{
+			name: "4.3.11-x86_64",
+			g: Graph{Nodes: []Node{
+				{
+					Version: semver.MustParse("4.3.11"),
+					Tag:     "4.3.11-x86_64",
+				},
+			}},
+			version:   "4.3.11",
+			suffix:    ArchTagSuffixAMD64,
+			expectTag: "4.3.11-x86_64",
+		},
+		{
+			name: "4.23.11-multi",
+			g: Graph{Nodes: []Node{
+				{
+					Version: semver.MustParse("4.23.11"),
+					Tag:     "4.23.11-multi",
+				},
+			}},
+			version:   "4.23.11",
+			suffix:    ArchTagSuffixMULTI,
+			expectTag: "4.23.11-multi",
+		},
+		{
+			name: "4.23.11-multi",
+			g: Graph{Nodes: []Node{
+				{
+					Version: semver.MustParse("4.23.11"),
+					Tag:     "4.23.11-multi",
+				},
+			}},
+			version:     "4.23.11",
+			suffix:      ArchTagSuffixAMD64,
+			expectIndex: -1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actualTag, actualIndex := tt.g.getTagAndIndex(tt.version, tt.suffix)
+
+			if diff := cmp.Diff(tt.expectIndex, actualIndex); diff != "" {
+				t.Errorf("index not match (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tt.expectTag, actualTag); diff != "" {
+				t.Errorf("tag not match (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestGraph_compatible(t *testing.T) {
 	tests := []struct {
 		name string
@@ -107,6 +181,92 @@ func TestGraph_compatible(t *testing.T) {
 			cupaloy.New(
 				cupaloy.SnapshotSubdirectory("testdata/.snapshots"),
 			).SnapshotT(t, data)
+		})
+	}
+}
+
+func TestNode_getFrom(t *testing.T) {
+	tests := []struct {
+		name    string
+		node    Node
+		version string
+		graph   Graph
+		expect  int
+	}{
+		{
+			name:   "empty graph and node",
+			expect: -1,
+		},
+		{
+			name:    "no arch suffix",
+			version: "1.0.0",
+			graph: Graph{
+				Nodes: []Node{
+					{
+						Version: semver.MustParse("0.0.1"),
+						Tag:     "0.0.1",
+					},
+					{
+						Version: semver.MustParse("1.0.0"),
+						Tag:     "1.0.0",
+					},
+				},
+			},
+			node: Node{
+				Version: semver.MustParse("1.0.0"),
+				Tag:     "1.0.0",
+			},
+			expect: 1,
+		},
+		{
+			name:    "4.2.11-s390x",
+			version: "4.2.11-s390x",
+			graph: Graph{
+				Nodes: []Node{
+					{
+						Version: semver.MustParse("0.0.1"),
+						Tag:     "0.0.1",
+					},
+					{
+						Version: semver.MustParse("4.2.11-s390x"),
+						Tag:     "4.2.11-s390x",
+					},
+				},
+			},
+			node: Node{
+				Version: semver.MustParse("4.2.11-s390x"),
+				Tag:     "4.2.11-s390x",
+			},
+			expect: 1,
+		},
+		{
+			name:    "4.13.11-s390x",
+			version: "4.13.11",
+			graph: Graph{
+				Nodes: []Node{
+					{
+						Version: semver.MustParse("0.0.1"),
+						Tag:     "0.0.1",
+					},
+					{
+						Version: semver.MustParse("4.13.11"),
+						Tag:     "4.13.11-s390x",
+					},
+				},
+			},
+			node: Node{
+				Version: semver.MustParse("4.13.11"),
+				Tag:     "4.13.11-s390x",
+			},
+			expect: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.node.getFrom(tt.version, tt.graph)
+			if diff := cmp.Diff(tt.expect, actual); diff != "" {
+				t.Errorf("index not match (-want +got):\n%s", diff)
+			}
 		})
 	}
 }

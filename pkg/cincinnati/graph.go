@@ -24,9 +24,8 @@ import (
 )
 
 // TODO: Generate Go struct from OpenAPI Specs or the other way around
-// TODO: more test on arch and relevant suffix
 
-// multi-arch since 4.3: tag 4.2.23 -> 4.3.1-x86_64 with version 4.3.1
+// multi-arch since 4.3.14: tag 4.2.1 -> 4.3.14-x86_64 with version 4.3.1
 // condition update since 4.7?: default blocking -> conditional blocking with MatchRules
 // tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
 
@@ -112,7 +111,7 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 			continue
 		}
 
-		if !archMatch(node.Tag, p.Arch) {
+		if getArch(node.Tag) != ArchParam(p.Arch) {
 			logrus.WithField("node.version", node.Version.String()).WithField("node.tag", node.Tag).WithField("params.arch", p.Arch).
 				Debug("Ignored a version not matching arch")
 
@@ -136,48 +135,58 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 	return p.directTargets(g), nil
 }
 
-func getTag(version, arch string) string {
-	return version + arch
-}
-
-func archToTagSuffix(arch string) string {
-	switch arch {
-	case "amd64":
-		return "-x86_64"
-	case "arm64":
-		return "-aarch64"
-	default:
-		return "-" + arch
+func (g Graph) getTagAndIndex(version string, suffix ArchTagSuffix) (string, int) {
+	fromTag := fmt.Sprintf("%s-%s", version, suffix)
+	i := g.Find(fromTag)
+	if i == -1 {
+		// 4.2.1 is a legit tag
+		fromTag = version
+		i = g.Find(version)
+		if i == -1 {
+			return "", -1
+		}
 	}
+	return fromTag, i
 }
 
 func (p *GraphParams) directTargets(g Graph) Graph {
 	keep := sets.New[int]()
-	suffix := archToTagSuffix(p.Arch)
+	suffix := ArchTagSuffix("-" + string(ArchParamUnknown))
 
-	fromTag := getTag(p.Version.String(), suffix)
-	if i := g.Find(fromTag); i > -1 {
+	for k, v := range ArchTagSuffixesMap {
+		if string(v) == p.Arch {
+			suffix = k
+		}
+	}
+
+	fromTag, i := g.getTagAndIndex(p.Version.String(), suffix)
+	if i > -1 {
 		logrus.WithField("tag", fromTag).WithField("i", i).Debug("Keep a node")
 		keep.Insert(i)
 	} else {
+		// TODO: return an empty graph right away?
 		logrus.WithField("version", p.Version.String()).WithField("arch", p.Arch).
 			Debug("Could not find the node for the given params")
 	}
 
 	for _, edge := range g.Edges {
 		if p.Version.Equals(g.Nodes[edge[0]].Version) {
-			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("Keep a node")
+			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("Keep a node for edge")
 			keep.Insert(edge[1])
+		} else {
+			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("remove a node for edge")
 		}
 	}
 
 	for _, edge := range g.ConditionalEdges {
 		for _, riskEdge := range edge.Edges {
 			if p.Version.String() == riskEdge.From {
-				tag := getTag(riskEdge.To, suffix)
-				if i := g.Find(tag); i > -1 {
-					logrus.WithField("tag", tag).WithField("i", i).Debug("Keep a node")
+				tag, i := g.getTagAndIndex(riskEdge.To, suffix)
+				if i > -1 {
+					logrus.WithField("tag", tag).WithField("i", i).Debug("Keep a node for conditional edge")
 					keep.Insert(i)
+				} else {
+					logrus.WithField("tag", tag).WithField("i", i).Debug("remove a node for conditional edge")
 				}
 			}
 		}
@@ -249,25 +258,34 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	return g
 }
 
-func archMatch(tag string, arch string) bool {
-	switch arch {
-	case "amd64":
-		return strings.HasSuffix(tag, "-x86_64") || !hasArchSuffix(tag)
-	case "arm64":
-		return strings.HasSuffix(tag, "-aarch64")
-	default:
-		return strings.HasSuffix(tag, "-"+arch)
-	}
-}
+type ArchParam string
 
-func hasArchSuffix(tag string) bool {
-	for _, s := range []string{"-x86_64", "-aarch64", "-s390x", "-ppc64le", "-multi"} {
-		if strings.HasSuffix(tag, s) {
-			return true
-		}
-	}
+const (
+	ArchParamAMD64   ArchParam = "amd64"
+	ArchParamARM64   ArchParam = "arm64"
+	ArchParamS390x   ArchParam = "s390x"
+	ArchParamPPC64LE ArchParam = "ppc64le"
+	ArchParamMULTI   ArchParam = "multi"
+	ArchParamUnknown ArchParam = "unknown"
+)
 
-	return false
+type ArchTagSuffix string
+
+const (
+	ArchTagSuffixAMD64   ArchTagSuffix = "x86_64"
+	ArchTagSuffixARM64   ArchTagSuffix = "aarch64"
+	ArchTagSuffixS390x   ArchTagSuffix = "s390x"
+	ArchTagSuffixPPC64LE ArchTagSuffix = "ppc64le"
+	ArchTagSuffixMULTI   ArchTagSuffix = "multi"
+)
+
+var ArchTagSuffixes = []ArchTagSuffix{ArchTagSuffixAMD64, ArchTagSuffixARM64, ArchTagSuffixS390x, ArchTagSuffixPPC64LE, ArchTagSuffixMULTI}
+var ArchTagSuffixesMap = map[ArchTagSuffix]ArchParam{
+	ArchTagSuffixAMD64:   ArchParamAMD64,
+	ArchTagSuffixARM64:   ArchParamARM64,
+	ArchTagSuffixS390x:   ArchParamS390x,
+	ArchTagSuffixPPC64LE: ArchParamPPC64LE,
+	ArchTagSuffixMULTI:   ArchParamMULTI,
 }
 
 type GraphHandlerFunc func(context.Context, Graph) (Graph, error)
@@ -503,11 +521,13 @@ func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo
 	}
 }
 
-func (n Node) getFrom(tag string, p string, graph Graph) int {
-	arch := getArch(tag)
+// getFrom return the index of the node which is with the given version and the same arch, or
+// -1 if such a node cannot be found.
+func (n Node) getFrom(version string, graph Graph) int {
+	arch := getArch(n.Tag)
 
 	for i, node := range graph.Nodes {
-		if node.Version.String() == p {
+		if node.Version.String() == version {
 			if arch1 := getArch(node.Tag); arch1 == arch || arch1 == "" {
 				return i
 			}
@@ -517,20 +537,14 @@ func (n Node) getFrom(tag string, p string, graph Graph) int {
 	return -1
 }
 
-func getArch(tag string) string {
-	if strings.HasSuffix(tag, "-x86_64") {
-		return "amd64"
-	} else if strings.HasSuffix(tag, "-aarch64") {
-		return "arm64"
-	} else if strings.HasSuffix(tag, "-s390x") {
-		return "s390x"
-	} else if strings.HasSuffix(tag, "-ppc64le") {
-		return "ppc64le"
-	} else if strings.HasSuffix(tag, "-multi") {
-		return "multi"
+// getArch returns the arch for a given tag with a default value as amd64.
+func getArch(tag string) ArchParam {
+	for _, s := range ArchTagSuffixes {
+		if v, ok := ArchTagSuffixesMap[s]; ok && strings.HasSuffix(tag, "-"+string(s)) {
+			return v
+		}
 	}
-
-	return ""
+	return ArchParamAMD64
 }
 
 func (n Node) getPrevious(graph Graph) []Edge {
@@ -546,7 +560,7 @@ func (n Node) getPrevious(graph Graph) []Edge {
 	var edges []Edge
 
 	for _, p := range n.Previous {
-		i := n.getFrom(n.Tag, p, graph)
+		i := n.getFrom(p, graph)
 		if i == -1 {
 			continue
 		}
