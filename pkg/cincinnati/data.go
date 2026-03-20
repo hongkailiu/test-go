@@ -40,6 +40,8 @@ type Channel struct {
 type RemovedEdge struct {
 	To   string
 	From string
+
+	FromRegex *regexp.Regexp `json:"-"`
 }
 type CincinnatiGraphData struct {
 	BlockedEdges []BlockedEdge `json:"blockedEdges,omitempty"`
@@ -102,7 +104,7 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 		}
 
 		if len(be.MatchingRules) == 0 {
-			graphData.RemovedEdges = append(graphData.RemovedEdges, RemovedEdge{be.From, be.To})
+			graphData.RemovedEdges = append(graphData.RemovedEdges, RemovedEdge{From: be.From, To: be.To})
 
 			return nil
 		}
@@ -192,19 +194,22 @@ func (gd CincinnatiGraphData) BecomeConditional(from Node, to string) Conditiona
 			continue
 		}
 
-		// TODO: make a re field to avoid repeating compilation
-		re, err := regexp.Compile(blockedEdge.From)
-		if err != nil {
-			logrus.WithError(err).
-				WithField("name", blockedEdge.Name).
-				WithField("from", blockedEdge.From).
-				WithField("to", blockedEdge.To).
-				Error("Failed to compile regex")
+		if blockedEdge.FromRegex == nil {
+			fromRegex, err := regexp.Compile(blockedEdge.From)
+			if err != nil {
+				logrus.WithError(err).
+					WithField("name", blockedEdge.Name).
+					WithField("from", blockedEdge.From).
+					WithField("to", blockedEdge.To).
+					Error("Failed to compile regex")
 
-			continue
+				continue
+			}
+
+			blockedEdge.FromRegex = fromRegex
 		}
 
-		if re.MatchString(from.Tag) {
+		if blockedEdge.FromRegex.MatchString(from.Tag) {
 			logrus.WithField("from", from.Tag).WithField("to", to).Debug("Found blocked edge")
 
 			key = append(key, i)

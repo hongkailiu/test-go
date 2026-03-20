@@ -304,6 +304,6 @@ channels:
   - 4.11.58
   - 4.11.59
 removedEdges:
-- From: 4.6.30
-  To: .*
+- From: .*
+  To: 4.6.30
 
