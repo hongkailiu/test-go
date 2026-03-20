@@ -140,7 +140,7 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 
 	graph.ConditionalEdges = nil
 	for _, edge := range graph.Edges {
-		// TODO handle blocked edges if matchingRules is empty
+		// TODO handle blocked edges
 		if ce := gd.BecomeConditional(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); len(ce.Risks) > 0 {
 			var found bool
 
@@ -192,6 +192,7 @@ func (gd CincinnatiGraphData) BecomeConditional(from Node, to string) Conditiona
 			continue
 		}
 
+		// TODO: make a re field to avoid repeating compilation
 		re, err := regexp.Compile(blockedEdge.From)
 		if err != nil {
 			logrus.WithError(err).
