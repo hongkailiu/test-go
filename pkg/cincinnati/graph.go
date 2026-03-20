@@ -371,14 +371,14 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 
 			return true, nil
 		}); err != nil {
-			logrus.WithError(err).Warn("Cincinnati graph data not loaded (using empty instead)")
+			logrus.WithError(err).Fatal("Failed to load graph data")
 		}
 
 		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape}
 
 		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, g.cache.Set, cache.NoExpiration)
 		if err != nil {
-			logrus.WithError(err).Error("Failed to build openshift upgrade graph")
+			logrus.WithError(err).Fatal("Failed to build openshift upgrade graph")
 		}
 
 		logrus.Info("Built OpenShift upgrade graph")
