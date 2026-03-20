@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -81,6 +82,31 @@ func Test_RemoveEdges(t *testing.T) {
 			if diff := cmp.Diff(tt.expect, actual); diff != "" {
 				t.Errorf("edges not match (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestGraph_compatible(t *testing.T) {
+	tests := []struct {
+		name string
+		g    Graph
+	}{
+		{
+			name: "empty graph.json",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.g.compatible()
+
+			data, err := json.Marshal(actual)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			cupaloy.New(
+				cupaloy.SnapshotSubdirectory("testdata/.snapshots"),
+			).SnapshotT(t, data)
 		})
 	}
 }
