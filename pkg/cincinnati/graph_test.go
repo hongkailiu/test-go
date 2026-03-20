@@ -2,11 +2,11 @@ package cincinnati
 
 import (
 	"encoding/json"
-	"github.com/blang/semver/v4"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/blang/semver/v4"
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/google/go-cmp/cmp"
 )

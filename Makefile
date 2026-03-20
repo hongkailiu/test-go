@@ -29,3 +29,8 @@ lint:
 	which golangci-lint || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
 	golangci-lint run --new-from-rev 6d2c3ff3a6ca6ede20fee99f9db36cd3992349e5
 .PHONY: lint
+
+integration-test:
+	# This runs against a real OpenShift cluster through the current KUBECONFIG context
+	TEST_INTEGRATION=1 go test ./... -test.run=^TestIntegration
+.PHONY: integration-test
