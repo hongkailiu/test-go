@@ -18,11 +18,11 @@ import (
 type BlockedEdge struct {
 	RemovedEdge
 
-	FixedIn       string
-	URL           string
-	Name          string
-	Message       string
-	MatchingRules []MatchingRule
+	FixedIn       string         `json:"fixedIn,omitempty"`
+	URL           string         `json:"url,omitempty"`
+	Name          string         `json:"name,omitempty"`
+	Message       string         `json:"message,omitempty"`
+	MatchingRules []MatchingRule `json:"matchingRules,omitempty"`
 }
 
 type Feeder struct {
@@ -42,10 +42,10 @@ type RemovedEdge struct {
 	From string
 }
 type CincinnatiGraphData struct {
-	BlockedEdges []BlockedEdge
+	BlockedEdges []BlockedEdge `json:"blockedEdges,omitempty"`
 
-	Channels     []Channel
-	RemovedEdges []RemovedEdge
+	Channels     []Channel     `json:"channels,omitempty"`
+	RemovedEdges []RemovedEdge `json:"removedEdges,omitempty"`
 }
 
 func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
@@ -73,7 +73,6 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 		}
 
 		graphData.Channels = append(graphData.Channels, c)
-		// TODO: set up graphData.RemovedEdges
 
 		return nil
 	})
@@ -100,6 +99,12 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 		var be BlockedEdge
 		if err := yaml.Unmarshal(raw, &be); err != nil {
 			return err
+		}
+
+		if len(be.MatchingRules) == 0 {
+			graphData.RemovedEdges = append(graphData.RemovedEdges, RemovedEdge{be.From, be.To})
+
+			return nil
 		}
 
 		graphData.BlockedEdges = append(graphData.BlockedEdges, be)
