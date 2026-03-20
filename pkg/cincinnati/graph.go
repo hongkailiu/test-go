@@ -164,9 +164,9 @@ func (p *GraphParams) directTargets(g Graph) Graph {
 		logrus.WithField("tag", fromTag).WithField("i", i).Debug("Keep a node")
 		keep.Insert(i)
 	} else {
-		// TODO: return an empty graph right away?
 		logrus.WithField("version", p.Version.String()).WithField("arch", p.Arch).
-			Debug("Could not find the node for the given params")
+			Debug("Could not find the node for the given params and thus kept all nodes")
+		return g
 	}
 
 	for _, edge := range g.Edges {
