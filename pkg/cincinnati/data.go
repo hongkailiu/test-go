@@ -142,7 +142,9 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 
 	graph.ConditionalEdges = nil
 	for _, edge := range graph.Edges {
-		// TODO handle blocked edges
+		if removed := gd.IsRemovedEdge(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); removed {
+			continue
+		}
 		if ce := gd.BecomeConditional(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); len(ce.Risks) > 0 {
 			var found bool
 
@@ -232,4 +234,32 @@ func (gd CincinnatiGraphData) BecomeConditional(from Node, to string) Conditiona
 		},
 		RisksKey: fmt.Sprintf("%v", key),
 	}
+}
+
+func (gd CincinnatiGraphData) IsRemovedEdge(from Node, to string) bool {
+	for _, removedEdge := range gd.RemovedEdges {
+		if to != removedEdge.To {
+			continue
+		}
+
+		if removedEdge.FromRegex == nil {
+			fromRegex, err := regexp.Compile(removedEdge.From)
+			if err != nil {
+				logrus.WithError(err).
+					WithField("from", removedEdge.From).
+					WithField("to", removedEdge.To).
+					Error("Failed to compile regex")
+
+				continue
+			}
+
+			removedEdge.FromRegex = fromRegex
+		}
+
+		if removedEdge.FromRegex.MatchString(from.Tag) {
+			logrus.WithField("from", from.Tag).WithField("to", to).Debug("Found removed edge")
+			return true
+		}
+	}
+	return false
 }

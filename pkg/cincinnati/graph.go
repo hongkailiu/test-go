@@ -33,7 +33,7 @@ import (
 type Graph struct {
 	Nodes            []Node            `json:"nodes"`
 	Edges            []Edge            `json:"edges"`
-	ConditionalEdges []ConditionalEdge `json:"conditionalEdges"`
+	ConditionalEdges []ConditionalEdge `json:"conditionalEdges,omitempty"`
 
 	Channels []string `json:"channels,omitempty"`
 }

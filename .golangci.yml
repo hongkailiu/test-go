@@ -1,0 +1,14 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - bodyclose
+    - errcheck # default
+    - errorlint
+    - govet # default
+    - ineffassign # default
+    - misspell
+    - staticcheck # default
+    - unconvert
+    - unparam
+    - unused # default

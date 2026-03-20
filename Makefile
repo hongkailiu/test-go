@@ -27,5 +27,5 @@ gotestsum:
 
 lint:
 	which golangci-lint || go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
-	golangci-lint run --default all --disable wsl,exhaustruct,funlen,depguard,godox,revive,testpackage,paralleltest,gochecknoglobals --new-from-rev 6d2c3ff3a6ca6ede20fee99f9db36cd3992349e5
+	golangci-lint run --new-from-rev 6d2c3ff3a6ca6ede20fee99f9db36cd3992349e5
 .PHONY: lint
