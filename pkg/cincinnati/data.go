@@ -140,6 +140,8 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 
 	var edges []Edge
 
+	// It is ensured that each conditional risk edge (from, to)
+	// occurs only once among all conditional updates
 	graph.ConditionalEdges = nil
 	for _, edge := range graph.Edges {
 		if removed := gd.IsRemovedEdge(graph.Nodes[edge[0]], graph.Nodes[edge[1]].Version.String()); removed {

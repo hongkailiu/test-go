@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/blang/semver/v4"
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/hongkailiu/test-go/pkg/util"
 )
 
-func Test_getPrevious(t *testing.T) {
+func TestNode_getPrevious(t *testing.T) {
 	var g Graph
 
 	raw, err := os.ReadFile(filepath.Join("testdata", t.Name()+"_graph.json"))
@@ -267,6 +270,44 @@ func TestNode_getFrom(t *testing.T) {
 			if diff := cmp.Diff(tt.expect, actual); diff != "" {
 				t.Errorf("index not match (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestGraph_RemoveUnreachableNodes(t *testing.T) {
+	tests := []struct {
+		name   string
+		expect Graph
+		err    error
+	}{
+		{
+			name: "empty graph.json",
+		},
+		{
+			name: "basic case.json",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var graph Graph
+			if !strings.Contains(tt.name, "empty graph") {
+				data, err := util.ReadFileMaybeGZIP(filepath.Join("testdata", strings.TrimSuffix(t.Name(), ".json")+"_graph.json"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err := json.Unmarshal(data, &graph); err != nil {
+					t.Fatal(err)
+				}
+			}
+			actual := graph.RemoveUnreachableNodes()
+
+			data, err := json.MarshalIndent(actual, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			cupaloy.New(
+				cupaloy.SnapshotSubdirectory("testdata/.snapshots"),
+			).SnapshotT(t, data)
 		})
 	}
 }

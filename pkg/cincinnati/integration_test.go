@@ -2,59 +2,76 @@ package cincinnati
 
 import (
 	"encoding/json"
-	"github.com/hongkailiu/test-go/pkg/util"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/hongkailiu/test-go/pkg/util"
 )
 
 // TODO: compare result with production
 
 func (g Graph) Equal(g1 Graph) bool {
-	return g.IsSuperGraph(g1) && g1.IsSuperGraph(g)
+	return g.IsSuperGraphOf(g1) && g1.IsSuperGraphOf(g)
 }
 
-func (g Graph) IsSuperGraph(g1 Graph) bool {
-	return g.IsNodesSuperset(g1) && g.IsEdgesSuperset(g1) && g.IsConditionalEdgesSuperset(g1)
+func (g Graph) IsSuperGraphOf(g1 Graph) bool {
+	return g.IsNodesSupersetOf(g1) && g.IsEdgesSupersetOf(g1) && g.IsConditionalEdgesSupersetOf(g1)
 }
 
-func (g Graph) IsNodesSuperset(g1 Graph) bool {
-	for _, n := range g1.Nodes {
-		if g.Find(n.Tag) == -1 {
+func (g Graph) IsNodesSupersetOf(g1 Graph) bool {
+	for i, n := range g1.Nodes {
+		if g.FindNode(n) == -1 {
+			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
+				WithField("index", i).Error("node is not in graph")
 			return false
 		}
 	}
 	return true
 }
 
-func (g Graph) IsEdgesSuperset(g1 Graph) bool {
-	for _, edge := range g1.Edges {
-		i := g.Find(g1.Nodes[edge[0]].Tag)
-		if i == -1 {
-			return false
+func (g Graph) IsEdgesSupersetOf(g1 Graph) bool {
+	for i, edge := range g1.Edges {
+		var from, to int
+		for j, n := range []Node{g1.Nodes[edge[0]], g1.Nodes[edge[1]]} {
+			index := g.FindNode(g1.Nodes[edge[0]])
+			if index == -1 {
+				logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
+					WithField("index", j).Error("node is not in graph")
+				return false
+			}
+			if j == 0 {
+				from = index
+			} else {
+				to = index
+			}
 		}
-		j := g.Find(g1.Nodes[edge[1]].Tag)
-		if j == -1 {
-			return false
-		}
-		if g.FindEdge(Edge{i, j}) == -1 {
+		if g.FindEdge(Edge{from, to}) == -1 {
+			logrus.WithField("index", i).WithField("edge", edge).Error("edge is not in graph")
 			return false
 		}
 	}
 	return true
 }
 
-func (g Graph) IsConditionalEdgesSuperset(g1 Graph) bool {
+func (n Node) Equal(n1 Node) bool {
+	return n.Image == n1.Image
+}
+
+func (g Graph) FindNode(node Node) int {
+	for i, n := range g.Nodes {
+		if n.Equal(node) {
+			return i
+		}
+	}
+	return -1
+}
+
+func (g Graph) IsConditionalEdgesSupersetOf(g1 Graph) bool {
 	for _, ce1 := range g1.ConditionalEdges {
 		for _, e1 := range ce1.Edges {
-			i := g.Find(e1.From)
-			if i == -1 {
-				return false
-			}
-			j := g.Find(e1.To)
-			if j == -1 {
-				return false
-			}
 			var found bool
 			for _, ce := range g.ConditionalEdges {
 				for _, e := range ce.Edges {
@@ -68,6 +85,7 @@ func (g Graph) IsConditionalEdgesSuperset(g1 Graph) bool {
 				}
 			}
 			if !found {
+				logrus.WithField("conditionalUpdateEdge", e1).Error("conditional update edge is not in graph")
 				return false
 			}
 		}
@@ -98,7 +116,7 @@ func TestIntegration_dummy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !production.IsSuperGraph(graph) {
+	if !production.IsSuperGraphOf(graph) {
 		t.Fatal("production is not a super-graph of graph")
 	}
 }
