@@ -2,6 +2,7 @@ package cincinnati
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -302,14 +303,15 @@ func (g Graph) compatible() Graph {
 	return g
 }
 
-// getFrom return the index of the node which is with the given version and the same arch in the given graph, or
+// getFrom return the index of the node which is with the given version and the same arch with the node in the given graph, or
 // -1 if such a node cannot be found.
 func (n Node) getFrom(version string, graph Graph) int {
 	arch := getArch(n.Tag)
 
 	for i, node := range graph.Nodes {
-		if node.Version.String() == version {
-			if arch1 := getArch(node.Tag); arch1 == arch || arch1 == "" {
+		versionStr := node.Version.String()
+		if versionStr == version {
+			if arch1 := getArch(node.Tag); arch1 == arch {
 				return i
 			}
 		}
@@ -421,4 +423,71 @@ func newIndex(removed []int, e int) int {
 	}
 
 	return e - len(removed)
+}
+
+type TagIndex struct {
+	tag string
+	idx int
+}
+
+func (g Graph) RemoveUnreachableNodes() Graph {
+	var sorted []TagIndex
+	for i, node := range g.Nodes {
+		sorted = append(sorted, TagIndex{idx: i, tag: node.Tag})
+	}
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].tag < sorted[j].tag
+	})
+
+	var remove []int
+	var ok bool
+	reached := sets.New[int]()
+	for _, elem := range sorted {
+		reached, ok = reachable(elem, g, sorted, reached)
+		if !ok {
+			i := g.Find(elem.tag)
+			if i == -1 {
+				continue
+			}
+			remove = append(remove, i)
+		}
+	}
+	slices.Sort(remove)
+	return g.RemoveNodes(remove...)
+}
+
+func reachable(ti TagIndex, g Graph, sorted []TagIndex, reached sets.Set[int]) (sets.Set[int], bool) {
+	if i := g.Find(ti.tag); i == -1 {
+		return reached, false
+	}
+	if minimalMinorGroupByArch(ti, sorted) {
+		reached.Insert(ti.idx)
+		return reached, true
+	}
+
+	copied := slices.Clone(g.Nodes[ti.idx].Previous)
+	slices.Sort(copied)
+
+	for _, p := range copied {
+		i := g.Nodes[ti.idx].getFrom(p, g)
+		if i == -1 {
+			continue
+		}
+		if reached.Has(i) {
+			return reached.Insert(ti.idx), true
+		}
+	}
+
+	return reached, false
+}
+
+func minimalMinorGroupByArch(ti TagIndex, sorted []TagIndex) bool {
+	arch := getArch(ti.tag)
+	var nodes []TagIndex
+	for _, n := range sorted {
+		if getArch(n.tag) == arch {
+			nodes = append(nodes, n)
+		}
+	}
+	return nodes[0].tag == ti.tag
 }

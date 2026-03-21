@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
-	"slices"
-	"sort"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -228,65 +226,4 @@ func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo
 		cache:        cache,
 		repo:         repo,
 	}
-}
-
-type TagIndex struct {
-	tag string
-	idx int
-}
-
-func (g Graph) RemoveUnreachableNodes() Graph {
-	var sorted []TagIndex
-	for i, node := range g.Nodes {
-		sorted = append(sorted, TagIndex{idx: i, tag: node.Tag})
-	}
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].tag < sorted[j].tag
-	})
-
-	var remove []int
-	for _, elem := range sorted {
-		if !reachable(elem, g, sorted) {
-			i := g.Find(elem.tag)
-			if i == -1 {
-				continue
-			}
-			remove = append(remove, i)
-		}
-	}
-	slices.Sort(remove)
-	return g.RemoveNodes(remove...)
-}
-
-func reachable(ti TagIndex, g Graph, sorted []TagIndex) bool {
-	if i := g.Find(ti.tag); i == -1 {
-		return false
-	}
-	if minimalMinorGroupByArch(ti, sorted) {
-		return true
-	}
-	for _, p := range g.Nodes[ti.idx].Previous {
-		i := g.Nodes[ti.idx].getFrom(p, g)
-		if i == -1 {
-			return false
-		}
-		if !reachable(TagIndex{
-			tag: g.Nodes[i].Tag,
-			idx: i,
-		}, g, sorted) {
-			return false
-		}
-	}
-	return true
-}
-
-func minimalMinorGroupByArch(ti TagIndex, sorted []TagIndex) bool {
-	arch := getArch(ti.tag)
-	var nodes []TagIndex
-	for _, n := range sorted {
-		if getArch(n.tag) == arch {
-			nodes = append(nodes, n)
-		}
-	}
-	return nodes[0].tag == ti.tag
 }
