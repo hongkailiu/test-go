@@ -1,7 +1,10 @@
 package cincinnati
 
 import (
+	"encoding/json"
+	"github.com/hongkailiu/test-go/pkg/util"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -75,5 +78,27 @@ func (g Graph) IsConditionalEdgesSuperset(g1 Graph) bool {
 func TestIntegration_dummy(t *testing.T) {
 	if os.Getenv("TEST_INTEGRATION") != "1" {
 		t.Skip("integration tests skipped unless TEST_INTEGRATION=1")
+	}
+	data, err := util.ReadFileMaybeGZIP(filepath.Join("../../data", "graph.json.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	graph := Graph{}
+	err = json.Unmarshal(data, &graph)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data, err = util.ReadFileMaybeGZIP(filepath.Join("../../data", "production_stable-4.10_amd64.json.gz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	production := Graph{}
+	err = json.Unmarshal(data, &production)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !production.IsSuperGraph(graph) {
+		t.Fatal("production is not a super-graph of graph")
 	}
 }

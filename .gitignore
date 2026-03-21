@@ -17,6 +17,7 @@
 *.iml
 .idea/
 /build/
+data
 _out
 
 bazel-bin
