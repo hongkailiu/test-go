@@ -106,7 +106,11 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		}
 		d := time.Since(start)
 
-		logrus.WithField("duration", d).Info("Built OpenShift upgrade graph")
+		logrus.WithField("duration", d).
+			WithField("nodes", len(graph.Nodes)).
+			WithField("edges", len(graph.Edges)).
+			WithField("conditionalEdges", len(graph.ConditionalEdges)).
+			Info("Built OpenShift upgrade graph")
 		g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
 	}, 2*time.Hour)
 

@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -43,7 +44,7 @@ var rootCmd = &cobra.Command{
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, opts.MockDir, opts.MaxConcurrency)
+			opts.Registry, opts.Repo, filepath.Dir(opts.GraphFile), opts.MockDir, opts.MaxConcurrency)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {

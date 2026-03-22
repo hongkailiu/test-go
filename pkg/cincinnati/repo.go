@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/util/sets"
+	"sigs.k8s.io/yaml"
 )
 
 type Repo struct {
@@ -26,15 +27,17 @@ type Repo struct {
 	registry       string
 	repo           string
 	mockDir        string
+	dataDir        string
 	maxConcurrency int
 }
 
 // NewRepo returns a repo.
-func NewRepo(client Client, registry, repo, mockDir string, maxConcurrency int) *Repo {
+func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int) *Repo {
 	return &Repo{
 		client:         client,
 		registry:       registry,
 		repo:           repo,
+		dataDir:        dataDir,
 		mockDir:        mockDir,
 		maxConcurrency: maxConcurrency,
 	}
@@ -205,6 +208,31 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			continue
 		}
 
+		if file := tagToFile(r.dataDir, tag); file != "" && fileExists(file) {
+			data, err := os.ReadFile(file)
+			if err != nil {
+				logrus.WithError(err).WithField("tag", tag).WithField("file", file).
+					Warn("Failed to fetch image info from file, ignored the tag")
+				continue
+			}
+			info := ImageInfo{}
+			if err := yaml.Unmarshal(data, &info); err != nil {
+				logrus.WithError(err).WithField("tag", tag).Warn("Failed to unmarshal image info, ignored the tag")
+				continue
+			}
+
+			version, err := semver.Make(info.Version)
+			if err != nil {
+				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
+					Warn("Failed to parse info.version for tag (ignored and will re-fetch)")
+
+				continue
+			}
+
+			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
+			continue
+		}
+
 		missing = append(missing, tag)
 	}
 
@@ -218,7 +246,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		go worker(i, jobs, results, &waitGroup)
 	}
 
-	logrus.WithField("total", len(missing)).Debug("Fetching image metadata ...")
+	logrus.WithField("total", len(missing)).Info("Fetching image metadata for missing tags ...")
 
 	for i, tag := range missing {
 		image := fmt.Sprintf("%s/%s:%s", strings.TrimPrefix(r.registry, "https://"), r.repo, tag)
@@ -253,6 +281,10 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		info := result.info
 		logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 
+		go func(info ImageInfo) {
+			saveToFile(r.dataDir, info)
+		}(info)
+
 		version, err := semver.Make(info.Version)
 		if err != nil {
 			logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
@@ -265,7 +297,8 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
 	}
 
-	logrus.WithField("messing", len(missing)).WithField("nodes", nodes).WithField("tags", len(tags)).
+	logrus.WithField("messing", len(missing)).WithField("received", received).WithField("nodes", nodes).
+		WithField("tags", len(tags)).
 		Debug("Finished scraping the repository graph ...")
 
 	for _, node := range graph.Nodes {
@@ -277,6 +310,53 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		Info("Scraped the repository for nodes and edges")
 
 	return graph, nil
+}
+
+func saveToFile(dir string, info ImageInfo) {
+	logger := logrus.WithField("tag", info.Tag)
+
+	file := tagToFile(dir, info.Tag)
+	if fileExists(file) {
+		logger.WithField("file", file).Warn("File already exists, skipping ...")
+		return
+	}
+	logger = logger.WithField("file", file)
+	logger.Debug("Saving to disk ...")
+	err := os.MkdirAll(filepath.Dir(file), 0755)
+	if err != nil {
+		logger.WithError(err).Warn("Failed to create directory")
+		return
+	}
+	data, err := yaml.Marshal(info)
+	if err != nil {
+		logger.WithError(err).Warn("Failed to marshal info")
+		return
+	}
+	err = os.WriteFile(file, data, 0600)
+	if err != nil {
+		logger.WithError(err).WithField("file", file).Warn("Failed to write file")
+		return
+	}
+	logger.Debug("Saved to disk ...")
+}
+
+func tagToFile(dir, tag string) string {
+	splits := strings.Split(tag, ".")
+	if len(splits) < 2 {
+		logrus.WithField("tag", tag).Warn("Failed to get version information from tag")
+		return ""
+	}
+
+	return filepath.Join(dir, fmt.Sprintf("%s.%s", splits[0], splits[1]), tag+".yaml")
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	// The file might exist but be a directory; return true only for regular files
+	return err == nil && info.Mode().IsRegular()
 }
 
 func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info ImageInfo) Node {
