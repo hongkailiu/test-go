@@ -20,6 +20,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/hongkailiu/test-go/pkg/util"
 )
 
 type Repo struct {
@@ -200,12 +202,27 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
 	logrus.WithField("tags", len(tags)).Info("Got tags")
+	go func(dir string, tags []string) {
+		data, err := yaml.Marshal(map[string][]string{"tags": tags})
+		if err != nil {
+			logrus.WithError(err).Error("Failed to marshal tags")
+		}
+		file := filepath.Join(dir, "tags.yaml.gz")
+		if err := util.WriteBytesMaybeGZIP(file, data); err != nil {
+			logrus.WithError(err).WithField("file", file).Error("Failed to write tags to file")
+		}
+	}(r.dataDir, tags)
 
 	var missing []string
 	var invalid int
 	for _, tag := range tags {
 		file := tagToFile(r.dataDir, tag)
-		if strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") || file == "" {
+		multiSuffix := string(ArchTagSuffixMULTI)
+		if strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
+			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
+			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
+			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
+			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") || file == "" {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			if invalid%2000 == 0 {
 				logrus.WithField("invalid", invalid).
@@ -363,9 +380,14 @@ func saveToFile(dir string, info ImageInfo) {
 }
 
 func tagToFile(dir, tag string) string {
-	version, err := semver.Parse(tag)
+	vTag := tag
+	i := strings.Index(tag, "-")
+	if i != -1 {
+		vTag = tag[:i]
+	}
+	version, err := semver.Parse(vTag)
 	if err != nil {
-		logrus.WithField("tag", tag).Debug("Failed to parse version from tag")
+		logrus.WithField("tag", tag).WithField("vTag", vTag).Debug("Failed to parse version from tag")
 		return ""
 	}
 	return filepath.Join(dir, fmt.Sprintf("%d.%d", version.Major, version.Minor), tag+".yaml")
@@ -424,17 +446,38 @@ func getImageInfo(image string) (ImageInfo, error) {
 		return ret, fmt.Errorf("failed to parse reference of image %s: %w", image, err)
 	}
 
+	desc, err := remote.Get(ref)
+	if err != nil {
+		return ret, fmt.Errorf("failed to get descriptor for %s: %w", image, err)
+	}
+
+	digest := desc.Digest.String()
+
+	// Check if it's a manifest list (index)
+	if desc.MediaType.IsIndex() {
+		multiSuffix := string(ArchTagSuffixMULTI)
+		if !strings.HasSuffix(image, multiSuffix) {
+			return ret, fmt.Errorf("multi-arch image %s does not end with %s", image, ArchTagSuffixMULTI)
+		}
+		// use metadata from amd64 image
+		amd64Image := image[:strings.LastIndex(image, multiSuffix)] + string(ArchTagSuffixAMD64)
+		info, err := getImageInfo(amd64Image)
+		if err != nil {
+			return ret, fmt.Errorf("failed to get image %s: %w", image, err)
+		}
+		info.Digest = digest
+		if info.Metadata == nil {
+			info.Metadata = make(map[string]string)
+		}
+		//
+		info.Metadata[MetadataKeyArchitecture] = "multi"
+		return info, nil
+	}
+
 	img, err := remote.Image(ref)
 	if err != nil {
 		return ret, fmt.Errorf("failed to fetch image %s: %w", image, err)
 	}
-
-	hash, err := img.Digest()
-	if err != nil {
-		return ret, fmt.Errorf("failed to get digest for image %s: %w", image, err)
-	}
-
-	digest := hash.String()
 
 	layers, err := img.Layers()
 	if err != nil {
