@@ -49,9 +49,8 @@ func readBytesMaybeGZIP(data []byte) ([]byte, error) {
 func WriteBytesMaybeGZIP(file string, data []byte) (retErr error) {
 	cleanPath := filepath.Clean(file)
 
-	const perm os.FileMode = 0600 // Unix permission bits
 	if !strings.HasSuffix(cleanPath, ".gz") {
-		retErr = os.WriteFile(cleanPath, data, perm)
+		retErr = os.WriteFile(cleanPath, data, 0600)
 
 		return fmt.Errorf("error writing file %s: %w", cleanPath, retErr)
 	}
@@ -81,6 +80,9 @@ func WriteBytesMaybeGZIP(file string, data []byte) (retErr error) {
 	}()
 
 	_, retErr = gzWriter.Write(data)
+	if retErr != nil {
+		return fmt.Errorf("error compressing data to file %s: %w", cleanPath, retErr)
+	}
 
-	return fmt.Errorf("error writing file %s: %w", cleanPath, retErr)
+	return nil
 }

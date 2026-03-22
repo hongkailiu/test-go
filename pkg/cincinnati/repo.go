@@ -17,9 +17,9 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 
 	"k8s.io/apimachinery/pkg/util/sets"
-	"sigs.k8s.io/yaml"
 )
 
 type Repo struct {
@@ -119,7 +119,7 @@ func getNextURL(next string) (string, error) {
 func fetchTags(client Client, url string) ([]string, string, error) {
 	// Reference https://oneuptime.com/blog/post/2026-02-08-how-to-list-all-tags-of-a-docker-image-on-docker-hub/view
 	// https://quay.io/v2/openshift-release-dev/ocp-release/tags/list
-	logrus.WithField("url", url).Info("Fetching tags ...")
+	logrus.WithField("url", url).Debug("Fetching tags ...")
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -181,7 +181,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 
 			results <- result{err: fmt.Errorf("failed to get image info for tag %s and image %s: %w", job.tag, job.image, err)}
 
-			return
+			continue
 		}
 
 		logJ.Debug("Fetched image info successfully")
@@ -200,15 +200,22 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
+	logrus.WithField("tags", len(tags)).Info("Got tags")
 
 	var missing []string
 	for _, tag := range tags {
+		file := tagToFile(r.dataDir, tag)
+		if file == "" {
+			logrus.WithField("tag", tag).Warn("Ignored the invalid tag")
+			continue
+		}
+
 		if graph.Find(tag) > -1 {
 			logrus.WithField("tag", tag).Debug("Ignored fetching metadata for an existing tag")
 			continue
 		}
 
-		if file := tagToFile(r.dataDir, tag); file != "" && fileExists(file) {
+		if fileExists(file) {
 			data, err := os.ReadFile(file)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", tag).WithField("file", file).
@@ -337,17 +344,16 @@ func saveToFile(dir string, info ImageInfo) {
 		logger.WithError(err).WithField("file", file).Warn("Failed to write file")
 		return
 	}
-	logger.Debug("Saved to disk ...")
+	logger.Info("Saved to disk ...")
 }
 
 func tagToFile(dir, tag string) string {
-	splits := strings.Split(tag, ".")
-	if len(splits) < 2 {
-		logrus.WithField("tag", tag).Warn("Failed to get version information from tag")
+	version, err := semver.Parse(tag)
+	if err != nil {
+		logrus.WithField("tag", tag).Warn("Failed to parse version from tag")
 		return ""
 	}
-
-	return filepath.Join(dir, fmt.Sprintf("%s.%s", splits[0], splits[1]), tag+".yaml")
+	return filepath.Join(dir, fmt.Sprintf("%d.%d", version.Major, version.Minor), tag+".yaml")
 }
 
 func fileExists(filename string) bool {

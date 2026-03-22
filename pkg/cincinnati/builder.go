@@ -115,9 +115,9 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 	}, 2*time.Hour)
 
 	interrupts.TickLiteral(func() {
-		err := g.storeOpenshiftUpgradeGraph()
+		err := g.writeOpenshiftUpgradeGraphToFile()
 		if err != nil {
-			logrus.WithError(err).Error("Failed to store openshift upgrade graph")
+			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
 		}
 	}, time.Minute)
 
@@ -140,7 +140,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 	return nil
 }
 
-func (g *GraphBuilder) storeOpenshiftUpgradeGraph() error {
+func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile() error {
 	v, ok := g.cache.Get(cacheKeyOpenshiftUpgradeGraph)
 	if !ok {
 		return errGraphNotFoundInCache
@@ -194,7 +194,7 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 				graph = graphFromFile
 				loaded = true
 
-				logrus.Info("Storing OpenShift upgrade graph loaded from file (to be refreshed if stale)")
+				logrus.Info("Storing OpenShift upgrade graph loaded from file to cache (to be refreshed if stale)")
 				set(cacheKeyOpenshiftUpgradeGraph, graph, d)
 			}
 		}

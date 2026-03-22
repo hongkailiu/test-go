@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 	Long:  "cincinnati is a GoLang implementation of the Red Hat OpenShift Cincinnati update graph protocol",
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: get the level from an arg
-		logrus.SetLevel(logrus.DebugLevel)
+		logrus.SetLevel(logrus.InfoLevel)
 		logrus.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
 		})
