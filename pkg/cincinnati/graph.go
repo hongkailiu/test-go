@@ -152,9 +152,11 @@ func (p *GraphParams) directTargets(g Graph) Graph {
 		logrus.WithField("tag", fromTag).WithField("i", i).Debug("Keep a node")
 		keep.Insert(i)
 	} else {
+		// The client does the same.
+		// https://github.com/openshift/cluster-version-operator/blob/55fa1518aa72b0b243584bf9a07c73810617f261/pkg/cincinnati/cincinnati.go#L235
 		logrus.WithField("version", p.Version.String()).WithField("arch", p.Arch).
-			Debug("Could not find the node for the given params and thus kept all nodes")
-		return g
+			Debug("Could not find the node for the given params and thus returned the zero graph")
+		return Graph{}
 	}
 
 	for _, edge := range g.Edges {

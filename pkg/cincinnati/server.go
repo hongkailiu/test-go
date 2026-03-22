@@ -21,6 +21,7 @@ type Options struct {
 	GraphFile      string
 	GracePeriod    time.Duration
 	MaxConcurrency int
+	LogLevel       string
 }
 
 func releaseMode() bool {

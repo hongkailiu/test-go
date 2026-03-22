@@ -28,8 +28,11 @@ var rootCmd = &cobra.Command{
 	Short: "A Cincinnati update graph server",
 	Long:  "cincinnati is a GoLang implementation of the Red Hat OpenShift Cincinnati update graph protocol",
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: get the level from an arg
-		logrus.SetLevel(logrus.InfoLevel)
+		level, err := logrus.ParseLevel(opts.LogLevel)
+		if err != nil {
+			logrus.WithError(err).WithField("level", opts.LogLevel).Fatal("invalid log level")
+		}
+		logrus.SetLevel(level)
 		logrus.SetFormatter(&logrus.TextFormatter{
 			FullTimestamp: true,
 		})
@@ -106,6 +109,7 @@ func init() {
 	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
 	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "max-concurrency", cincinnati.DefaultMaxConcurrency,
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")
+	rootCmd.Flags().StringVar(&opts.LogLevel, "log-level", "info", "Set log level (debug, info, warn, error)")
 
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
 		opts.Registry = v

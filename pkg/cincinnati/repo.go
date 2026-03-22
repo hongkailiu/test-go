@@ -196,7 +196,6 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		Info("Scraping the repository for nodes and edges ...")
 
 	tags, err := r.tags()
-	// TODO: ignore the tags that are not in channels
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
