@@ -59,7 +59,7 @@ func (g *GraphBuilder) Build(p GraphParams) (Graph, error) {
 		return zero, err
 	}
 
-	return shaped.RemoveUnreachableNodes().compatible(), nil
+	return shaped.compatible(), nil
 }
 
 const cacheKeyOpenshiftUpgradeGraph = "openshift-upgrade-graph"
