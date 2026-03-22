@@ -41,6 +41,11 @@ var rootCmd = &cobra.Command{
 		client.RetryWaitMin = 1 * time.Second
 		client.RetryWaitMax = 5 * time.Second
 
+		l := logrus.New()
+		l.SetLevel(logrus.WarnLevel)
+		l.WithField("subComponent", "retryablehttp")
+		client.Logger = l
+
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
@@ -99,7 +104,7 @@ func init() {
 	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
 	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "./data/graph.json.gz", "Graph file path")
 	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
-	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "concurrency", cincinnati.DefaultMaxConcurrency,
+	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "max-concurrency", cincinnati.DefaultMaxConcurrency,
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")
 
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {

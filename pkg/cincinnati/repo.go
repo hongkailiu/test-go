@@ -203,10 +203,17 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	logrus.WithField("tags", len(tags)).Info("Got tags")
 
 	var missing []string
+	var invalid int
 	for _, tag := range tags {
 		file := tagToFile(r.dataDir, tag)
 		if file == "" {
-			logrus.WithField("tag", tag).Warn("Ignored the invalid tag")
+			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
+			if invalid%2000 == 0 {
+				logrus.WithField("invalid", invalid).
+					WithField("tags", len(tags)).
+					Info("Ignored invalid tags")
+			}
+			invalid++
 			continue
 		}
 
@@ -300,13 +307,22 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			continue
 		}
 
-		nodes++
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
+		if nodes%10 == 0 {
+			logrus.WithField("missing", len(missing)).
+				WithField("received", received).
+				WithField("nodes", nodes).
+				WithField("tags", len(tags)).
+				Info("Added nodes to the graph")
+		}
+		nodes++
 	}
 
-	logrus.WithField("messing", len(missing)).WithField("received", received).WithField("nodes", nodes).
+	logrus.WithField("missing", len(missing)).
+		WithField("received", received).
+		WithField("nodes", nodes).
 		WithField("tags", len(tags)).
-		Debug("Finished scraping the repository graph ...")
+		Info("Finished scraping the repository graph ...")
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
@@ -344,13 +360,13 @@ func saveToFile(dir string, info ImageInfo) {
 		logger.WithError(err).WithField("file", file).Warn("Failed to write file")
 		return
 	}
-	logger.Info("Saved to disk ...")
+	logger.Debug("Saved to disk ...")
 }
 
 func tagToFile(dir, tag string) string {
 	version, err := semver.Parse(tag)
 	if err != nil {
-		logrus.WithField("tag", tag).Warn("Failed to parse version from tag")
+		logrus.WithField("tag", tag).Debug("Failed to parse version from tag")
 		return ""
 	}
 	return filepath.Join(dir, fmt.Sprintf("%d.%d", version.Major, version.Minor), tag+".yaml")
