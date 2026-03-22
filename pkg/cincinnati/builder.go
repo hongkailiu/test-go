@@ -97,7 +97,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 			logrus.WithError(err).Fatal("Failed to load graph data")
 		}
 
-		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape}
+		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape, checkCycles}
 
 		start := time.Now()
 		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, g.cache.Set, cache.NoExpiration)
@@ -230,4 +230,10 @@ func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo
 		cache:        cache,
 		repo:         repo,
 	}
+}
+
+// TODO: implement checkCycles
+// checkCycles checks if the graph has a cycle
+func checkCycles(_ context.Context, g Graph) (Graph, error) {
+	return g, nil
 }
