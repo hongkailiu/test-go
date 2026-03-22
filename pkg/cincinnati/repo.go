@@ -223,13 +223,15 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	var multi []ImageInfo
 	var invalid int
 	for _, tag := range tags {
+		file := tagToFile(r.dataDir, tag)
 		multiSuffix := string(ArchTagSuffixMULTI)
 		if (strings.HasSuffix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
-			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") {
+			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") ||
+			file == "" {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			if invalid%2000 == 0 {
 				logrus.WithField("tag", tag).
@@ -246,7 +248,6 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			continue
 		}
 
-		file := tagToFile(r.dataDir, tag)
 		if fileExists(file) {
 			data, err := os.ReadFile(file)
 			if err != nil {
@@ -280,6 +281,10 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 		missing = append(missing, tag)
 	}
+
+	logrus.WithField("invalid", invalid).
+		WithField("tags", len(tags)).
+		Info("Ignored invalid tags")
 
 	results := make(chan result, len(missing))
 	jobs := make(chan job, len(missing))
@@ -414,6 +419,10 @@ func saveToFile(dir string, info ImageInfo) {
 	logger := logrus.WithField("tag", info.Tag)
 
 	file := tagToFile(dir, info.Tag)
+	if file == "" {
+		logger.Warn("Failed to determine the file, skipping ...")
+		return
+	}
 	if fileExists(file) {
 		logger.WithField("file", file).Warn("File already exists, skipping ...")
 		return
