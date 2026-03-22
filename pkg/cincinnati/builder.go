@@ -116,7 +116,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 
 	interrupts.TickLiteral(func() {
 		err := g.writeOpenshiftUpgradeGraphToFile()
-		if err != nil {
+		if err != nil && !errors.Is(err, errGraphNotFoundInCache) {
 			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
 		}
 	}, time.Minute)

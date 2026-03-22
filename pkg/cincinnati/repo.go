@@ -206,7 +206,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	var invalid int
 	for _, tag := range tags {
 		file := tagToFile(r.dataDir, tag)
-		if file == "" {
+		if strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") || file == "" {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			if invalid%2000 == 0 {
 				logrus.WithField("invalid", invalid).
@@ -308,7 +308,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		}
 
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
-		if nodes%10 == 0 {
+		if nodes%100 == 0 {
 			logrus.WithField("missing", len(missing)).
 				WithField("received", received).
 				WithField("nodes", nodes).
