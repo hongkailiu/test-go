@@ -220,6 +220,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	}(r.dataDir, tags)
 
 	var missing []string
+	var multi []ImageInfo
 	var invalid int
 	for _, tag := range tags {
 		multiSuffix := string(ArchTagSuffixMULTI)
@@ -256,6 +257,12 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			info := ImageInfo{}
 			if err := yaml.Unmarshal(data, &info); err != nil {
 				logrus.WithError(err).WithField("tag", tag).Warn("Failed to unmarshal image info, ignored the tag")
+				continue
+			}
+
+			if strings.HasSuffix(tag, multiSuffix) && info.Version == "" && info.Digest != "" {
+				multi = append(multi, info)
+				logrus.WithField("tag", tag).Debug("Ignored a multi tag")
 				continue
 			}
 
@@ -306,8 +313,6 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 	var received int
 
-	var multi []ImageInfo
-
 	for result := range results {
 		logrus.WithField("received", received).WithField("total", len(missing)).Debug("Received result")
 		received++
@@ -321,11 +326,15 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 					continue
 				}
 				tag := e.Image[i+1:]
-				multi = append(multi, ImageInfo{
+				info := ImageInfo{
 					Digest: e.Digest,
 					Tag:    tag,
-				})
-				logrus.WithError(err).WithField("tag", tag).Warn("Ignored a multi tag")
+				}
+				multi = append(multi, info)
+				go func(dir string, info ImageInfo) {
+					saveToFile(dir, info)
+				}(r.dataDir, info)
+				logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result")
 				continue
 			}
 
@@ -337,9 +346,9 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		info := result.info
 		logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 
-		go func(info ImageInfo) {
-			saveToFile(r.dataDir, info)
-		}(info)
+		go func(dir string, info ImageInfo) {
+			saveToFile(dir, info)
+		}(r.dataDir, info)
 
 		version, err := semver.Make(info.Version)
 		if err != nil {
@@ -515,6 +524,9 @@ func getImageInfo(image string) (ImageInfo, error) {
 	}
 
 	digest := desc.Digest.String()
+	if digest == "" {
+		return ret, fmt.Errorf("failed to get digest for %s", image)
+	}
 
 	// Check if it's a manifest list (index)
 	if desc.MediaType.IsIndex() {
