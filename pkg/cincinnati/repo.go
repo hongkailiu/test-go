@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -179,7 +180,12 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 
 		info, err := getImageInfo(job.image)
 		if err != nil {
-			logJ.WithError(err).Warn("Failed to fetch image info")
+			var e *IsManifestListError
+			if ok := errors.As(err, &e); ok {
+				logJ.WithError(err).Debug("Failed to fetch image info (will be handled later)")
+			} else {
+				logJ.WithError(err).Warn("Failed to fetch image info")
+			}
 
 			results <- result{err: fmt.Errorf("failed to get image info for tag %s and image %s: %w", job.tag, job.image, err)}
 
@@ -216,16 +222,17 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	var missing []string
 	var invalid int
 	for _, tag := range tags {
-		file := tagToFile(r.dataDir, tag)
 		multiSuffix := string(ArchTagSuffixMULTI)
-		if strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
+		if (strings.HasSuffix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
+			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
-			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") || file == "" {
+			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			if invalid%2000 == 0 {
-				logrus.WithField("invalid", invalid).
+				logrus.WithField("tag", tag).
+					WithField("invalid", invalid).
 					WithField("tags", len(tags)).
 					Info("Ignored invalid tags")
 			}
@@ -238,6 +245,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			continue
 		}
 
+		file := tagToFile(r.dataDir, tag)
 		if fileExists(file) {
 			data, err := os.ReadFile(file)
 			if err != nil {
@@ -298,11 +306,29 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 	var received int
 
+	var multi []ImageInfo
+
 	for result := range results {
 		logrus.WithField("received", received).WithField("total", len(missing)).Debug("Received result")
 		received++
 
 		if result.err != nil {
+			var e *IsManifestListError
+			if ok := errors.As(result.err, &e); ok {
+				i := strings.LastIndex(e.Image, ":")
+				if i == -1 {
+					logrus.WithField("image", e.Image).Warn("Ignored an invalid multi image")
+					continue
+				}
+				tag := e.Image[i+1:]
+				multi = append(multi, ImageInfo{
+					Digest: e.Digest,
+					Tag:    tag,
+				})
+				logrus.WithError(err).WithField("tag", tag).Warn("Ignored a multi tag")
+				continue
+			}
+
 			logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
 
 			continue
@@ -325,7 +351,8 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
 		if nodes%100 == 0 {
-			logrus.WithField("missing", len(missing)).
+			logrus.WithField("tag", info.Tag).
+				WithField("missing", len(missing)).
 				WithField("received", received).
 				WithField("nodes", nodes).
 				WithField("tags", len(tags)).
@@ -339,6 +366,29 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		WithField("nodes", nodes).
 		WithField("tags", len(tags)).
 		Info("Finished scraping the repository graph ...")
+
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Adding multi nodes the repository graph ...")
+	for _, info := range multi {
+		tag := info.Tag
+		trimmed := strings.TrimSuffix(tag, string(ArchTagSuffixMULTI))
+		if trimmed == tag {
+			logrus.WithField("tag", tag).Warn("Ignored an invalid multi image")
+			continue
+		}
+		i := graph.Find(trimmed + string(ArchTagSuffixAMD64))
+		if i == -1 {
+			logrus.WithField("tag", tag).Warn("Failed to find the amd64 node, ignored an invalid multi image")
+			continue
+		}
+		node := graph.Nodes[i]
+		node.Tag = tag
+		node.Image = tagToImage(r.registry, r.repo, info.Digest)
+		node.SetMetadata(MetadataKeyArchitecture, "multi")
+		node.SetMetadata(MetadataKeyManifestRef, info.Digest)
+		graph = graph.EnsureNode(node)
+	}
+
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Added multi nodes the repository graph ...")
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
@@ -402,10 +452,14 @@ func fileExists(filename string) bool {
 	return err == nil && info.Mode().IsRegular()
 }
 
+func tagToImage(registry, repo, digest string) string {
+	return fmt.Sprintf("%s/%s@%s", strings.TrimPrefix(registry, "https://"), repo, digest)
+}
+
 func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info ImageInfo) Node {
 	node := Node{
 		Version: version,
-		Image:   fmt.Sprintf("%s/%s@%s", strings.TrimPrefix(registry, "https://"), repo, info.Digest),
+		Image:   tagToImage(registry, repo, info.Digest),
 		Metadata: map[string]string{
 			MetadataKeyManifestRef: info.Digest,
 		},
@@ -413,11 +467,11 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 		Previous: info.Previous,
 	}
 	if url, ok := info.Metadata["url"]; ok {
-		node.AddMetadata("url", url)
+		node.SetMetadata("url", url)
 	}
 
 	if arch, ok := info.Metadata[MetadataKeyArchitecture]; ok {
-		node.AddMetadata(MetadataKeyArchitecture, arch)
+		node.SetMetadata(MetadataKeyArchitecture, arch)
 	}
 
 	return node
@@ -428,6 +482,15 @@ type CincinnatiMetadata struct {
 	Version  string            `json:"version"`
 	Previous []string          `json:"previous"`
 	Metadata map[string]string `json:"metadata"`
+}
+
+type IsManifestListError struct {
+	Image  string
+	Digest string
+}
+
+func (e *IsManifestListError) Error() string {
+	return fmt.Sprintf("image %s is a manifest list", e.Image)
 }
 
 type ImageInfo struct {
@@ -459,19 +522,10 @@ func getImageInfo(image string) (ImageInfo, error) {
 		if !strings.HasSuffix(image, multiSuffix) {
 			return ret, fmt.Errorf("multi-arch image %s does not end with %s", image, ArchTagSuffixMULTI)
 		}
-		// use metadata from amd64 image
-		amd64Image := image[:strings.LastIndex(image, multiSuffix)] + string(ArchTagSuffixAMD64)
-		info, err := getImageInfo(amd64Image)
-		if err != nil {
-			return ret, fmt.Errorf("failed to get image %s: %w", image, err)
+		return ret, &IsManifestListError{
+			Image:  image,
+			Digest: digest,
 		}
-		info.Digest = digest
-		if info.Metadata == nil {
-			info.Metadata = make(map[string]string)
-		}
-		//
-		info.Metadata[MetadataKeyArchitecture] = "multi"
-		return info, nil
 	}
 
 	img, err := remote.Image(ref)

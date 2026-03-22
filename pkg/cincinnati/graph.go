@@ -34,7 +34,7 @@ type Node struct {
 	Previous []string `json:"previous,omitempty"`
 }
 
-func (n Node) AddMetadata(k, v string) {
+func (n Node) SetMetadata(k, v string) {
 	if n.Metadata == nil {
 		n.Metadata = map[string]string{}
 	}
