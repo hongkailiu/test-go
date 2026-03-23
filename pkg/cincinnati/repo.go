@@ -331,6 +331,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 					continue
 				}
 				tag := e.Image[i+1:]
+				// The other fields will be filled with the image info from its amd64 shard
 				info := ImageInfo{
 					Digest: e.Digest,
 					Tag:    tag,
@@ -339,7 +340,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 				go func(dir string, info ImageInfo) {
 					saveToFile(dir, info)
 				}(r.dataDir, info)
-				logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result")
+				logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result (will be handled later)")
 				continue
 			}
 
@@ -389,6 +390,8 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			logrus.WithField("tag", tag).Warn("Ignored an invalid multi image")
 			continue
 		}
+		// The other fields are filled with the image info from its amd64 shard
+		// `oc adm release info` does a similar thing. By default, it takes the arch on machine where `oc` runs.
 		i := graph.Find(trimmed + string(ArchTagSuffixAMD64))
 		if i == -1 {
 			logrus.WithField("tag", tag).Warn("Failed to find the amd64 node, ignored an invalid multi image")
@@ -539,10 +542,13 @@ func getImageInfo(image string) (ImageInfo, error) {
 
 	// Check if it's a manifest list (index)
 	if desc.MediaType.IsIndex() {
+		// A sanity check. A contract with ART that multi-arch image always with a tag with suffix "multi".
+		// If the contract breaks, Cincinnati ignores those payload images in the update graph.
 		multiSuffix := string(ArchTagSuffixMULTI)
 		if !strings.HasSuffix(image, multiSuffix) {
 			return ret, fmt.Errorf("multi-arch image %s does not end with %s", image, ArchTagSuffixMULTI)
 		}
+		// The image info will be recovered with the image info from its amd64 shard
 		return ret, &IsManifestListError{
 			Image:  image,
 			Digest: digest,

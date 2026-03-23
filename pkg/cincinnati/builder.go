@@ -234,6 +234,7 @@ func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo
 
 // TODO: implement checkCycles
 // checkCycles checks if the graph has a cycle
+// It is enough to check the internal Field Previous because conditional update edges are derived from them.
 func checkCycles(_ context.Context, g Graph) (Graph, error) {
 	return g, nil
 }
