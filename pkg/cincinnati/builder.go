@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"reflect"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -20,6 +19,11 @@ import (
 )
 
 type GraphHandlerFunc func(context.Context, Graph) (Graph, error)
+
+type GraphHandler struct {
+	HandlerFunc GraphHandlerFunc
+	Name        string
+}
 
 type GraphBuilder struct {
 	graphFile    string
@@ -97,7 +101,16 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 			logrus.WithError(err).Fatal("Failed to load graph data")
 		}
 
-		handles := []GraphHandlerFunc{g.repo.tagsToNodesAndEdges, gd.Shape}
+		handles := []GraphHandler{
+			{
+				Name:        "repo.tagsToNodesAndEdges",
+				HandlerFunc: g.repo.tagsToNodesAndEdges,
+			},
+			{
+				Name:        "graphData.shape",
+				HandlerFunc: gd.Shape,
+			},
+		}
 
 		start := time.Now()
 		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, g.cache.Set, cache.NoExpiration)
@@ -170,7 +183,7 @@ func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile() error {
 	return nil
 }
 
-func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers []GraphHandlerFunc, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
+func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers []GraphHandler, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
 	var (
 		graph  Graph
 		loaded bool
@@ -209,14 +222,18 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 	var errs []error
 
 	for _, h := range handlers {
-		newGraph, err := h(ctx, graph)
+		start := time.Now()
+		logrus.WithField("handler", h.Name).Info("handler started")
+		newGraph, err := h.HandlerFunc(ctx, graph)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("error generating graph by %s: %w", reflect.TypeOf(h), err))
+			errs = append(errs, fmt.Errorf("error generating graph by %s: %w", h.Name, err))
 
 			return graph, kerrors.NewAggregate(errs)
 		}
 
 		graph = newGraph
+		d := time.Since(start)
+		logrus.WithField("handler", h.Name).WithField("duration", d).Info("handler completed")
 	}
 
 	return graph, kerrors.NewAggregate(errs)

@@ -130,6 +130,7 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 			graph.Nodes[i].SetMetadata(MetadataKeyChannels, strings.Join(channels, ","))
 		} else {
 			delete(graph.Nodes[i].Metadata, MetadataKeyChannels)
+			logrus.WithField("index", i).WithField("tag", node.Tag).WithField("version", node.Version.String()).Debug("Node in no channels to remove")
 			remove = append(remove, i)
 		}
 	}
@@ -153,8 +154,7 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 			for i, exiting := range graph.ConditionalEdges {
 				if ce.RisksKey == exiting.RisksKey {
 					found = true
-
-					graph.ConditionalEdges[i].Edges = append(graph.ConditionalEdges[i].Edges, ce.Edges...)
+					graph.ConditionalEdges[i].Edges = ensureConditionalEdges(graph.ConditionalEdges[i].Edges, ce.Edges)
 				}
 			}
 
@@ -171,6 +171,22 @@ func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, erro
 	graph.Edges = edges
 
 	return graph, nil
+}
+
+func ensureConditionalEdges(existing []ConditionalUpdate, new []ConditionalUpdate) []ConditionalUpdate {
+	for _, edge := range new {
+		found := false
+		for _, existingEdge := range existing {
+			if existingEdge.From == edge.From && existingEdge.To == edge.To {
+				found = true
+				break
+			}
+		}
+		if !found {
+			existing = append(existing, edge)
+		}
+	}
+	return existing
 }
 
 func (gd CincinnatiGraphData) listChannels(version string) []string {

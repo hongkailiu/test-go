@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -52,7 +51,7 @@ var rootCmd = &cobra.Command{
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, filepath.Dir(opts.GraphFile), opts.MockDir, opts.MaxConcurrency)
+			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {
@@ -101,11 +100,12 @@ func available(addr string) (ok bool, retError error) {
 func init() {
 	rootCmd.Flags().StringVar(&opts.Address, "address", ":8080", "Address to run the server with")
 	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
+	rootCmd.Flags().StringVar(&opts.DataDir, "data-dir", "data", "Path to the directory containing image info files")
 	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data",
 		"Path to the directory containing graph data")
 	rootCmd.Flags().StringVar(&opts.Registry, "registry", "https://quay.io", "Registry URL")
 	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
-	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "./data/graph.json.gz", "Graph file path")
+	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "data/graph.json.gz", "Graph file path")
 	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
 	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "max-concurrency", cincinnati.DefaultMaxConcurrency,
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")

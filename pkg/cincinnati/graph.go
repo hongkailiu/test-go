@@ -108,7 +108,7 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 			continue
 		}
 
-		if channels := node.Metadata["io.openshift.upgrades.graph.release.channels"]; !strings.Contains(channels, p.Channel) {
+		if channels := node.Metadata[MetadataKeyChannels]; !strings.Contains(channels, p.Channel) {
 			logrus.WithField("node.channels", node.Version.String()).WithField("params.channel", p.Channel).
 				Debug("Ignored a version not in the channel")
 
@@ -139,12 +139,17 @@ func (g Graph) getTagAndIndex(version string, suffix ArchTagSuffix) (string, int
 
 func (p *GraphParams) directTargets(g Graph) Graph {
 	keep := sets.New[int]()
-	suffix := ArchTagSuffix("-" + string(ArchParamUnknown))
+	var suffix ArchTagSuffix
 
+	var found bool
 	for k, v := range ArchTagSuffixesMap {
 		if string(v) == p.Arch {
 			suffix = k
+			found = true
 		}
+	}
+	if !found {
+		return Graph{}
 	}
 
 	fromTag, i := g.getTagAndIndex(p.Version.String(), suffix)
@@ -164,7 +169,7 @@ func (p *GraphParams) directTargets(g Graph) Graph {
 			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("Keep a node for edge")
 			keep.Insert(edge[1])
 		} else {
-			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("remove a node for edge")
+			logrus.WithField("tag", g.Nodes[edge[1]].Tag).WithField("i", edge[1]).Debug("Remove a node for edge")
 		}
 	}
 
@@ -201,8 +206,8 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	logrus.WithField("nodes", len(g.Nodes)).
 		WithField("edges", len(g.Edges)).
 		WithField("conditionalEdges", len(g.ConditionalEdges)).
-		WithField("remove", remove).
-		Debug("Removing nodes ...")
+		WithField("remove", len(remove)).
+		Info("Removing nodes ...")
 
 	removeVersions := sets.New[string]()
 	for _, index := range remove {
@@ -219,6 +224,13 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	}
 
 	g.Nodes = nodes
+
+	// ConditionalEdge is not arch-specific and thus cannot be deleted unless no nodes with any arch use it.
+	for _, node := range g.Nodes {
+		if version := node.Version.String(); removeVersions.Has(version) {
+			removeVersions.Delete(version)
+		}
+	}
 
 	var conditionalEdges []ConditionalEdge
 
@@ -242,8 +254,8 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	logrus.WithField("nodes", len(g.Nodes)).
 		WithField("edges", len(g.Edges)).
 		WithField("conditionalEdges", len(g.ConditionalEdges)).
-		WithField("remove", remove).
-		Debug("Removed nodes")
+		WithField("remove", len(remove)).
+		Info("Removed nodes")
 
 	return g
 }

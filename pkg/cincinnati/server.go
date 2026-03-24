@@ -18,6 +18,7 @@ type Options struct {
 	GraphDataDir string
 
 	MockDir        string
+	DataDir        string
 	GraphFile      string
 	GracePeriod    time.Duration
 	MaxConcurrency int

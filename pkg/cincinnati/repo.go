@@ -223,22 +223,28 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 	var multi []ImageInfo
 	var invalid int
 	for _, tag := range tags {
-		file := tagToFile(r.dataDir, tag)
+
+		if invalid%2000 == 1 {
+			logrus.WithField("tag", tag).
+				WithField("invalid", invalid).
+				WithField("tags", len(tags)).
+				Info("Ignored invalid tags")
+		}
+
 		multiSuffix := string(ArchTagSuffixMULTI)
-		if (strings.HasSuffix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
+		if (strings.HasPrefix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
-			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") ||
-			file == "" {
+			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
-			if invalid%2000 == 0 {
-				logrus.WithField("tag", tag).
-					WithField("invalid", invalid).
-					WithField("tags", len(tags)).
-					Info("Ignored invalid tags")
-			}
+			invalid++
+			continue
+		}
+		file := tagToFile(r.dataDir, tag)
+		if file == "" {
+			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			invalid++
 			continue
 		}
@@ -365,7 +371,8 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		}
 
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
-		if nodes%100 == 0 {
+		nodes++
+		if nodes%100 == 1 {
 			logrus.WithField("tag", info.Tag).
 				WithField("missing", len(missing)).
 				WithField("received", received).
@@ -373,7 +380,6 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 				WithField("tags", len(tags)).
 				Info("Added nodes to the graph")
 		}
-		nodes++
 	}
 
 	logrus.WithField("missing", len(missing)).
@@ -462,7 +468,7 @@ func tagToFile(dir, tag string) string {
 	}
 	version, err := semver.Parse(vTag)
 	if err != nil {
-		logrus.WithField("tag", tag).WithField("vTag", vTag).Debug("Failed to parse version from tag")
+		logrus.WithField("tag", tag).WithField("vTag", vTag).Warn("Failed to parse version from tag")
 		return ""
 	}
 	return filepath.Join(dir, fmt.Sprintf("%d.%d", version.Major, version.Minor), tag+".yaml")
