@@ -412,6 +412,10 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		graph = graph.EnsureEdges(edges)
 	}
 
+	if err := acyclic(graph); err != nil {
+		return Graph{}, fmt.Errorf("the graph contains a circle: %w", err)
+	}
+
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraped the repository for nodes and edges")
 
@@ -605,4 +609,10 @@ func getImageInfo(image string) (ImageInfo, error) {
 	}
 
 	return ret, fmt.Errorf("no metadata found for image %s", image)
+}
+
+// TODO: implement acyclic
+// acyclic returns a non-nil error if the graph contains a cycle.
+func acyclic(g Graph) error {
+	return nil
 }
