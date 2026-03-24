@@ -50,7 +50,7 @@ spec:
             memory: "1Gi"
             cpu: "0.5"
       - name: cincinnati
-        image: quay.io/hongkliu/test:cincinnati-go-34613bd
+        image: quay.io/hongkliu/test:cincinnati-go-b7a15c9
         command: [ "/bin/sh", "-c" ]
         args:
           - |
@@ -74,13 +74,13 @@ spec:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 10
+          initialDelaySeconds: 120
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /readyz
             port: 8080
-          initialDelaySeconds: 300
+          initialDelaySeconds: 120
           periodSeconds: 10
         volumeMounts:
         - name: graph-data
