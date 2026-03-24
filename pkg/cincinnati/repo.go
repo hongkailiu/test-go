@@ -380,7 +380,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		WithField("received", received).
 		WithField("nodes", nodes).
 		WithField("tags", len(tags)).
-		Info("Finished scraping the repository graph ...")
+		Info("Finished scraping the repository graph")
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Adding multi nodes the repository graph ...")
 	for _, info := range multi {
@@ -405,7 +405,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 		graph = graph.EnsureNode(node)
 	}
 
-	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Added multi nodes the repository graph ...")
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Added multi nodes the repository graph")
 
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
@@ -427,11 +427,11 @@ func saveToFile(dir string, info ImageInfo) {
 
 	file := tagToFile(dir, info.Tag)
 	if file == "" {
-		logger.Warn("Failed to determine the file, skipping ...")
+		logger.Warn("Failed to determine the file, skipped")
 		return
 	}
 	if fileExists(file) {
-		logger.WithField("file", file).Warn("File already exists, skipping ...")
+		logger.WithField("file", file).Warn("File already exists, skipped")
 		return
 	}
 	logger = logger.WithField("file", file)
