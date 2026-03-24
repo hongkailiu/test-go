@@ -39,6 +39,10 @@ func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
 		})
 	})
 
+	r.GET("/healthz", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
 	r.GET("/readyz", func(c *gin.Context) {
 		if ready := gb.Ready(); ready {
 			c.Status(http.StatusOK)

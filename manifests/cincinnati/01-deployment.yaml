@@ -50,13 +50,13 @@ spec:
             memory: "1Gi"
             cpu: "0.5"
       - name: cincinnati
-        image: quay.io/hongkliu/test:cincinnati-go-49db07e
+        image: quay.io/hongkliu/test:cincinnati-go-34613bd
         command: [ "/bin/sh", "-c" ]
         args:
           - |
             curl -s -L -o /data/data.tar.gz https://github.com/hongkailiu/test-go/releases/download/0.0.1-alpha/data.tar.gz
             tar --warning=no-unknown-keyword -xzf /data/data.tar.gz -C /data
-            /usr/local/bin/cincinnati --max-concurrency 2 --graph-file /data/data/graph.json.gz --graph-data-dir /var/repo/cincinnati-graph-data
+            /usr/local/bin/cincinnati --max-concurrency 2 --graph-file /data/data/graph.json.gz --graph-data-dir /var/repo/cincinnati-graph-data --data-dir /data/data
         env:
           - name: GIN_MODE
             value: release
@@ -72,7 +72,7 @@ spec:
             memory: 128Mi
         livenessProbe:
           httpGet:
-            path: /readyz
+            path: /healthz
             port: 8080
           initialDelaySeconds: 10
           periodSeconds: 30

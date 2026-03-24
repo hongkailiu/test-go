@@ -73,6 +73,7 @@ func (g *GraphBuilder) Ready() bool {
 	for _, key := range []string{cacheKeyOpenshiftUpgradeGraph, cacheKeyCincinnatiGraphData} {
 		_, ok := g.cache.Get(key)
 		if !ok {
+			logrus.WithField("missing", key).Info("Sever is not ready yet")
 			return false
 		}
 	}
@@ -89,7 +90,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		if err := wait.PollUntilContextCancel(ctx, 3*time.Second, true, func(context.Context) (done bool, err error) {
 			value, ok := g.cache.Get(cacheKeyCincinnatiGraphData)
 			if !ok {
-				logrus.Info("Loading Cincinnati graph data...")
+				logrus.Info("Waiting for loading Cincinnati graph data...")
 
 				return false, nil
 			}
@@ -128,13 +129,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 	}, 2*time.Hour)
 
 	interrupts.TickLiteral(func() {
-		err := g.writeOpenshiftUpgradeGraphToFile()
-		if err != nil && !errors.Is(err, errGraphNotFoundInCache) {
-			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
-		}
-	}, time.Minute)
-
-	interrupts.TickLiteral(func() {
+		logrus.Info("Loading graph data ...")
 		dir := g.graphDataDir
 		if g.mockDir != "" {
 			dir = filepath.Join(g.mockDir, "graph-data")
@@ -148,6 +143,14 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		}
 
 		g.cache.Set(cacheKeyCincinnatiGraphData, *gd, 10*time.Minute)
+		logrus.Info("Loaded graph data")
+	}, time.Minute)
+
+	interrupts.TickLiteral(func() {
+		err := g.writeOpenshiftUpgradeGraphToFile()
+		if err != nil && !errors.Is(err, errGraphNotFoundInCache) {
+			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
+		}
 	}, time.Minute)
 
 	return nil
