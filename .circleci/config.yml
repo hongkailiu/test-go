@@ -45,3 +45,4 @@ workflows:
   build_workflow:
     jobs:
       - build
+      - lint-yaml
