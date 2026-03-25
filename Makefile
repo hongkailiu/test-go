@@ -36,7 +36,7 @@ integration-test:
 .PHONY: integration-test
 
 yaml-lint:
-	yamllint .
+	yamllint -s .
 .PHONY: yaml-lint
 
 verify-all: yaml-lint verify
