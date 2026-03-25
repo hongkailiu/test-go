@@ -10,3 +10,4 @@ rules:
 
 ignore:
 - vendor/
+- pkg/cincinnati/testdata/.snapshots/

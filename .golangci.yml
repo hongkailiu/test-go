@@ -3,12 +3,12 @@ linters:
   default: none
   enable:
     - bodyclose
-    - errcheck # default
+    - errcheck  # default
     - errorlint
-    - govet # default
-    - ineffassign # default
+    - govet  # default
+    - ineffassign  # default
     - misspell
-    - staticcheck # default
+    - staticcheck  # default
     - unconvert
     - unparam
-    - unused # default
+    - unused  # default

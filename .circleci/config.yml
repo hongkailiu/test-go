@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  yamllint: orbss/yamllint@0.0.4
+
 jobs:
   build:
     docker:
@@ -28,9 +31,19 @@ jobs:
           name: Build binary
           command: hack/build.sh
 
+  execute-yamllint:
+    executor: yamllint/defaut
+    steps:
+      - checkout
+      - yamllint/execute
+
 # Define the workflow to run the job
 workflows:
   version: 2
   build_workflow:
     jobs:
       - build
+
+  use-my-orb:
+    jobs:
+      - execute-yamllint
