@@ -34,3 +34,7 @@ integration-test:
 	# This runs against a real OpenShift cluster through the current KUBECONFIG context
 	TEST_INTEGRATION=1 go test ./... -test.run=^TestIntegration
 .PHONY: integration-test
+
+yaml-lint:
+	yamllint ./manifests
+.PHONY: yaml-lint
