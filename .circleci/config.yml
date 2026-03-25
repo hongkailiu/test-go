@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  yamllint: orbss/yamllint@0.0.4
+  python: circleci/python@2.1.1
 
 jobs:
   build:
@@ -31,11 +31,13 @@ jobs:
           name: Build binary
           command: hack/build.sh
 
-  execute-yamllint:
-    executor: yamllint/defaut
+  lint-yaml:
+    docker:
+      - image: python:3.11
     steps:
       - checkout
-      - yamllint/execute
+      - run: pip install yamllint
+      - run: yamllint .
 
 # Define the workflow to run the job
 workflows:
@@ -43,7 +45,3 @@ workflows:
   build_workflow:
     jobs:
       - build
-
-  use-my-orb:
-    jobs:
-      - execute-yamllint
