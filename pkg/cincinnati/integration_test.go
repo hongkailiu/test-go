@@ -38,7 +38,7 @@ func (g Graph) IsEdgesSupersetOf(g1 Graph) bool {
 	for i, edge := range g1.Edges {
 		var from, to int
 		for j, n := range []Node{g1.Nodes[edge[0]], g1.Nodes[edge[1]]} {
-			index := g.FindNode(g1.Nodes[edge[0]])
+			index := g.FindNode(n)
 			if index == -1 {
 				logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
 					WithField("index", j).Error("node is not in graph")
@@ -52,6 +52,7 @@ func (g Graph) IsEdgesSupersetOf(g1 Graph) bool {
 		}
 		if g.FindEdge(Edge{from, to}) == -1 {
 			logrus.WithField("index", i).WithField("edge", edge).
+				WithField("g.from", from).WithField("g.to", to).
 				WithField("from", g1.Nodes[edge[0]].Version.String()).
 				WithField("to", g1.Nodes[edge[1]].Version.String()).
 				Error("edge is not in graph")
