@@ -12,6 +12,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"sigs.k8s.io/prow/pkg/interrupts"
 
 	"github.com/hongkailiu/test-go/pkg/cincinnati"
@@ -67,10 +68,15 @@ var rootCmd = &cobra.Command{
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		r := gin.New()
-		metrics:=cincinnati.NewMetrics(opts.MetricsAddress,r)
+		p := ginprometheus.NewWithConfig(ginprometheus.Config{
+			Subsystem:          "cincinnati",
+			DisableBodyReading: true,
+		})
+		p.SetListenAddress(opts.MetricsAddress)
+		p.Use(r)
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency, metrics)
+			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {
@@ -82,7 +88,6 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(r, gb),
 		}
 
-		// TODO: make metrics on http response
 		ok, err := available(opts.Address)
 		if err != nil {
 			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")

@@ -10,13 +10,11 @@ import (
 	"github.com/hongkailiu/test-go/pkg/version"
 )
 
-
-
 func releaseMode() bool {
 	return gin.Mode() == gin.ReleaseMode
 }
 
-func GetHandler(r *gin.Engine,gb *GraphBuilder) http.Handler {
+func GetHandler(r *gin.Engine, gb *GraphBuilder) http.Handler {
 	r.GET("/version", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"name":    version.Name,
