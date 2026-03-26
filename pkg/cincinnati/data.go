@@ -226,10 +226,10 @@ func (gd CincinnatiGraphData) BecomeConditional(from Node, to string) Conditiona
 				continue
 			}
 
-			blockedEdge.FromRegex = fromRegex
+			gd.BlockedEdges[i].FromRegex = fromRegex
 		}
 
-		if blockedEdge.FromRegex.MatchString(from.Tag) {
+		if gd.BlockedEdges[i].FromRegex.MatchString(fmt.Sprintf("%s+%s", from.Version.String(), getArch(from.Tag))) {
 			logrus.WithField("from", from.Tag).WithField("to", to).Debug("Found blocked edge")
 
 			key = append(key, i)

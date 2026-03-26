@@ -270,3 +270,63 @@ func TestNode_getFrom(t *testing.T) {
 		})
 	}
 }
+
+func TestCincinnatiGraphData_BecomeConditional(t *testing.T) {
+	tests := []struct {
+		name   string
+		gd     CincinnatiGraphData
+		from   Node
+		to     string
+		expect ConditionalEdge
+	}{
+		{
+			name: "arch suffix works",
+			gd: CincinnatiGraphData{
+				BlockedEdges: []BlockedEdge{
+					{
+						RemovedEdge: RemovedEdge{
+							From: `^4[.](17[.](2[0-8]|[1]?[0-9])|18[.](1[01]|[0-9]))[+].*$`,
+							To:   "4.18.12",
+						},
+						MatchingRules: []MatchingRule{
+							{
+								Type: "Always",
+							},
+						},
+					},
+				},
+			},
+			from: Node{
+				Tag:     "4.18.10-x86_64",
+				Version: semver.MustParse("4.18.10"),
+			},
+			to: "4.18.12",
+			expect: ConditionalEdge{
+				RisksKey: "[0]",
+				Edges: []ConditionalUpdate{
+					{
+						From: "4.18.10",
+						To:   "4.18.12",
+					},
+				},
+				Risks: []ConditionalUpdateRisk{
+					{
+						MatchingRules: []MatchingRule{
+							{
+								Type: "Always",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.gd.BecomeConditional(tt.from, tt.to)
+			if diff := cmp.Diff(tt.expect, actual); diff != "" {
+				t.Errorf("conditional edge not match (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
