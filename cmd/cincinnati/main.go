@@ -67,7 +67,7 @@ var rootCmd = &cobra.Command{
 
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
-		r := gin.New()
+		r := gin.Default()
 		p := ginprometheus.NewWithConfig(ginprometheus.Config{
 			Subsystem:          "cincinnati",
 			DisableBodyReading: true,
