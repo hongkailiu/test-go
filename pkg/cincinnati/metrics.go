@@ -16,5 +16,5 @@ var (
 )
 
 func init() {
-	prometheus.Register(metrics.tagScraped)
+	prometheus.MustRegister(metrics.tagScraped)
 }
