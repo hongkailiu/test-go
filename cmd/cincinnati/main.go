@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
@@ -18,7 +19,22 @@ import (
 
 // TODO: accept config file
 
-var opts cincinnati.Options
+type options struct {
+	Address        string
+	MetricsAddress string
+	Registry       string
+	Repo           string
+	GraphDataDir   string
+
+	MockDir        string
+	DataDir        string
+	GraphFile      string
+	GracePeriod    time.Duration
+	MaxConcurrency int
+	LogLevel       string
+}
+
+var opts options
 
 var ctx = interrupts.Context()
 
@@ -50,8 +66,11 @@ var rootCmd = &cobra.Command{
 
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
+		r := gin.New()
+		metrics:=cincinnati.NewMetrics(opts.MetricsAddress,r)
+
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
+			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency, metrics)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {
@@ -60,7 +79,7 @@ var rootCmd = &cobra.Command{
 
 		server := &http.Server{
 			Addr:    opts.Address,
-			Handler: cincinnati.GetHandler(opts, gb),
+			Handler: cincinnati.GetHandler(r, gb),
 		}
 
 		// TODO: make metrics on http response
@@ -98,7 +117,7 @@ func available(addr string) (ok bool, retError error) {
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&opts.Address, "address", ":8080", "Address to run the server with")
+	rootCmd.Flags().StringVar(&opts.Address, "address", cincinnati.DefaultPort, "Address to run the server with")
 	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
 	rootCmd.Flags().StringVar(&opts.DataDir, "data-dir", "data", "Path to the directory containing image info files")
 	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data",
@@ -110,6 +129,7 @@ func init() {
 	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "max-concurrency", cincinnati.DefaultMaxConcurrency,
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")
 	rootCmd.Flags().StringVar(&opts.LogLevel, "log-level", "info", "Set log level (debug, info, warn, error)")
+	rootCmd.Flags().StringVar(&opts.MetricsAddress, "metrics-address", cincinnati.DefaultMetricsPort, "Address to run the metrics server with")
 
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
 		opts.Registry = v

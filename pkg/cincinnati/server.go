@@ -2,7 +2,6 @@ package cincinnati
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/blang/semver/v4"
 	"github.com/gin-gonic/gin"
@@ -11,27 +10,13 @@ import (
 	"github.com/hongkailiu/test-go/pkg/version"
 )
 
-type Options struct {
-	Address      string
-	Registry     string
-	Repo         string
-	GraphDataDir string
 
-	MockDir        string
-	DataDir        string
-	GraphFile      string
-	GracePeriod    time.Duration
-	MaxConcurrency int
-	LogLevel       string
-}
 
 func releaseMode() bool {
 	return gin.Mode() == gin.ReleaseMode
 }
 
-func GetHandler(opts Options, gb *GraphBuilder) http.Handler {
-	r := gin.Default()
-
+func GetHandler(r *gin.Engine,gb *GraphBuilder) http.Handler {
 	r.GET("/version", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"name":    version.Name,

@@ -32,10 +32,11 @@ type Repo struct {
 	mockDir        string
 	dataDir        string
 	maxConcurrency int
+	metrics        *metrics
 }
 
 // NewRepo returns a repo.
-func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int) *Repo {
+func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int, metrics *metrics) *Repo {
 	return &Repo{
 		client:         client,
 		registry:       registry,
@@ -43,6 +44,7 @@ func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurre
 		dataDir:        dataDir,
 		mockDir:        mockDir,
 		maxConcurrency: maxConcurrency,
+		metrics:        metrics,
 	}
 }
 
@@ -200,6 +202,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 }
 
 func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error) {
+
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
 
@@ -251,6 +254,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 		if graph.Find(tag) > -1 {
 			logrus.WithField("tag", tag).Debug("Ignored fetching metadata for an existing tag")
+			r.metrics.tagScraped().WithLabelValues("local").Inc()
 			continue
 		}
 
@@ -282,6 +286,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 			}
 
 			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
+			r.metrics.tagScraped().WithLabelValues("local").Inc()
 			continue
 		}
 
@@ -372,6 +377,7 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
 		nodes++
+		r.metrics.tagScraped().WithLabelValues("upstream").Inc()
 		if nodes%100 == 1 {
 			logrus.WithField("tag", info.Tag).
 				WithField("missing", len(missing)).
