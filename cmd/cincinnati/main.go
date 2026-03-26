@@ -69,7 +69,7 @@ var rootCmd = &cobra.Command{
 
 		r := gin.Default()
 		p := ginprometheus.NewWithConfig(ginprometheus.Config{
-			Subsystem:          "cincinnati",
+			Subsystem:          cincinnati.MetricsPrefix,
 			DisableBodyReading: true,
 		})
 		p.SetListenAddress(opts.MetricsAddress)
