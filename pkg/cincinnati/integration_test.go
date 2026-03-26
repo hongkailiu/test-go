@@ -11,19 +11,22 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-)
 
-// TODO: compare result with production
+	"k8s.io/apimachinery/pkg/util/sets"
+)
 
 func (g Graph) Equal(g1 Graph) bool {
 	return g.IsSuperGraphOf(g1) && g1.IsSuperGraphOf(g)
 }
 
-func (g Graph) IsSuperGraphOf(g1 Graph) bool {
-	return g.IsNodesSupersetOf(g1) && g.IsEdgesSupersetOf(g1) && g.IsConditionalEdgesSupersetOf(g1)
+func (g Graph) IsSuperGraphOf(g1 Graph, versions ...string) bool {
+	return g.IsNodesSupersetOf(g1, versions...) && g.IsEdgesSupersetOf(g1, versions...) && g.IsConditionalEdgesSupersetOf(g1, versions...)
 }
 
-func (g Graph) IsNodesSupersetOf(g1 Graph) bool {
+func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
+	if len(versions) > 0 {
+		return true
+	}
 	for i, n := range g1.Nodes {
 		if g.FindNode(n) == -1 {
 			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
@@ -34,8 +37,13 @@ func (g Graph) IsNodesSupersetOf(g1 Graph) bool {
 	return true
 }
 
-func (g Graph) IsEdgesSupersetOf(g1 Graph) bool {
+func (g Graph) IsEdgesSupersetOf(g1 Graph, versions ...string) bool {
+	versionSet := sets.New(versions...)
 	for i, edge := range g1.Edges {
+		if !versionSet.Has(g1.Nodes[edge[0]].Version.String()) {
+			logrus.WithField("from", g1.Nodes[edge[0]].Version.String()).WithField("to", g1.Nodes[edge[1]].Version.String()).Info("Ignored an irrelevant edge")
+			continue
+		}
 		var from, to int
 		for j, n := range []Node{g1.Nodes[edge[0]], g1.Nodes[edge[1]]} {
 			index := g.FindNode(n)
@@ -75,9 +83,14 @@ func (g Graph) FindNode(node Node) int {
 	return -1
 }
 
-func (g Graph) IsConditionalEdgesSupersetOf(g1 Graph) bool {
+func (g Graph) IsConditionalEdgesSupersetOf(g1 Graph, versions ...string) bool {
+	versionSet := sets.New(versions...)
 	for _, ce1 := range g1.ConditionalEdges {
 		for _, e1 := range ce1.Edges {
+			if !versionSet.Has(e1.From) {
+				logrus.WithField("from", e1.From).WithField("to", e1.To).Info("Ignored an irrelevant conditional edge")
+				continue
+			}
 			var found bool
 			for _, ce := range g.ConditionalEdges {
 				for _, e := range ce.Edges {
@@ -153,6 +166,11 @@ func TestIntegration_dummy(t *testing.T) {
 			channel: "candidate-4.18",
 			version: "4.17.10",
 		},
+		{
+			name:    "old candidate",
+			channel: "candidate-4.2",
+			version: "4.1.1",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -196,6 +214,9 @@ func verify(t *testing.T, channel, arch, version string) {
 	}
 
 	if !production.IsSuperGraphOf(graph) {
+		t.Error("production is not a super-graph of graph")
+	}
+	if !graph.IsSuperGraphOf(production, version) {
 		t.Error("production is not a super-graph of graph")
 	}
 }

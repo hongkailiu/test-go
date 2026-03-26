@@ -32,7 +32,7 @@ lint:
 
 integration-test:
 	# This runs against a real OpenShift cluster through the current KUBECONFIG context
-	TEST_INTEGRATION=1 go test ./... -test.run=^TestIntegration
+	TEST_INTEGRATION=1 go test -v ./... -test.run=^TestIntegration
 .PHONY: integration-test
 
 yaml-lint:
