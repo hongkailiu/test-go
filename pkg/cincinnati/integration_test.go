@@ -137,11 +137,40 @@ func TestIntegration_dummy(t *testing.T) {
 	if os.Getenv("TEST_INTEGRATION") != "1" {
 		t.Skip("integration tests skipped unless TEST_INTEGRATION=1")
 	}
+
+	tests := []struct {
+		name    string
+		channel string
+		version string
+	}{
+		{
+			name:    "stable",
+			channel: "stable-4.18",
+			version: "4.18.10",
+		},
+		{
+			name:    "candidate",
+			channel: "candidate-4.18",
+			version: "4.17.10",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, arch := range []ArchParam{ArchParamAMD64, ArchParamARM64, ArchParamPPC64LE, ArchParamPPC64LE, ArchParamMULTI} {
+				archStr := string(arch)
+				verify(t, tt.channel, archStr, tt.version)
+			}
+		})
+	}
+}
+
+func verify(t *testing.T, channel, arch, version string) {
+
 	// https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph?channel=stable-4.10&arch=amd64&version=4.10.10
 	params := url.Values{}
-	params.Add("channel", "stable-4.18")
-	params.Add("arch", "amd64")
-	params.Add("version", "4.18.10")
+	params.Add("channel", channel)
+	params.Add("arch", arch)
+	params.Add("version", version)
 	query := params.Encode()
 
 	url, err := url.Parse("https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph")
@@ -167,6 +196,6 @@ func TestIntegration_dummy(t *testing.T) {
 	}
 
 	if !production.IsSuperGraphOf(graph) {
-		t.Fatal("production is not a super-graph of graph")
+		t.Error("production is not a super-graph of graph")
 	}
 }
