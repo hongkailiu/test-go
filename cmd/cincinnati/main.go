@@ -76,9 +76,6 @@ var rootCmd = &cobra.Command{
 
 		r.Use(p.HandlerFunc())
 
-		mux := http.NewServeMux()
-		mux.Handle("/metrics", promhttp.Handler())
-
 		metricsRouter := gin.New()
 		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 		metricsServer := &http.Server{
@@ -108,6 +105,7 @@ var rootCmd = &cobra.Command{
 			logrus.WithField("address", opts.Address).Fatal("Address is not available")
 		}
 
+		// TODO: stop depending on prow's interrupts
 		interrupts.ListenAndServe(server, opts.GracePeriod)
 
 		interrupts.ListenAndServe(metricsServer, opts.GracePeriod)
