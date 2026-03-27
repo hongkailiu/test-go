@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/patrickmn/go-cache"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
@@ -72,8 +73,18 @@ var rootCmd = &cobra.Command{
 			Subsystem:          cincinnati.MetricsPrefix,
 			DisableBodyReading: true,
 		})
-		p.SetListenAddress(opts.MetricsAddress)
-		p.Use(r)
+
+		r.Use(p.HandlerFunc())
+
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+
+		metricsRouter := gin.New()
+		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
+		metricsServer := &http.Server{
+			Addr:    opts.MetricsAddress,
+			Handler: metricsRouter.Handler(),
+		}
 
 		repo := cincinnati.NewRepo(client.StandardClient(),
 			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
@@ -98,6 +109,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		interrupts.ListenAndServe(server, opts.GracePeriod)
+
+		interrupts.ListenAndServe(metricsServer, opts.GracePeriod)
 
 		interrupts.WaitForGracefulShutdown()
 		logrus.Info("Process language gracefully")
