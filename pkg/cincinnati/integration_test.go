@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -25,6 +26,10 @@ func (g Graph) IsSuperGraphOf(g1 Graph, versions ...string) bool {
 
 func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 	if len(versions) > 0 {
+		// It is possible: arch=amd64&channel=candidate-4.2&version=4.1.1
+		if len(g.Nodes) == 0 && len(g1.Nodes) > 0 {
+			logrus.WithField("versions", strings.Join(versions, ",")).WithField("g1.Nodes", len(g1.Nodes)).WithField("image", g1.Nodes[0].Image).Debug("Super graph has no node?")
+		}
 		return true
 	}
 	for i, n := range g1.Nodes {
@@ -41,7 +46,7 @@ func (g Graph) IsEdgesSupersetOf(g1 Graph, versions ...string) bool {
 	versionSet := sets.New(versions...)
 	for i, edge := range g1.Edges {
 		if !versionSet.Has(g1.Nodes[edge[0]].Version.String()) {
-			logrus.WithField("from", g1.Nodes[edge[0]].Version.String()).WithField("to", g1.Nodes[edge[1]].Version.String()).Info("Ignored an irrelevant edge")
+			logrus.WithField("from", g1.Nodes[edge[0]].Version.String()).WithField("to", g1.Nodes[edge[1]].Version.String()).Debug("Ignored an irrelevant edge")
 			continue
 		}
 		var from, to int
@@ -88,7 +93,7 @@ func (g Graph) IsConditionalEdgesSupersetOf(g1 Graph, versions ...string) bool {
 	for _, ce1 := range g1.ConditionalEdges {
 		for _, e1 := range ce1.Edges {
 			if !versionSet.Has(e1.From) {
-				logrus.WithField("from", e1.From).WithField("to", e1.To).Info("Ignored an irrelevant conditional edge")
+				logrus.WithField("from", e1.From).WithField("to", e1.To).Debug("Ignored an irrelevant conditional edge")
 				continue
 			}
 			var found bool
