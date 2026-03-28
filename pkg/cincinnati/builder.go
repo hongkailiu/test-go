@@ -114,7 +114,9 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		}
 
 		start := time.Now()
-		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, g.cache.Set, cache.NoExpiration)
+		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, func(graph Graph) {
+			g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
+		})
 		if err != nil {
 			logrus.WithError(err).Fatal("Failed to build openshift upgrade graph")
 		}
@@ -125,7 +127,6 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 			WithField("edges", len(graph.Edges)).
 			WithField("conditionalEdges", len(graph.ConditionalEdges)).
 			Info("Built OpenShift upgrade graph")
-		g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
 	}, 2*time.Hour)
 
 	interrupts.TickLiteral(func() {
@@ -186,7 +187,7 @@ func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile() error {
 	return nil
 }
 
-func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers []GraphHandler, set func(k string, x interface{}, d time.Duration), d time.Duration) (Graph, error) {
+func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers []GraphHandler, cacheGraph func(graph Graph)) (Graph, error) {
 	var (
 		graph  Graph
 		loaded bool
@@ -209,9 +210,8 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 
 				graph = graphFromFile
 				loaded = true
-
 				logrus.Info("Storing OpenShift upgrade graph loaded from file to cache (to be refreshed if stale)")
-				set(cacheKeyOpenshiftUpgradeGraph, graph, d)
+				cacheGraph(graph)
 			}
 		}
 	}
@@ -237,8 +237,10 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 		graph = newGraph
 		d := time.Since(start)
 		logrus.WithField("handler", h.Name).WithField("duration", d).Info("handler completed")
+
 	}
 
+	cacheGraph(graph)
 	return graph, kerrors.NewAggregate(errs)
 }
 
