@@ -10,7 +10,6 @@ import (
 
 	"github.com/patrickmn/go-cache"
 	"github.com/sirupsen/logrus"
-	"sigs.k8s.io/prow/pkg/interrupts"
 
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -81,75 +80,73 @@ func (g *GraphBuilder) Ready() bool {
 	return true
 }
 
-func (g *GraphBuilder) Start(ctx context.Context) error {
-	interrupts.TickLiteral(func() {
-		logrus.Info("Building OpenShift upgrade graph ...")
+func (g *GraphBuilder) CacheGraph(ctx context.Context) error {
+	logrus.Info("Building OpenShift upgrade graph ...")
 
-		var gd CincinnatiGraphData
+	var gd CincinnatiGraphData
 
-		if err := wait.PollUntilContextCancel(ctx, 3*time.Second, true, func(context.Context) (done bool, err error) {
-			value, ok := g.cache.Get(cacheKeyCincinnatiGraphData)
-			if !ok {
-				logrus.Info("Waiting for loading Cincinnati graph data...")
+	if err := wait.PollUntilContextCancel(ctx, 3*time.Second, true, func(context.Context) (done bool, err error) {
+		value, ok := g.cache.Get(cacheKeyCincinnatiGraphData)
+		if !ok {
+			logrus.Info("Waiting for loading Cincinnati graph data...")
 
-				return false, nil
-			}
-
-			gd = value.(CincinnatiGraphData)
-
-			return true, nil
-		}); err != nil {
-			logrus.WithError(err).Fatal("Failed to load graph data")
+			return false, nil
 		}
 
-		handles := []GraphHandler{
-			{
-				Name:        "repo.tagsToNodesAndEdges",
-				HandlerFunc: g.repo.tagsToNodesAndEdges,
-			},
-			{
-				Name:        "graphData.shape",
-				HandlerFunc: gd.Shape,
-			},
+		gd = value.(CincinnatiGraphData)
+
+		return true, nil
+	}); err != nil {
+		logrus.WithError(err).Fatal("Failed to load graph data")
+	}
+
+	handles := []GraphHandler{
+		{
+			Name:        "repo.tagsToNodesAndEdges",
+			HandlerFunc: g.repo.tagsToNodesAndEdges,
+		},
+		{
+			Name:        "graphData.shape",
+			HandlerFunc: gd.Shape,
+		},
+	}
+
+	start := time.Now()
+	graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, func(graph Graph) {
+		g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
+		if err := g.writeOpenshiftUpgradeGraphToFile(graph); err != nil {
+			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
 		}
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build OpenShift upgrade graph: %w", err)
+	}
+	d := time.Since(start)
 
-		start := time.Now()
-		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, func(graph Graph) {
-			g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
-			if err := g.writeOpenshiftUpgradeGraphToFile(graph); err != nil {
-				logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
-			}
-		})
-		if err != nil {
-			logrus.WithError(err).Fatal("Failed to build openshift upgrade graph")
-		}
-		d := time.Since(start)
+	logrus.WithField("duration", d).
+		WithField("nodes", len(graph.Nodes)).
+		WithField("edges", len(graph.Edges)).
+		WithField("conditionalEdges", len(graph.ConditionalEdges)).
+		Info("Built OpenShift upgrade graph")
 
-		logrus.WithField("duration", d).
-			WithField("nodes", len(graph.Nodes)).
-			WithField("edges", len(graph.Edges)).
-			WithField("conditionalEdges", len(graph.ConditionalEdges)).
-			Info("Built OpenShift upgrade graph")
-	}, 2*time.Hour)
+	return nil
+}
 
-	interrupts.TickLiteral(func() {
-		logrus.Info("Loading graph data ...")
-		dir := g.graphDataDir
-		if g.mockDir != "" {
-			dir = filepath.Join(g.mockDir, "graph-data")
-		}
+func (g *GraphBuilder) CacheGraphData() error {
+	logrus.Info("Loading graph data ...")
+	dir := g.graphDataDir
+	if g.mockDir != "" {
+		dir = filepath.Join(g.mockDir, "graph-data")
+	}
 
-		gd, err := LoadGraphData(dir)
-		if err != nil {
-			logrus.WithError(err).WithField("dir", dir).Error("Failed to load graph data")
+	gd, err := LoadGraphData(dir)
+	if err != nil {
+		logrus.WithError(err).WithField("dir", dir).Error("Failed to load graph data")
+		return fmt.Errorf("failed to load graph data: %w", err)
+	}
 
-			return
-		}
-
-		g.cache.Set(cacheKeyCincinnatiGraphData, *gd, 10*time.Minute)
-		logrus.Info("Loaded graph data")
-	}, time.Minute)
-
+	g.cache.Set(cacheKeyCincinnatiGraphData, *gd, 10*time.Minute)
+	logrus.Info("Loaded graph data")
 	return nil
 }
 

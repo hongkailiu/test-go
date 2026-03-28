@@ -1,20 +1,23 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/oklog/run"
 	"github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
-	"sigs.k8s.io/prow/pkg/interrupts"
 
 	"github.com/hongkailiu/test-go/pkg/cincinnati"
 )
@@ -38,8 +41,6 @@ type options struct {
 
 var opts options
 
-var ctx = interrupts.Context()
-
 var rootCmd = &cobra.Command{
 	Use:   "cincinnati",
 	Short: "A Cincinnati update graph server",
@@ -54,14 +55,6 @@ var rootCmd = &cobra.Command{
 			FullTimestamp: true,
 		})
 		logrus.SetReportCaller(true)
-
-		ok, err := available(opts.Address)
-		if err != nil {
-			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
-		}
-		if !ok {
-			logrus.WithField("address", opts.Address).Fatal("Address is not available")
-		}
 
 		client := retryablehttp.NewClient()
 		client.HTTPClient.Timeout = 30 * time.Second
@@ -80,8 +73,77 @@ var rootCmd = &cobra.Command{
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
-		if err := gb.Start(ctx); err != nil {
-			logrus.WithError(err).Fatal("Failed to start server")
+
+		var g run.Group
+		ctx, cancel := context.WithCancel(context.Background())
+
+		{
+			logger := logrus.WithField("worker", "CacheGraphData")
+			g.Add(func() error {
+
+				logger.Info("Worker started")
+
+				logger.Println("Initial work started")
+				if err := gb.CacheGraphData(); err != nil {
+					logger.WithError(err).Error("Work completed with error")
+					return fmt.Errorf("failed to cache graph data: %w", err)
+				}
+				logger.Println("Initial work completed")
+
+				ticker := time.NewTicker(time.Minute)
+				defer ticker.Stop()
+
+				for {
+					select {
+					case <-ctx.Done():
+						logger.Info("Worker received shutdown signal")
+						return nil
+					case t := <-ticker.C:
+						logger.WithField("", t).Println("Work started")
+						if err := gb.CacheGraphData(); err != nil {
+							logger.WithError(err).Error("Work completed with error")
+						}
+						logger.Println("Work completed")
+					}
+				}
+			}, func(err error) {
+				logger.Warn("Worker stopping")
+				cancel()
+			})
+		}
+
+		{
+			logger := logrus.WithField("worker", "CacheGraph")
+			g.Add(func() error {
+
+				logger.Info("Worker started")
+				logger.Println("Initial work started")
+				if err := gb.CacheGraph(ctx); err != nil {
+					logger.WithError(err).Error("Work completed with error")
+					return fmt.Errorf("failed to cache graph: %w", err)
+				}
+				logger.Println("Initial work completed")
+
+				ticker := time.NewTicker(2 * time.Hour)
+				defer ticker.Stop()
+
+				for {
+					select {
+					case <-ctx.Done():
+						logger.Info("Worker received shutdown signal")
+						return nil
+					case t := <-ticker.C:
+						logger.WithField("", t).Println("Work started")
+						if err := gb.CacheGraph(ctx); err != nil {
+							logrus.WithError(err).Error("Work completed with error")
+						}
+						logger.Println("Work completed")
+					}
+				}
+			}, func(err error) {
+				logger.Warn("Worker stopping")
+				cancel()
+			})
 		}
 
 		r := gin.Default()
@@ -104,29 +166,69 @@ var rootCmd = &cobra.Command{
 			Handler: metricsRouter.Handler(),
 		}
 
-		// TODO: stop depending on prow's interrupts
-		interrupts.ListenAndServe(server, opts.GracePeriod)
-		interrupts.ListenAndServe(metricsServer, opts.GracePeriod)
-		interrupts.WaitForGracefulShutdown()
-		logrus.Info("Process language gracefully")
-	},
-}
-
-func available(addr string) (ok bool, retError error) {
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		return false, nil
-	}
-
-	defer func() {
-		err := ln.Close()
-		if err != nil {
-			ok = false
-			retError = err
+		{
+			logger := logrus.WithField("server", "main")
+			g.Add(func() error {
+				logger.Info("Server started")
+				if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					logger.WithError(err).Error("Server stopped unexpectedly")
+					return err
+				}
+				logger.Info("Server stopped")
+				return nil
+			}, func(err error) {
+				logger.Info("Server stopping")
+				shutdownCtx, cancelFn := context.WithTimeout(context.Background(), opts.GracePeriod)
+				defer cancelFn()
+				if err := server.Shutdown(shutdownCtx); err != nil {
+					logger.WithError(err).Error("Server stopped unexpectedly")
+					logger.WithError(err).Error("Server shutdown failed")
+				}
+			})
 		}
-	}()
 
-	return true, nil
+		{
+			logger := logrus.WithField("server", "metrics")
+			g.Add(func() error {
+				logger.Info("Server started")
+				if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					return err
+				}
+				logger.Info("Server stopped")
+				return nil
+			}, func(err error) {
+				logger.Info("Server stopping")
+				shutdownCtx, cancelFn := context.WithTimeout(context.Background(), opts.GracePeriod)
+				defer cancelFn()
+				if err := metricsServer.Shutdown(shutdownCtx); err != nil {
+					logger.WithError(err).Error("Server shutdown failed")
+				}
+			})
+		}
+
+		{
+			// Set up signal receiver.
+			stop := make(chan os.Signal, 1)
+			signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+			g.Add(func() error {
+				sig := <-stop
+				logrus.WithField("signal", sig.String()).Info("Received signal")
+				return nil
+			}, func(err error) {
+				close(stop)
+			})
+		}
+
+		// -----------------------------
+		// RUN EVERYTHING
+		// -----------------------------
+		if err := g.Run(); err != nil {
+			logrus.WithError(err).Error("Exited unexpectedly")
+		}
+
+		logrus.Info("Process exited gracefully")
+	},
 }
 
 func init() {
@@ -158,7 +260,7 @@ func init() {
 }
 
 func main() {
-	err := rootCmd.ExecuteContext(ctx)
+	err := rootCmd.Execute()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 
