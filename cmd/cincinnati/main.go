@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,6 +55,14 @@ var rootCmd = &cobra.Command{
 		})
 		logrus.SetReportCaller(true)
 
+		ok, err := available(opts.Address)
+		if err != nil {
+			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
+		}
+		if !ok {
+			logrus.WithField("address", opts.Address).Fatal("Address is not available")
+		}
+
 		client := retryablehttp.NewClient()
 		client.HTTPClient.Timeout = 30 * time.Second
 		client.RetryMax = 3
@@ -91,12 +96,6 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(r, gb),
 		}
 
-		go func() {
-			if err := startServer(server); err != nil {
-				logrus.WithError(err).Fatal("Failed to start server")
-			}
-		}()
-
 		metricsRouter := gin.New()
 		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
@@ -105,42 +104,29 @@ var rootCmd = &cobra.Command{
 			Handler: metricsRouter.Handler(),
 		}
 
-		go func() {
-			if err := startServer(metricsServer); err != nil {
-				logrus.WithError(err).Fatal("Failed to start metrics server")
-			}
-		}()
-
-		waitForShutdown(opts.GracePeriod, server, metricsServer)
+		// TODO: stop depending on prow's interrupts
+		interrupts.ListenAndServe(server, opts.GracePeriod)
+		interrupts.ListenAndServe(metricsServer, opts.GracePeriod)
+		interrupts.WaitForGracefulShutdown()
 		logrus.Info("Process language gracefully")
 	},
 }
 
-func waitForShutdown(period time.Duration, servers ...*http.Server) {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+func available(addr string) (ok bool, retError error) {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return false, nil
+	}
 
-	<-quit
-	logrus.Info("Shutdown signal received")
-
-	// Create timeout context
-	ctx, cancel := context.WithTimeout(context.Background(), period)
-	defer cancel()
-
-	for i, server := range servers {
-		if err := server.Shutdown(ctx); err != nil {
-			logrus.WithError(err).WithField("i", i).Error("Server forced to shutdown")
+	defer func() {
+		err := ln.Close()
+		if err != nil {
+			ok = false
+			retError = err
 		}
-		logrus.WithField("i", i).Info("Server shutdown gracefully")
-	}
-}
+	}()
 
-func startServer(server *http.Server) error {
-	logrus.Info("Start server")
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("failed to start server: %w", err)
-	}
-	return nil
+	return true, nil
 }
 
 func init() {
