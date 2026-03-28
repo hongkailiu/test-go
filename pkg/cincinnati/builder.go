@@ -116,6 +116,9 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		start := time.Now()
 		graph, err := buildOpenshiftUpgradeGraph(ctx, g.graphFile, handles, func(graph Graph) {
 			g.cache.Set(cacheKeyOpenshiftUpgradeGraph, graph, cache.NoExpiration)
+			if err := g.writeOpenshiftUpgradeGraphToFile(graph); err != nil {
+				logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
+			}
 		})
 		if err != nil {
 			logrus.WithError(err).Fatal("Failed to build openshift upgrade graph")
@@ -147,27 +150,12 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 		logrus.Info("Loaded graph data")
 	}, time.Minute)
 
-	interrupts.TickLiteral(func() {
-		err := g.writeOpenshiftUpgradeGraphToFile()
-		if err != nil && !errors.Is(err, errGraphNotFoundInCache) {
-			logrus.WithError(err).Error("Failed to write openshift upgrade graph to file")
-		}
-	}, time.Minute)
-
 	return nil
 }
 
-// TODO: push into buildOpenshiftUpgradeGraph
-func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile() error {
-	v, ok := g.cache.Get(cacheKeyOpenshiftUpgradeGraph)
-	if !ok {
-		return errGraphNotFoundInCache
-	}
-
-	graph := v.(Graph)
+func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile(graph Graph) error {
 
 	var raw []byte
-
 	var err error
 
 	if releaseMode() {
