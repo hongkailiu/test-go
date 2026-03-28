@@ -55,6 +55,14 @@ var rootCmd = &cobra.Command{
 		})
 		logrus.SetReportCaller(true)
 
+		ok, err := available(opts.Address)
+		if err != nil {
+			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
+		}
+		if !ok {
+			logrus.WithField("address", opts.Address).Fatal("Address is not available")
+		}
+
 		client := retryablehttp.NewClient()
 		client.HTTPClient.Timeout = 30 * time.Second
 		client.RetryMax = 3
@@ -66,50 +74,39 @@ var rootCmd = &cobra.Command{
 		l.WithField("subComponent", "retryablehttp")
 		client.Logger = l
 
-		c := cache.New(5*time.Minute, 10*time.Minute)
-
-		r := gin.Default()
-		p := ginprometheus.NewWithConfig(ginprometheus.Config{
-			Subsystem:          cincinnati.MetricsPrefix,
-			DisableBodyReading: true,
-		})
-
-		r.Use(p.HandlerFunc())
-
-		metricsRouter := gin.New()
-		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
-		metricsServer := &http.Server{
-			Addr:    opts.MetricsAddress,
-			Handler: metricsRouter.Handler(),
-		}
-
 		repo := cincinnati.NewRepo(client.StandardClient(),
 			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
+
+		c := cache.New(5*time.Minute, 10*time.Minute)
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
 		if err := gb.Start(ctx); err != nil {
 			logrus.WithError(err).Fatal("Failed to start server")
 		}
 
+		r := gin.Default()
+		p := ginprometheus.NewWithConfig(ginprometheus.Config{
+			Subsystem:          cincinnati.MetricsPrefix,
+			DisableBodyReading: true,
+		})
+		r.Use(p.HandlerFunc())
+
 		server := &http.Server{
 			Addr:    opts.Address,
 			Handler: cincinnati.GetHandler(r, gb),
 		}
 
-		ok, err := available(opts.Address)
-		if err != nil {
-			logrus.WithError(err).WithField("address", opts.Address).Fatal("Failed to check if the address is available to run server")
-		}
+		metricsRouter := gin.New()
+		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-		if !ok {
-			logrus.WithField("address", opts.Address).Fatal("Address is not available")
+		metricsServer := &http.Server{
+			Addr:    opts.MetricsAddress,
+			Handler: metricsRouter.Handler(),
 		}
 
 		// TODO: stop depending on prow's interrupts
 		interrupts.ListenAndServe(server, opts.GracePeriod)
-
 		interrupts.ListenAndServe(metricsServer, opts.GracePeriod)
-
 		interrupts.WaitForGracefulShutdown()
 		logrus.Info("Process language gracefully")
 	},
