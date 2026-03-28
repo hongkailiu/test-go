@@ -157,6 +157,7 @@ func (g *GraphBuilder) Start(ctx context.Context) error {
 	return nil
 }
 
+// TODO: push into buildOpenshiftUpgradeGraph
 func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile() error {
 	v, ok := g.cache.Get(cacheKeyOpenshiftUpgradeGraph)
 	if !ok {
