@@ -120,18 +120,23 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 	return &graphData, nil
 }
 
-func (gd CincinnatiGraphData) Shape(_ context.Context, graph Graph) (Graph, error) {
+func (gd CincinnatiGraphData) Shape(ctx context.Context, graph Graph) (Graph, error) {
 	var remove []int
 
 	for i, node := range graph.Nodes {
-		channels := gd.listChannels(node.Version.String())
-		if len(channels) > 0 {
-			graph.Channels = sets.List[string](sets.New[string](graph.Channels...).Insert(channels...))
-			graph.Nodes[i].SetMetadata(MetadataKeyChannels, strings.Join(channels, ","))
-		} else {
-			delete(graph.Nodes[i].Metadata, MetadataKeyChannels)
-			logrus.WithField("index", i).WithField("tag", node.Tag).WithField("version", node.Version.String()).Debug("Node in no channels to remove")
-			remove = append(remove, i)
+		select {
+		case <-ctx.Done():
+			return graph, ctx.Err()
+		default:
+			channels := gd.listChannels(node.Version.String())
+			if len(channels) > 0 {
+				graph.Channels = sets.List[string](sets.New[string](graph.Channels...).Insert(channels...))
+				graph.Nodes[i].SetMetadata(MetadataKeyChannels, strings.Join(channels, ","))
+			} else {
+				delete(graph.Nodes[i].Metadata, MetadataKeyChannels)
+				logrus.WithField("index", i).WithField("tag", node.Tag).WithField("version", node.Version.String()).Debug("Node in no channels to remove")
+				remove = append(remove, i)
+			}
 		}
 	}
 

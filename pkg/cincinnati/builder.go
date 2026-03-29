@@ -100,6 +100,7 @@ func (g *GraphBuilder) CacheGraph(ctx context.Context) error {
 		logrus.WithError(err).Fatal("Failed to load graph data")
 	}
 
+	// TODO: test handlers with canceled context
 	handles := []GraphHandler{
 		{
 			Name:        "repo.tagsToNodesAndEdges",

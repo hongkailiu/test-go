@@ -78,18 +78,25 @@ var rootCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 
 		{
+			// Do the initial work once and the work will be canceled with the context
+			logger := logrus.WithField("worker", "init")
+			go func(ctx context.Context) {
+				logger.Info("Initial work started")
+				if err := gb.CacheGraphData(); err != nil {
+					logger.WithError(err).Fatal("Work completed with error")
+				}
+				if err := gb.CacheGraph(ctx); err != nil {
+					logger.WithError(err).Fatal("Work completed with error")
+				}
+				logger.Println("Initial work completed")
+			}(ctx)
+		}
+
+		{
 			logger := logrus.WithField("worker", "CacheGraphData")
 			g.Add(func() error {
 
 				logger.Info("Worker started")
-
-				logger.Println("Initial work started")
-				if err := gb.CacheGraphData(); err != nil {
-					logger.WithError(err).Error("Work completed with error")
-					return fmt.Errorf("failed to cache graph data: %w", err)
-				}
-				logger.Println("Initial work completed")
-
 				ticker := time.NewTicker(time.Minute)
 				defer ticker.Stop()
 
@@ -117,13 +124,6 @@ var rootCmd = &cobra.Command{
 			g.Add(func() error {
 
 				logger.Info("Worker started")
-				logger.Println("Initial work started")
-				if err := gb.CacheGraph(ctx); err != nil {
-					logger.WithError(err).Error("Work completed with error")
-					return fmt.Errorf("failed to cache graph: %w", err)
-				}
-				logger.Println("Initial work completed")
-
 				ticker := time.NewTicker(2 * time.Hour)
 				defer ticker.Stop()
 
@@ -181,9 +181,10 @@ var rootCmd = &cobra.Command{
 				shutdownCtx, cancelFn := context.WithTimeout(context.Background(), opts.GracePeriod)
 				defer cancelFn()
 				if err := server.Shutdown(shutdownCtx); err != nil {
-					logger.WithError(err).Error("Server stopped unexpectedly")
 					logger.WithError(err).Error("Server shutdown failed")
+					return
 				}
+				logger.Info("Server stopped gracefully")
 			})
 		}
 
@@ -202,14 +203,16 @@ var rootCmd = &cobra.Command{
 				defer cancelFn()
 				if err := metricsServer.Shutdown(shutdownCtx); err != nil {
 					logger.WithError(err).Error("Server shutdown failed")
+					return
 				}
+				logger.Info("Server stopped gracefully")
 			})
 		}
 
 		{
 			// Set up signal receiver.
 			stop := make(chan os.Signal, 1)
-			signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+			signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 			g.Add(func() error {
 				sig := <-stop

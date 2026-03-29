@@ -199,7 +199,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 	}
 }
 
-func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error) {
+func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
@@ -327,62 +327,68 @@ func (r *Repo) tagsToNodesAndEdges(_ context.Context, graph Graph) (Graph, error
 
 	var received int
 
-	for result := range results {
-		logrus.WithField("received", received).WithField("total", len(missing)).Debug("Received result")
-		received++
+	for i := 0; i < len(missing); i++ {
+		select {
+		case result := <-results:
+			logrus.WithField("received", received).WithField("total", len(missing)).Debug("Received result")
+			received++
 
-		if result.err != nil {
-			var e *IsManifestListError
-			if ok := errors.As(result.err, &e); ok {
-				i := strings.LastIndex(e.Image, ":")
-				if i == -1 {
-					logrus.WithField("image", e.Image).Warn("Ignored an invalid multi image")
+			if result.err != nil {
+				var e *IsManifestListError
+				if ok := errors.As(result.err, &e); ok {
+					i := strings.LastIndex(e.Image, ":")
+					if i == -1 {
+						logrus.WithField("image", e.Image).Warn("Ignored an invalid multi image")
+						continue
+					}
+					tag := e.Image[i+1:]
+					// The other fields will be filled with the image info from its amd64 shard
+					info := ImageInfo{
+						Digest: e.Digest,
+						Tag:    tag,
+					}
+					multi = append(multi, info)
+					go func(dir string, info ImageInfo) {
+						saveToFile(dir, info)
+					}(r.dataDir, info)
+					logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result (will be handled later)")
 					continue
 				}
-				tag := e.Image[i+1:]
-				// The other fields will be filled with the image info from its amd64 shard
-				info := ImageInfo{
-					Digest: e.Digest,
-					Tag:    tag,
-				}
-				multi = append(multi, info)
-				go func(dir string, info ImageInfo) {
-					saveToFile(dir, info)
-				}(r.dataDir, info)
-				logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result (will be handled later)")
+
+				logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
+
 				continue
 			}
 
-			logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
+			info := result.info
+			logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 
-			continue
-		}
+			go func(dir string, info ImageInfo) {
+				saveToFile(dir, info)
+			}(r.dataDir, info)
 
-		info := result.info
-		logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
+			version, err := semver.Make(info.Version)
+			if err != nil {
+				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
+					Warn("Failed to parse info.version for tag (ignored)")
 
-		go func(dir string, info ImageInfo) {
-			saveToFile(dir, info)
-		}(r.dataDir, info)
+				continue
+			}
 
-		version, err := semver.Make(info.Version)
-		if err != nil {
-			logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
-				Warn("Failed to parse info.version for tag (ignored)")
-
-			continue
-		}
-
-		graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
-		nodes++
-		metrics.tagScraped.WithLabelValues("upstream").Inc()
-		if nodes%100 == 1 {
-			logrus.WithField("tag", info.Tag).
-				WithField("missing", len(missing)).
-				WithField("received", received).
-				WithField("nodes", nodes).
-				WithField("tags", len(tags)).
-				Info("Added nodes to the graph")
+			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
+			nodes++
+			metrics.tagScraped.WithLabelValues("upstream").Inc()
+			if nodes%100 == 1 {
+				logrus.WithField("tag", info.Tag).
+					WithField("missing", len(missing)).
+					WithField("received", received).
+					WithField("nodes", nodes).
+					WithField("tags", len(tags)).
+					Info("Added nodes to the graph")
+			}
+		case <-ctx.Done():
+			logrus.Info("Context done")
+			return graph, ctx.Err()
 		}
 	}
 
