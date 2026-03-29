@@ -161,6 +161,7 @@ var rootCmd = &cobra.Command{
 		metricsRouter := gin.New()
 		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
+		// TODO: enable TLS on metrics server
 		metricsServer := &http.Server{
 			Addr:    opts.MetricsAddress,
 			Handler: metricsRouter.Handler(),
