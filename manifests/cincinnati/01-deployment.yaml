@@ -69,6 +69,8 @@ spec:
         - --graph-file=/data/data/graph.json.gz
         - --graph-data-dir=/var/repo/cincinnati-graph-data
         - --data-dir=/data/data
+        - --serving-cert-file=/etc/tls/serving-cert/tls.crt
+        - --serving-key-file=/etc/tls/serving-cert/tls.key
         env:
         - name: GIN_MODE
           value: release
@@ -97,11 +99,18 @@ spec:
           initialDelaySeconds: 120
           periodSeconds: 10
         volumeMounts:
+        - mountPath: /etc/tls/serving-cert
+          name: serving-cert
+          readOnly: true
         - name: graph-data
           mountPath: /var/repo
+          readOnly: true
         - name: data
           mountPath: /data
       volumes:
+      - name: serving-cert
+        secret:
+          secretName: cincinnati-serving-cert
       - name: graph-data
         emptyDir: {}
       - name: data

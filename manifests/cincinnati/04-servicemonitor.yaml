@@ -9,7 +9,10 @@ spec:
   endpoints:
   - interval: 30s
     port: metrics
-    scheme: http
+    scheme: https
+    tlsConfig:
+      serverName: cincinnati.cincinnati-go.svc
+  scrapeClass: tls-client-certificate-auth
   selector:
     matchLabels:
       app: cincinnati

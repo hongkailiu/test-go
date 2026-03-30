@@ -6,6 +6,8 @@ metadata:
   namespace: cincinnati-go
   labels:
     app: cincinnati
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: cincinnati-serving-cert
 spec:
   selector:
     app: cincinnati
