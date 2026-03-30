@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,16 +22,20 @@ import (
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 
 	"github.com/hongkailiu/test-go/pkg/cincinnati"
+	"github.com/hongkailiu/test-go/pkg/openshift"
 )
 
 // TODO: accept config file
 
 type options struct {
-	Address        string
-	MetricsAddress string
-	Registry       string
-	Repo           string
-	GraphDataDir   string
+	Address            string
+	MetricsAddress     string
+	MetricsTLSDisabled bool
+	ServingCertFile    string
+	ServingKeyFile     string
+	Registry           string
+	Repo               string
+	GraphDataDir       string
 
 	MockDir        string
 	DataDir        string
@@ -161,16 +167,12 @@ var rootCmd = &cobra.Command{
 		metricsRouter := gin.New()
 		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-		// TODO: enable TLS on metrics server
-		metricsServer := &http.Server{
-			Addr:    opts.MetricsAddress,
-			Handler: metricsRouter.Handler(),
-		}
+		var metricsServer *http.Server
 
 		{
 			logger := logrus.WithField("server", "main")
 			g.Add(func() error {
-				logger.Info("Server started")
+				logger.Info("Server starting ...")
 				if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					logger.WithError(err).Error("Server stopped unexpectedly")
 					return err
@@ -192,9 +194,42 @@ var rootCmd = &cobra.Command{
 		{
 			logger := logrus.WithField("server", "metrics")
 			g.Add(func() error {
-				logger.Info("Server started")
-				if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-					return err
+				logger.Info("Server starting ...")
+				metricsServer = &http.Server{}
+				if !opts.MetricsTLSDisabled {
+					tlsConfig, handler, err := openshift.MetricsOptions(ctx, opts.ServingCertFile, opts.ServingKeyFile, metricsRouter.Handler())
+					if err != nil {
+						return fmt.Errorf("failed to get metrics options: %w", err)
+					}
+					metricsServer.TLSConfig = tlsConfig
+					metricsServer.Handler = handler
+					tcpListener, err := net.Listen("tcp", opts.MetricsAddress)
+					if err != nil {
+						logrus.WithError(err).Fatal("Failed to listen on metrics address")
+					}
+					defer func() {
+						if err = tcpListener.Close(); err != nil {
+							logrus.WithError(err).Error("Failed to close metrics tcp listener")
+						}
+					}()
+					tlsListener := tls.NewListener(tcpListener, tlsConfig)
+					defer func() {
+						if err = tlsListener.Close(); err != nil {
+							logrus.WithError(err).Error("Failed to close metrics tls listener")
+						}
+					}()
+					logrus.WithField("address", opts.MetricsAddress).Info("Metrics port listening for HTTPS")
+					if err := server.Serve(tlsListener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+						return err
+					}
+				} else {
+					metricsServer = &http.Server{
+						Addr:    opts.MetricsAddress,
+						Handler: metricsRouter.Handler(),
+					}
+					if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+						return err
+					}
 				}
 				logger.Info("Server stopped")
 				return nil
@@ -216,10 +251,13 @@ var rootCmd = &cobra.Command{
 			signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 			g.Add(func() error {
-				sig := <-stop
-				logrus.WithField("signal", sig.String()).Info("Received signal")
+				sig, ok := <-stop
+				if ok {
+					logrus.WithField("signal", sig).Info("Received signal")
+				}
 				return nil
 			}, func(err error) {
+				logrus.Warn("Close stop channel")
 				close(stop)
 			})
 		}
@@ -249,6 +287,9 @@ func init() {
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")
 	rootCmd.Flags().StringVar(&opts.LogLevel, "log-level", "info", "Set log level (debug, info, warn, error)")
 	rootCmd.Flags().StringVar(&opts.MetricsAddress, "metrics-address", cincinnati.DefaultMetricsPort, "Address to run the metrics server with")
+	rootCmd.Flags().StringVar(&opts.ServingCertFile, "serving-cert-file", "/etc/tls/serving-cert/tls.crt", "The X.509 certificate file for serving metrics over HTTPS.  You must set both --serving-cert-file and --serving-key-file.")
+	rootCmd.Flags().StringVar(&opts.ServingKeyFile, "serving-key-file", "/etc/tls/serving-cert/tls.key", "The X.509 key file for serving metrics over HTTPS.  You must set both --serving-cert-file and --serving-key-file.")
+	rootCmd.Flags().BoolVar(&opts.MetricsTLSDisabled, "metrics-tls-disabled", false, "Use HTTP instead of HTTPS to serve the metrics endpoint if set")
 
 	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
 		opts.Registry = v
