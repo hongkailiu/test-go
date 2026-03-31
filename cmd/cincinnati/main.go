@@ -219,7 +219,7 @@ var rootCmd = &cobra.Command{
 						}
 					}()
 					logrus.WithField("address", opts.MetricsAddress).Info("Metrics port listening for HTTPS")
-					if err := server.Serve(tlsListener); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					if err := metricsServer.Serve(tlsListener); err != nil && !errors.Is(err, http.ErrServerClosed) {
 						return err
 					}
 				} else {
