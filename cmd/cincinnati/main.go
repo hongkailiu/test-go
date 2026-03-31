@@ -47,6 +47,10 @@ type options struct {
 
 var opts options
 
+func releaseMode() bool {
+	return gin.Mode() == gin.ReleaseMode
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "cincinnati",
 	Short: "A Cincinnati update graph server",
@@ -73,12 +77,13 @@ var rootCmd = &cobra.Command{
 		l.WithField("subComponent", "retryablehttp")
 		client.Logger = l
 
+		isReleaseMode := releaseMode()
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency)
+			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency, isReleaseMode)
 
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
-		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo)
+		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo, isReleaseMode)
 
 		var g run.Group
 		ctx, cancel := context.WithCancel(context.Background())

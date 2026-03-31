@@ -31,6 +31,8 @@ type GraphBuilder struct {
 	repo         *Repo
 
 	cache Cache
+
+	releaseMode bool
 }
 
 var errGraphNotFoundInCache = errors.New("graph not found in cache")
@@ -156,7 +158,7 @@ func (g *GraphBuilder) writeOpenshiftUpgradeGraphToFile(graph Graph) error {
 	var raw []byte
 	var err error
 
-	if releaseMode() {
+	if g.releaseMode {
 		raw, err = json.Marshal(graph)
 	} else {
 		raw, err = json.MarshalIndent(graph, "", "  ")
@@ -231,12 +233,13 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 	return graph, kerrors.NewAggregate(errs)
 }
 
-func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo) *GraphBuilder {
+func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo, releaseMode bool) *GraphBuilder {
 	return &GraphBuilder{
 		graphFile:    file,
 		graphDataDir: graphDataDir,
 		mockDir:      mockDir,
 		cache:        cache,
 		repo:         repo,
+		releaseMode:  releaseMode,
 	}
 }

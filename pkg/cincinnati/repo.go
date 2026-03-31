@@ -32,10 +32,12 @@ type Repo struct {
 	mockDir        string
 	dataDir        string
 	maxConcurrency int
+
+	releaseMode bool
 }
 
 // NewRepo returns a repo.
-func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int) *Repo {
+func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int, releaseMode bool) *Repo {
 	return &Repo{
 		client:         client,
 		registry:       registry,
@@ -43,6 +45,7 @@ func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurre
 		dataDir:        dataDir,
 		mockDir:        mockDir,
 		maxConcurrency: maxConcurrency,
+		releaseMode:    releaseMode,
 	}
 }
 
@@ -59,7 +62,7 @@ type TagsListData struct {
 	Tags []string `json:"tags"`
 }
 
-func (r *Repo) tags() ([]string, error) {
+func (r *Repo) tags(ctx context.Context) ([]string, error) {
 	if r.mockDir != "" {
 		raw, err := os.ReadFile(filepath.Join(r.mockDir, "repo.tags.list.json"))
 		if err != nil {
@@ -79,33 +82,39 @@ func (r *Repo) tags() ([]string, error) {
 
 	var count int
 
-	notReleaseMode := !releaseMode()
-
-	for {
-		count++
-		if notReleaseMode && count > 2 {
-			break
-		}
-
-		tags, next, err := fetchTags(r.client, url)
-		if err != nil {
-			return nil, err
-		}
-
-		ret = append(ret, tags...)
-
-		if next != "" {
-			nextURL, err := getNextURL(next)
-			if err != nil {
-				return nil, err
+	var stop bool
+	for !stop {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			if !r.releaseMode && count > 2 {
+				stop = true
+				logrus.WithField("count", count).Info("Break the loop earlier in non-release mode")
+				break
 			}
 
-			url = fmt.Sprintf("%s%s", r.registry, nextURL)
-		} else {
-			break
+			tags, next, err := fetchTags(r.client, url)
+			if err != nil {
+				return nil, fmt.Errorf("failed to fetch tags: %w", err)
+			}
+
+			ret = append(ret, tags...)
+
+			if next != "" {
+				nextURL, err := getNextURL(next)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get next URL: %w", err)
+				}
+
+				url = fmt.Sprintf("%s%s", r.registry, nextURL)
+			} else {
+				stop = true
+				break
+			}
+			count++
 		}
 	}
-
 	return sets.List[string](sets.New[string](ret...)), nil
 }
 
@@ -204,7 +213,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
 		Info("Scraping the repository for nodes and edges ...")
 
-	tags, err := r.tags()
+	tags, err := r.tags(ctx)
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
