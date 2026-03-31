@@ -197,12 +197,12 @@ var rootCmd = &cobra.Command{
 				logger.Info("Server starting ...")
 				metricsServer = &http.Server{}
 				if !opts.MetricsTLSDisabled {
-					tlsConfig, handler, err := openshift.MetricsOptions(ctx, opts.ServingCertFile, opts.ServingKeyFile, metricsRouter.Handler())
+					tlsConfig, err := openshift.MetricsTLSOptions(ctx, opts.ServingCertFile, opts.ServingKeyFile)
 					if err != nil {
 						return fmt.Errorf("failed to get metrics options: %w", err)
 					}
 					metricsServer.TLSConfig = tlsConfig
-					metricsServer.Handler = handler
+					metricsServer.Handler = metricsRouter.Handler()
 					tcpListener, err := net.Listen("tcp", opts.MetricsAddress)
 					if err != nil {
 						logrus.WithError(err).Fatal("Failed to listen on metrics address")

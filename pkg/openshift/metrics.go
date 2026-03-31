@@ -54,10 +54,10 @@ func (a *authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.downstream.ServeHTTP(w, r)
 }
 
-// MetricsOptions returns tls.Config that is used to start an HTTP server hosting the Prometheus endpoint
+// MetricsMTLSOptions returns tls.Config that is used to start an HTTP server hosting the Prometheus endpoint
 // The http handler does authorization before passing the request to downstream.
 // Ref. https://github.com/rhobs/observability-operator/blob/cf377a3068413ade9b7de5452afe18a809b614e8/pkg/operator/operator.go#L146
-func MetricsOptions(ctx context.Context, cert, key string, downstream http.Handler) (*tls.Config, http.Handler, error) {
+func MetricsMTLSOptions(ctx context.Context, cert, key string, downstream http.Handler) (*tls.Config, http.Handler, error) {
 	restConfig, err := getRestConfig()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get rest config: %w", err)
@@ -147,4 +147,41 @@ func MetricsOptions(ctx context.Context, cert, key string, downstream http.Handl
 			return config, nil
 		},
 	}), &authHandler{downstream: downstream, clientCA: clientCAController}, nil
+}
+
+// MetricsTLSOptions returns tls.Config that is used to start an HTTP server hosting the Prometheus endpoint
+// Ref. https://github.com/rhobs/observability-operator/blob/cf377a3068413ade9b7de5452afe18a809b614e8/pkg/operator/operator.go#L146
+func MetricsTLSOptions(ctx context.Context, cert, key string) (*tls.Config, error) {
+
+	if cert == "" || key == "" {
+		return nil, fmt.Errorf("cert and key are required")
+	}
+
+	// DynamicCertKeyPairContent automatically reloads the certificate and key from disk.
+	certKeyProvider, err := dynamiccertificates.NewDynamicServingContentFromFiles("serving-cert", cert, key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cert-key provider: %w", err)
+	}
+	if err := certKeyProvider.RunOnce(ctx); err != nil {
+		return nil, fmt.Errorf("failed to initialize cert/key content: %w", err)
+	}
+
+	go certKeyProvider.Run(ctx, 1)
+
+	return crypto.SecureTLSConfig(&tls.Config{
+		GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+			certPEM, keyPEM := certKeyProvider.CurrentCertKeyContent()
+
+			if certPEM == nil || keyPEM == nil {
+				return nil, fmt.Errorf("certificate not ready")
+			}
+
+			cert, err := tls.X509KeyPair(certPEM, keyPEM)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse key pair: %w", err)
+			}
+
+			return &cert, nil
+		},
+	}), nil
 }
