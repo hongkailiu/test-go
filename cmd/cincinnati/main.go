@@ -227,6 +227,7 @@ var rootCmd = &cobra.Command{
 						Addr:    opts.MetricsAddress,
 						Handler: metricsRouter.Handler(),
 					}
+					logrus.WithField("address", opts.MetricsAddress).Info("Metrics port listening for HTTP")
 					if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 						return err
 					}
