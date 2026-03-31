@@ -61,7 +61,7 @@ spec:
             memory: "1Gi"
             cpu: "0.5"
       - name: cincinnati
-        image: quay.io/hongkliu/test:cincinnati-go-eaae18e
+        image: quay.io/hongkliu/test:cincinnati-go-1ddbcae
         command:
         - /usr/local/bin/cincinnati
         args:
@@ -71,7 +71,6 @@ spec:
         - --data-dir=/data/data
         - --serving-cert-file=/etc/tls/serving-cert/tls.crt
         - --serving-key-file=/etc/tls/serving-cert/tls.key
-        - --metrics-tls-disabled
         env:
         - name: GIN_MODE
           value: release

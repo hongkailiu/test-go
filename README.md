@@ -34,3 +34,11 @@ $ oc --kubeconfig /tmp/ota-stage.c -n openshift-monitoring exec pod/metrics-serv
 100    84  100    84    0     0    641      0 --:--:-- --:--:-- --:--:--   641
 unauthorized common name: system:serviceaccount:openshift-monitoring:metrics-server
 ```
+
+Note that the ServiceMonitor in User Workload Monitoring cannot use `caFile: /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt` or `scrapeClass: tls-client-certificate-auth` because it works only in Cluster Monitoring.
+
+To make mTLS work, we have to generate a cert/key file for a ServiceAccount which are signed by Kubernetes, just like the monitoring stack does it to `system:serviceaccount:openshift-monitoring:prometheus-k8s`.
+
+## Test metrics endpoint with TLS
+
+Each of the above `curl` commands returns the metrics data.
