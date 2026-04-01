@@ -25,3 +25,5 @@ bazel-test-go
 bazel-testlogs
 
 /vendor/
+data/
+_out/
