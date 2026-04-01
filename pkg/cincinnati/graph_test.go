@@ -2,6 +2,7 @@ package cincinnati
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,6 +10,8 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/hongkailiu/test-go/pkg/testhelper"
 )
 
 func TestNode_getPrevious(t *testing.T) {
@@ -326,6 +329,50 @@ func TestCincinnatiGraphData_BecomeConditional(t *testing.T) {
 			actual := tt.gd.BecomeConditional(tt.from, tt.to)
 			if diff := cmp.Diff(tt.expect, actual); diff != "" {
 				t.Errorf("conditional edge not match (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestNode_validPrevious(t *testing.T) {
+	tests := []struct {
+		name   string
+		node   Node
+		expect error
+	}{
+		{
+			name: "4.20.0-ec.1-x86_64",
+			node: Node{
+				Tag:      "4.20.0-ec.1-x86_64",
+				Previous: []string{"4.19.0-rc.4", "4.20.0-ec.1"},
+				Version:  semver.MustParse("4.20.0-ec.1"),
+			},
+			expect: fmt.Errorf("tag's previous are not always smaller: 4.20.0-ec.1-x86_64"),
+		},
+		{
+			// multi reuses x86_64's previous, we do not need to duplicate the error
+			name: "4.20.0-ec.1-multi",
+			node: Node{
+				Tag:      "4.20.0-ec.1-multi",
+				Previous: []string{"4.19.0-rc.4", "4.20.0-ec.1"},
+				Version:  semver.MustParse("4.20.0-ec.1"),
+			},
+		},
+		{
+			name: "4.4.0-s390x",
+			node: Node{
+				Tag:      "4.4.0-s390x",
+				Previous: []string{"4.3.40", "4.4.18", "4.4.19"},
+				Version:  semver.MustParse("4.4.0"),
+			},
+			expect: fmt.Errorf("tag's previous are not always smaller: 4.4.0-s390x"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := tt.node.validPrevious()
+			if diff := cmp.Diff(tt.expect, actual, testhelper.ErrorTransformer); diff != "" {
+				t.Errorf("error mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

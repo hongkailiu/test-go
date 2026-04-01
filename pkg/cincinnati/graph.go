@@ -13,7 +13,7 @@ import (
 
 // TODO: Generate Go struct from OpenAPI Specs or the other way around
 
-// multi-arch since 4.3.14: tag 4.2.1 -> 4.3.14-x86_64 with version 4.3.1
+// multi-arch since 4.3.14: tag 4.2.1 -> 4.3.14-x86_64 with version 4.3.14
 // condition update since 4.7?: default blocking -> conditional blocking with MatchRules
 // tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
 
@@ -369,6 +369,9 @@ func (n Node) getPrevious(graph Graph) []Edge {
 }
 
 func (g Graph) EnsureNode(n Node) Graph {
+	if err := n.validPrevious(); err != nil {
+		logrus.WithField("tag", n.Tag).WithError(err).Error("Ignored an invalid previous node")
+	}
 	if i := g.Find(n.Tag); i > -1 {
 		g.Nodes[i] = n
 	}
@@ -436,4 +439,24 @@ func newIndex(removed []int, e int) int {
 	}
 
 	return e - len(removed)
+}
+
+func (n Node) validPrevious() error {
+	// Invalid previous should never happen, but we check it anyway for robustness.
+	// This is a stronger checking than graph having no cycles.
+	for i, p := range n.Previous {
+		pVersion, err := semver.Parse(p)
+		if err != nil {
+			return fmt.Errorf("error parsing previous version %s of tag %s: %w", p, n.Tag, err)
+		}
+		if !pVersion.LT(n.Version) {
+			logrus.WithField("index", i).WithField("p", p).
+				WithField("tag", n.Tag).WithField("version", n.Version.String()).
+				Error("previous is not smaller")
+			if getArch(n.Tag) != ArchParamMULTI {
+				return fmt.Errorf("tag's previous are not always smaller: %s", n.Tag)
+			}
+		}
+	}
+	return nil
 }

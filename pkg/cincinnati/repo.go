@@ -208,6 +208,15 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 	}
 }
 
+var invalidTags = sets.New[string](
+	// tags whose previous are not smaller
+	"4.20.0-ec.7-aarch64", "4.20.0-ec.7-ppc64le", "4.20.0-ec.7-s390x", "4.20.0-ec.7-x86_64", "4.4.0-s390x",
+	// multi-tag without the x86_64 variant
+	"4.20.0-ec.7-multi",
+	// not semver
+	"v4.0-20180928191152", "4.11-art-latest-multi",
+)
+
 func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
@@ -247,7 +256,8 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
-			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") {
+			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") ||
+			invalidTags.Has(tag) {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			invalid++
 			continue
@@ -435,10 +445,6 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
 		graph = graph.EnsureEdges(edges)
-	}
-
-	if err := acyclic(graph); err != nil {
-		return Graph{}, fmt.Errorf("the graph contains a circle: %w", err)
 	}
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
@@ -634,10 +640,4 @@ func getImageInfo(image string) (ImageInfo, error) {
 	}
 
 	return ret, fmt.Errorf("no metadata found for image %s", image)
-}
-
-// TODO: implement acyclic
-// acyclic returns a non-nil error if the graph contains a cycle.
-func acyclic(g Graph) error {
-	return nil
 }
