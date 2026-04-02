@@ -73,28 +73,41 @@ func (o *Options) Run(ctx context.Context) error {
 
 	currentVersions := candidate.Versions
 
-	pr, _, err := githubClient.PullRequests.Get(ctx, org, repo, o.PullNumber)
-	if err != nil {
-		return fmt.Errorf("failed to get pull request: %w", err)
+	var raw []byte
+	if _, err := os.Stat(path); err == nil {
+		logrus.WithField("path", path).Info("File exists on the local disk")
+		raw, err = os.ReadFile(path)
+		if err != nil {
+			logrus.WithError(err).Error("Failed to read file")
+		}
 	}
 
-	prHeadSHA := pr.Head.GetSHA()
-	opts = &github.RepositoryContentGetOptions{
-		Ref: prHeadSHA,
-	}
+	if raw == nil {
+		logrus.WithField("path", path).Info("Fetching the file from GitHub")
+		pr, _, err := githubClient.PullRequests.Get(ctx, org, repo, o.PullNumber)
+		if err != nil {
+			return fmt.Errorf("failed to get pull request: %w", err)
+		}
 
-	fileContent, _, _, err = githubClient.Repositories.GetContents(ctx, org, repo, path, opts)
-	if err != nil {
-		return fmt.Errorf("failed to get contents: %w", err)
-	}
+		prHeadSHA := pr.Head.GetSHA()
+		opts = &github.RepositoryContentGetOptions{
+			Ref: prHeadSHA,
+		}
 
-	content, err = fileContent.GetContent()
-	if err != nil {
-		return fmt.Errorf("failed to get file content: %w", err)
+		fileContent, _, _, err = githubClient.Repositories.GetContents(ctx, org, repo, path, opts)
+		if err != nil {
+			return fmt.Errorf("failed to get contents: %w", err)
+		}
+
+		content, err = fileContent.GetContent()
+		if err != nil {
+			return fmt.Errorf("failed to get file content: %w", err)
+		}
+		raw = []byte(content)
 	}
 
 	var pullCandidate Candidate
-	if err := yaml.Unmarshal([]byte(content), &pullCandidate); err != nil {
+	if err := yaml.Unmarshal(raw, &pullCandidate); err != nil {
 		return fmt.Errorf("failed to unmarshal: %w", err)
 	}
 
@@ -102,7 +115,7 @@ func (o *Options) Run(ctx context.Context) error {
 
 	diff := sets.New[string](pullVersions...).Difference(sets.New[string](currentVersions...))
 	if diff.Len() == 0 {
-		logrus.WithField("path", path).Info("No new versions found")
+		logrus.Info("No new versions found")
 	}
 
 	for versionStr := range diff {

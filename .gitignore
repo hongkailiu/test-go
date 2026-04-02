@@ -27,3 +27,4 @@ bazel-testlogs
 /vendor/
 data/
 _out/
+internal-channels/
