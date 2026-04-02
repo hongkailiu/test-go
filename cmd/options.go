@@ -101,6 +101,9 @@ func (o *Options) Run(ctx context.Context) error {
 	pullVersions := pullCandidate.Versions
 
 	diff := sets.New[string](pullVersions...).Difference(sets.New[string](currentVersions...))
+	if diff.Len() == 0 {
+		logrus.WithField("path", path).Info("No new versions found")
+	}
 
 	for versionStr := range diff {
 		logrus.WithField("version", versionStr).Info("Check version")
