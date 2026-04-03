@@ -196,7 +196,7 @@ func verify(t *testing.T, channel, arch, version string) {
 	params.Add("version", version)
 	query := params.Encode()
 
-	url, err := url.Parse("https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph")
+	url, err := url.Parse("https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/api/upgrades_info/graph")
 	if err != nil {
 		t.Fatalf("Failed to parse url: %v", err)
 	}

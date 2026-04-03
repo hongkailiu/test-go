@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -138,9 +137,6 @@ func (g *GraphBuilder) CacheGraph(ctx context.Context) error {
 func (g *GraphBuilder) CacheGraphData() error {
 	logrus.Info("Loading graph data ...")
 	dir := g.graphDataDir
-	if g.mockDir != "" {
-		dir = filepath.Join(g.mockDir, "graph-data")
-	}
 
 	gd, err := LoadGraphData(dir)
 	if err != nil {

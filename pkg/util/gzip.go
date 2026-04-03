@@ -2,6 +2,7 @@
 package util
 
 import (
+	"archive/tar"
 	"bytes"
 	"compress/gzip"
 	"fmt"
@@ -85,4 +86,44 @@ func WriteBytesMaybeGZIP(file string, data []byte) (retErr error) {
 	}
 
 	return nil
+}
+
+func AddFileToTar(tw *tar.Writer, trim string, filePath string) (errRet error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		errRet = err
+		return
+	}
+	defer func() {
+		if err := file.Close(); err != nil && errRet == nil {
+			errRet = err
+		}
+	}()
+
+	stat, err := file.Stat()
+	if err != nil {
+		errRet = err
+		return
+	}
+
+	// Create the tar header based on the file system stats
+	header, err := tar.FileInfoHeader(stat, "")
+	if err != nil {
+		errRet = err
+		return
+	}
+	// Ensure the header has the correct base filename
+	//header.Name = filepath.Base(filePath)
+	header.Name = strings.TrimPrefix(filePath, trim)
+
+	// Write the header to the tar stream
+	if err := tw.WriteHeader(header); err != nil {
+		errRet = err
+		return
+	}
+
+	// Stream the file contents directly into the tar writer
+	_, err = io.Copy(tw, file)
+	errRet = err
+	return
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -317,6 +318,10 @@ func init() {
 
 	if v := os.Getenv("MOCK_DIR"); v != "" {
 		opts.MockDir = v
+	}
+
+	if opts.MockDir != "" {
+		opts.GraphDataDir = filepath.Join(opts.MockDir, "graph-data")
 	}
 }
 
