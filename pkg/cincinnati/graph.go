@@ -18,6 +18,7 @@ import (
 // tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
 
 type Graph struct {
+	Version          int               `json:"version"`
 	Nodes            []Node            `json:"nodes"`
 	Edges            []Edge            `json:"edges"`
 	ConditionalEdges []ConditionalEdge `json:"conditionalEdges"`
@@ -311,6 +312,9 @@ func (g Graph) compatible() Graph {
 
 	if g.ConditionalEdges == nil {
 		g.ConditionalEdges = []ConditionalEdge{}
+	}
+	if g.Version == 0 {
+		g.Version = 1
 	}
 
 	return g
