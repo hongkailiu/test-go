@@ -85,11 +85,13 @@ var rootCmd = &cobra.Command{
 
 		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo, isReleaseMode)
 
+		// It gives us better control about context, e.g., stop all goroutines earlier on interruptions.
 		var g run.Group
 		ctx, cancel := context.WithCancel(context.Background())
 
 		{
-			// Do the initial work once and the work will be canceled with the context
+			// Do the initial work once and the work will be canceled with the context.
+			// The tickers below do not start until the first tick.
 			logger := logrus.WithField("worker", "init")
 			go func(ctx context.Context) {
 				logger.Info("Initial work started")
@@ -103,6 +105,7 @@ var rootCmd = &cobra.Command{
 			}(ctx)
 		}
 
+		// Periodically load and cache graph-data.
 		{
 			logger := logrus.WithField("worker", "CacheGraphData")
 			g.Add(func() error {
@@ -130,6 +133,7 @@ var rootCmd = &cobra.Command{
 			})
 		}
 
+		// Periodically load and cache graph.
 		{
 			logger := logrus.WithField("worker", "CacheGraph")
 			g.Add(func() error {
@@ -157,6 +161,8 @@ var rootCmd = &cobra.Command{
 			})
 		}
 
+		// ginprometheus, a gin middleware, provides a few metrics for the HTTP server.
+		// https://github.com/zsais/go-gin-prometheus/blob/9051d46c6a4b9f7acd950fcdfbe00648f4fcf4cd/middleware.go#L19-L54
 		r := gin.Default()
 		p := ginprometheus.NewWithConfig(ginprometheus.Config{
 			Subsystem:          cincinnati.MetricsPrefix,
@@ -169,11 +175,14 @@ var rootCmd = &cobra.Command{
 			Handler: cincinnati.GetHandler(r, gb),
 		}
 
+		// Start another HTTP server to host the metrics endpoint.
+		// It gives us more flexibility to set up the TLS config if needed
 		metricsRouter := gin.New()
 		metricsRouter.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 		var metricsServer *http.Server
 
+		// Start the main server.
 		{
 			logger := logrus.WithField("server", "main")
 			g.Add(func() error {
@@ -196,6 +205,7 @@ var rootCmd = &cobra.Command{
 			})
 		}
 
+		// Start the metrics server.
 		{
 			logger := logrus.WithField("server", "metrics")
 			g.Add(func() error {
@@ -251,8 +261,8 @@ var rootCmd = &cobra.Command{
 			})
 		}
 
+		// Set up signal receiver.
 		{
-			// Set up signal receiver.
 			stop := make(chan os.Signal, 1)
 			signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
