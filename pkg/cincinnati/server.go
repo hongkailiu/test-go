@@ -81,6 +81,10 @@ func GetHandler(r *gin.Engine, gb *GraphBuilder) http.Handler {
 					return nil
 				}
 
+				if d.Name() == "OWNERS" {
+					return nil
+				}
+
 				if err := util.AddFileToTar(tw, gb.graphDataDir, path); err != nil {
 					logrus.WithError(err).Error("Error adding file to tar")
 					return err
@@ -99,8 +103,8 @@ func GetHandler(r *gin.Engine, gb *GraphBuilder) http.Handler {
 	return r.Handler()
 }
 
-var graphDataDirs = sets.New[string]("blocked-edges", "channels")
-var graphDataFiles = sets.New[string]("LICENSE", "raw", "version")
+var graphDataDirs = sets.New[string]("blocked-edges", "channels", "raw")
+var graphDataFiles = sets.New[string]("LICENSE", "version")
 
 func getGraphHandler(gb *GraphBuilder) gin.HandlerFunc {
 	return func(c *gin.Context) {
