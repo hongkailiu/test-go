@@ -61,7 +61,7 @@ spec:
             memory: "1Gi"
             cpu: "0.5"
       - name: cincinnati
-        image: quay.io/hongkliu/test:cincinnati-go-1ddbcae
+        image: quay.io/hongkliu/test:cincinnati-go-b47d83b
         command:
         - /usr/local/bin/cincinnati
         args:
@@ -90,13 +90,13 @@ spec:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 120
+          initialDelaySeconds: 10
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /readyz
             port: 8080
-          initialDelaySeconds: 120
+          initialDelaySeconds: 10
           periodSeconds: 10
         volumeMounts:
         - mountPath: /etc/tls/serving-cert
