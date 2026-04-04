@@ -436,7 +436,6 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 		node.Tag = tag
 		node.Image = tagToImage(r.registry, r.repo, info.Digest)
 		node.SetMetadata(MetadataKeyArchitecture, "multi")
-		node.SetMetadata(MetadataKeyManifestRef, info.Digest)
 		graph = graph.EnsureNode(node)
 	}
 
@@ -516,9 +515,6 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 	node := Node{
 		Version: version,
 		Image:   tagToImage(registry, repo, info.Digest),
-		Metadata: map[string]string{
-			MetadataKeyManifestRef: info.Digest,
-		},
 		Tag:      tag,
 		Previous: info.Previous,
 	}

@@ -7,11 +7,6 @@ const (
 	DefaultPort        = ":8080"
 	DefaultMetricsPort = ":9090"
 
-	// MetadataKeyManifestRef records the manifest reference of the image
-	// Used only internally by Cincinnati Rust implementation while handling graph-data's blocked edges.
-	// It is redundant information as it is part of node's version.
-	// https://redhat-internal.slack.com/archives/CJ1J9C3V4/p1773883232868309?thread_ts=1773881763.378719&cid=CJ1J9C3V4
-	MetadataKeyManifestRef  = "io.openshift.upgrades.graph.release.manifestref"
 	MetadataKeyChannels     = "io.openshift.upgrades.graph.release.channels"
 	MetadataKeyArchitecture = "release.openshift.io/architecture"
 )
