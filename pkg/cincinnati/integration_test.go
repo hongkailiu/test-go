@@ -196,27 +196,12 @@ func TestIntegration_dummy(t *testing.T) {
 	}
 }
 
-func verify(t *testing.T, channel, arch, version string) {
-
-	// https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph?channel=stable-4.10&arch=amd64&version=4.10.10
+func mustProduction(t *testing.T, channel, arch string) Graph {
 	params := url.Values{}
 	params.Add("channel", channel)
 	params.Add("arch", arch)
-	params.Add("version", version)
 	query := params.Encode()
-
-	url, err := url.Parse("https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/api/upgrades_info/graph")
-	if err != nil {
-		t.Fatalf("Failed to parse url: %v", err)
-	}
-	url.RawQuery = query
-
-	graph, err := getGraph(url.String())
-	if err != nil {
-		t.Fatalf("Failed to get graph: %v", err)
-	}
-
-	url, err = url.Parse("https://api.openshift.com/api/upgrades_info/graph")
+	url, err := url.Parse("https://api.openshift.com/api/upgrades_info/graph")
 	if err != nil {
 		t.Fatalf("Failed to parse url: %v", err)
 	}
@@ -226,11 +211,35 @@ func verify(t *testing.T, channel, arch, version string) {
 	if err != nil {
 		t.Fatalf("Failed to get graph: %v", err)
 	}
+	return production
+}
 
-	if !production.IsSuperGraphOf(graph) {
-		t.Error("production is not a super-graph of graph")
-	}
-	if !graph.IsSuperGraphOf(production, version) {
-		t.Error("production is not a super-graph of graph")
+func verify(t *testing.T, channel, arch string, versions ...string) {
+	production := mustProduction(t, channel, arch)
+	for _, version := range versions {
+		// https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph?channel=stable-4.10&arch=amd64&version=4.10.10
+		params := url.Values{}
+		params.Add("channel", channel)
+		params.Add("arch", arch)
+		params.Add("version", version)
+		query := params.Encode()
+
+		url, err := url.Parse("https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/api/upgrades_info/graph")
+		if err != nil {
+			t.Fatalf("Failed to parse url: %v", err)
+		}
+		url.RawQuery = query
+
+		graph, err := getGraph(url.String())
+		if err != nil {
+			t.Fatalf("Failed to get graph: %v", err)
+		}
+
+		if !production.IsSuperGraphOf(graph) {
+			t.Error("production is not a super-graph of graph")
+		}
+		if !graph.IsSuperGraphOf(production, version) {
+			t.Error("production is not a super-graph of graph")
+		}
 	}
 }
