@@ -373,6 +373,13 @@ func (n Node) getPrevious(graph Graph) []Edge {
 }
 
 func (g Graph) EnsureNode(n Node) Graph {
+	if m := string(ArchTagSuffixMULTI); strings.Contains(n.Tag, m) {
+		v, ok := n.Metadata[MetadataKeyArchitecture]
+		if !ok || v != m {
+			logrus.WithField("tag", n.Tag).Error("Ignored an invalid multi tag")
+			return g
+		}
+	}
 	if err := n.validPrevious(); err != nil {
 		logrus.WithField("tag", n.Tag).WithError(err).Error("Ignored an invalid previous node")
 		return g
