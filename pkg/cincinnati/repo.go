@@ -217,6 +217,8 @@ var invalidTags = sets.New[string](
 	"v4.0-20180928191152", "4.11-art-latest-multi",
 	// not really multi tags
 	"4.7.32-multi", "4.7.32-multi-amd64", "4.9.0-rc.8-multi", "4.9.0-rc.8-multi-amd64", "4.9.0-rc.8-multi-arm64",
+	// 4.3.20 bad tags: each of them retags 4.5.0
+	"4.3.20-x86_64", "4.3.20-x86_64.bad", "4.3.20-x86_64.bad2",
 )
 
 func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
@@ -262,7 +264,9 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
 			strings.Contains(tag, "nightly") || strings.Contains(tag, "assembly") ||
-			invalidTags.Has(tag) {
+			invalidTags.Has(tag) ||
+			// 4.0 was never GA
+			strings.HasPrefix(tag, "4.0.") {
 			logrus.WithField("tag", tag).WithField("invalid", invalid).Debug("Ignored an invalid tag")
 			invalid++
 			continue

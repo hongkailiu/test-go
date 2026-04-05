@@ -61,7 +61,7 @@ spec:
             memory: "1Gi"
             cpu: "0.5"
       - name: cincinnati
-        image: quay.io/hongkliu/test:cincinnati-go-c07d9e4
+        image: quay.io/hongkliu/test:cincinnati-go-262ab20
         command:
         - /usr/local/bin/cincinnati
         args:

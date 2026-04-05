@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -320,10 +321,16 @@ func TestIntegration_smoke(t *testing.T) {
 				t.Fatalf("Failed to get versions: %v", err)
 			}
 
-			for k, v := range versions {
+			var keys []string
+			for k := range versions {
+				keys = append(keys, k)
+			}
+			sort.Strings(keys)
+
+			for _, k := range keys {
 				for _, arch := range []ArchParam{ArchParamAMD64, ArchParamARM64, ArchParamPPC64LE, ArchParamPPC64LE, ArchParamMULTI} {
 					archStr := string(arch)
-					verify(t, fmt.Sprintf("%s-%s", tt.name, k), archStr, v...)
+					verify(t, fmt.Sprintf("%s-%s", tt.name, k), archStr, versions[k]...)
 				}
 			}
 		})
