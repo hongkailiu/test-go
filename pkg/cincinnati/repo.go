@@ -215,6 +215,8 @@ var invalidTags = sets.New[string](
 	"4.20.0-ec.7-multi",
 	// not semver
 	"v4.0-20180928191152", "4.11-art-latest-multi",
+	// either 4.7.32-x86_64 or 4.7.32-multi but this one sounds like a mistake and duplication of 4.7.32-x86_64
+	"4.7.32-multi-amd64",
 )
 
 func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {

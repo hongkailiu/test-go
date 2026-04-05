@@ -11,7 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/blang/semver/v4"
 	"github.com/sirupsen/logrus"
+	"sigs.k8s.io/yaml"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -34,7 +36,7 @@ func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 	}
 	for i, n := range g1.Nodes {
 		if g.FindNode(n) == -1 {
-			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
+			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).
 				WithField("index", i).Error("node is not in graph")
 			return false
 		}
@@ -236,10 +238,86 @@ func verify(t *testing.T, channel, arch string, versions ...string) {
 		}
 
 		if !production.IsSuperGraphOf(graph) {
-			t.Error("production is not a super-graph of graph")
+			t.Error("production is not a super-graph")
 		}
 		if !graph.IsSuperGraphOf(production, version) {
-			t.Error("production is not a super-graph of graph")
+			t.Error("cincinnati-go is not a super-graph")
 		}
+	}
+}
+
+func getVersions() (map[string][]string, error) {
+	url := "https://raw.githubusercontent.com/openshift/cincinnati-graph-data/refs/heads/master/internal-channels/candidate.yaml"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+
+	var c Channel
+	if err := yaml.Unmarshal(raw, &c); err != nil {
+		return nil, err
+	}
+
+	result := map[string][]string{}
+	for _, version := range c.Versions {
+		v, err := semver.Parse(version)
+		if err != nil {
+			return nil, err
+		}
+		key := fmt.Sprintf("%d.%d", v.Major, v.Minor)
+		result[key] = append(result[key], version)
+	}
+
+	return result, nil
+
+}
+
+func TestIntegration_smoke(t *testing.T) {
+	if os.Getenv("TEST_INTEGRATION") != "1" {
+		t.Skip("integration tests skipped unless TEST_INTEGRATION=1")
+	}
+
+	tests := []struct {
+		name    string
+		channel string
+	}{
+		{
+			name: "smoke",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			logrus.Warn("===")
+			versions, err := getVersions()
+			if err != nil {
+				t.Fatalf("Failed to get versions: %v", err)
+			}
+
+			for k, v := range versions {
+				for _, arch := range []ArchParam{ArchParamAMD64} {
+					archStr := string(arch)
+					verify(t, "stable-"+k, archStr, v...)
+				}
+			}
+		})
 	}
 }
