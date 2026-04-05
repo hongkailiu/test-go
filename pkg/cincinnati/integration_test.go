@@ -75,13 +75,22 @@ func (g Graph) IsEdgesSupersetOf(g1 Graph, versions ...string) bool {
 	return true
 }
 
-func (n Node) Equal(n1 Node) bool {
-	return n.Image == n1.Image
+func (n Node) Equals(n1 Node) bool {
+	return n.Image == n1.Image && n.Version.Equals(n1.Version) &&
+		equalChannels(n.Metadata[MetadataKeyChannels], n1.Metadata[MetadataKeyChannels]) &&
+		n.Metadata[MetadataKeyArchitecture] == n1.Metadata[MetadataKeyArchitecture] &&
+		n.Metadata["url"] == n1.Metadata["url"]
+}
+
+func equalChannels(s string, s1 string) bool {
+	splits := strings.Split(s, ",")
+	splits1 := strings.Split(s1, ",")
+	return sets.New[string](splits...).Equal(sets.New[string](splits1...))
 }
 
 func (g Graph) FindNode(node Node) int {
 	for i, n := range g.Nodes {
-		if n.Equal(node) {
+		if n.Equals(node) {
 			return i
 		}
 	}

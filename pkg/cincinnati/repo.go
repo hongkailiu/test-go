@@ -432,10 +432,25 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			logrus.WithField("tag", tag).Warn("Failed to find the amd64 node, ignored an invalid multi image")
 			continue
 		}
-		node := graph.Nodes[i]
-		node.Tag = tag
-		node.Image = tagToImage(r.registry, r.repo, info.Digest)
-		node.SetMetadata(MetadataKeyArchitecture, "multi")
+
+		node := Node{
+			Version: graph.Nodes[i].Version,
+			Image:   tagToImage(r.registry, r.repo, info.Digest),
+			Tag:     tag,
+		}
+		node.Metadata = map[string]string{}
+		SetMetadata(&node, MetadataKeyArchitecture, "multi")
+		if graph.Nodes[i].Metadata != nil {
+			for k, v := range graph.Nodes[i].Metadata {
+				node.Metadata[k] = v
+			}
+		}
+		if graph.Nodes[i].Previous != nil {
+			for _, p := range graph.Nodes[i].Previous {
+				node.Previous = append(node.Previous, p)
+			}
+		}
+
 		graph = graph.EnsureNode(node)
 	}
 
@@ -513,17 +528,17 @@ func tagToImage(registry, repo, digest string) string {
 
 func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info ImageInfo) Node {
 	node := Node{
-		Version: version,
-		Image:   tagToImage(registry, repo, info.Digest),
+		Version:  version,
+		Image:    tagToImage(registry, repo, info.Digest),
 		Tag:      tag,
 		Previous: info.Previous,
 	}
 	if url, ok := info.Metadata["url"]; ok {
-		node.SetMetadata("url", url)
+		SetMetadata(&node, "url", url)
 	}
 
 	if arch, ok := info.Metadata[MetadataKeyArchitecture]; ok {
-		node.SetMetadata(MetadataKeyArchitecture, arch)
+		SetMetadata(&node, MetadataKeyArchitecture, arch)
 	}
 
 	return node
