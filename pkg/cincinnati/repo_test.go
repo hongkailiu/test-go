@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/hongkailiu/test-go/pkg/testhelper"
@@ -93,6 +94,48 @@ func TestRepo_tags(t *testing.T) {
 			if diff := cmp.Diff(test.expTags, actual); diff != "" {
 				t.Errorf("tags mismatch (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestRepo_tagsToNodesAndEdges(t *testing.T) {
+	tests := []struct {
+		name   string
+		exp    Graph
+		expErr error
+	}{
+		{
+			name: "mock",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := Repo{
+				client:         http.DefaultClient,
+				mockDir:        "../../mock",
+				dataDir:        "../../mock/data",
+				registry:       "https://quay.io",
+				repo:           "openshift-release-dev/ocp-release",
+				maxConcurrency: 1,
+			}
+			var graph Graph
+			actual, actualErr := repo.tagsToNodesAndEdges(context.Background(), graph)
+			if diff := cmp.Diff(test.expErr, actualErr, testhelper.ErrorTransformer); diff != "" {
+				t.Errorf("error mismatch (-want +got):\n%s", diff)
+			}
+
+			if actualErr != nil {
+				return
+			}
+
+			data, err := json.Marshal(actual)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			cupaloy.New(
+				cupaloy.SnapshotSubdirectory("testdata/.snapshots"),
+			).SnapshotT(t, data)
 		})
 	}
 }

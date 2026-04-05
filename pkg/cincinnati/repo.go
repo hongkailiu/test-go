@@ -228,6 +228,9 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 	}
 	logrus.WithField("tags", len(tags)).Info("Got tags")
 	go func(dir string, tags []string) {
+		if !r.releaseMode {
+			return
+		}
 		data, err := yaml.Marshal(map[string][]string{"tags": tags})
 		if err != nil {
 			logrus.WithError(err).Error("Failed to marshal tags")
@@ -446,9 +449,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			}
 		}
 		if graph.Nodes[i].Previous != nil {
-			for _, p := range graph.Nodes[i].Previous {
-				node.Previous = append(node.Previous, p)
-			}
+			node.Previous = append(node.Previous, graph.Nodes[i].Previous...)
 		}
 
 		graph = graph.EnsureNode(node)

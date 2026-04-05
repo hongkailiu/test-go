@@ -9,10 +9,11 @@ import (
 
 	"github.com/blang/semver/v4"
 	"github.com/gin-gonic/gin"
-	"github.com/hongkailiu/test-go/pkg/util"
 	"github.com/sirupsen/logrus"
+
 	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/hongkailiu/test-go/pkg/util"
 	"github.com/hongkailiu/test-go/pkg/version"
 )
 
