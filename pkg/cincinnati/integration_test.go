@@ -297,25 +297,33 @@ func TestIntegration_smoke(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		channel string
+		name        string
+		channelType string
 	}{
 		{
-			name: "smoke",
+			name:        "stable",
+			channelType: "stable",
+		},
+		{
+			name:        "fast",
+			channelType: "fast",
+		},
+		{
+			name:        "candidate",
+			channelType: "candidate",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logrus.Warn("===")
 			versions, err := getVersions()
 			if err != nil {
 				t.Fatalf("Failed to get versions: %v", err)
 			}
 
 			for k, v := range versions {
-				for _, arch := range []ArchParam{ArchParamAMD64} {
+				for _, arch := range []ArchParam{ArchParamAMD64, ArchParamARM64, ArchParamPPC64LE, ArchParamPPC64LE, ArchParamMULTI} {
 					archStr := string(arch)
-					verify(t, "stable-"+k, archStr, v...)
+					verify(t, fmt.Sprintf("%s-%s", tt.name, k), archStr, v...)
 				}
 			}
 		})

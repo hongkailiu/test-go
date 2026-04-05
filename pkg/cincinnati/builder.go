@@ -58,6 +58,11 @@ func (g *GraphBuilder) Build(p GraphParams) (Graph, error) {
 		return zero, nil
 	}
 
+	// multi-arch is GA on 4.13 (TP within 4.11&4.12) but Cincinnati shows upgrade paths from 4.12+
+	if ArchParam(p.Arch) == ArchParamMULTI && p.Version.Major == 4 && p.Version.Minor <= 11 {
+		return zero, nil
+	}
+
 	shaped, err := p.shape(graph)
 	if err != nil {
 		return zero, err
