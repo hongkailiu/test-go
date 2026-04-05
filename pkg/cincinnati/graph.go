@@ -375,6 +375,7 @@ func (n Node) getPrevious(graph Graph) []Edge {
 func (g Graph) EnsureNode(n Node) Graph {
 	if err := n.validPrevious(); err != nil {
 		logrus.WithField("tag", n.Tag).WithError(err).Error("Ignored an invalid previous node")
+		return g
 	}
 	if i := g.Find(n.Tag); i > -1 {
 		g.Nodes[i] = n
