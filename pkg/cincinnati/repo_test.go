@@ -128,7 +128,7 @@ func TestRepo_tagsToNodesAndEdges(t *testing.T) {
 				return
 			}
 
-			data, err := json.Marshal(actual)
+			data, err := json.MarshalIndent(actual, "", "  ")
 			if err != nil {
 				t.Fatal(err)
 			}
