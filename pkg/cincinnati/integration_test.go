@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -27,6 +28,8 @@ func (g Graph) IsSuperGraphOf(g1 Graph, versions ...string) bool {
 	return g.IsNodesSupersetOf(g1, versions...) && g.IsEdgesSupersetOf(g1, versions...) && g.IsConditionalEdgesSupersetOf(g1, versions...)
 }
 
+var v41242 = semver.MustParse("4.12.42")
+
 func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 	if len(versions) > 0 {
 		// It is possible: arch=amd64&channel=candidate-4.2&version=4.1.1
@@ -36,9 +39,25 @@ func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 		return true
 	}
 	for i, n := range g1.Nodes {
+		if v41242.Equals(n.Version) {
+			logrus.WithField("image", n.Image).Info("Ignored a 4.12.42 image")
+			continue
+		}
 		if g.FindNode(n) == -1 {
 			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).
 				WithField("index", i).Error("node is not in graph")
+			// catch the witness
+			for k, g := range []Graph{g, g1} {
+				if raw, err := json.Marshal(g); err != nil {
+					logrus.WithError(err).Error("Failed to marshal production")
+				} else {
+					f := filepath.Join("/Users/hongkliu/Downloads/prod.graph/", fmt.Sprintf("prod.graph.%d.json", k))
+					if err := os.WriteFile(f, raw, 0644); err != nil {
+						logrus.WithError(err).WithField("file", f).Error("Failed to write prod.graph.json")
+					}
+				}
+			}
+			logrus.Fatal("Failed to find node")
 			return false
 		}
 	}
@@ -56,8 +75,8 @@ func (g Graph) IsEdgesSupersetOf(g1 Graph, versions ...string) bool {
 		for j, n := range []Node{g1.Nodes[edge[0]], g1.Nodes[edge[1]]} {
 			index := g.FindNode(n)
 			if index == -1 {
-				logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).WithField("tag", n.Tag).
-					WithField("index", j).Error("node is not in graph")
+				logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).
+					WithField("index", j).Error("node is not in graph for edge")
 				return false
 			}
 			if j == 0 {
@@ -179,7 +198,12 @@ func TestIntegration_dummy(t *testing.T) {
 			version: "4.18.10",
 		},
 		{
-			name:    "candidate",
+			name:    "candidate-4.5",
+			channel: "candidate-4.5",
+			version: "4.5.0",
+		},
+		{
+			name:    "candidate-4.18",
 			channel: "candidate-4.18",
 			version: "4.17.10",
 		},
@@ -187,6 +211,20 @@ func TestIntegration_dummy(t *testing.T) {
 			name:    "old candidate",
 			channel: "candidate-4.2",
 			version: "4.1.1",
+		},
+		// Rust-implementation in production sometimes returned (often enough in the smoke test below) the following image for 4.12.42-aarch64
+		// 4.12.42-multi-aarch64
+		// quay.io/openshift-release-dev/ocp-release@sha256:725661cc6e83a0d6f81827cbcbc3d2365cb46e3c2d028477fde5b160fab9fe08"
+		// However everything is fine here
+		{
+			name:    "fast",
+			channel: "fast-4.12",
+			version: "4.12.42",
+		},
+		{
+			name:    "eus",
+			channel: "eus-4.20",
+			version: "4.18.23",
 		},
 	}
 	for _, tt := range tests {
@@ -218,6 +256,7 @@ func mustProduction(t *testing.T, channel, arch string) Graph {
 }
 
 func verify(t *testing.T, channel, arch string, versions ...string) {
+	logrus.WithField("arch", arch).WithField("channel", channel).Info("Verify")
 	production := mustProduction(t, channel, arch)
 	for _, version := range versions {
 		// https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph?channel=stable-4.10&arch=amd64&version=4.10.10
