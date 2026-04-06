@@ -28,8 +28,6 @@ func (g Graph) IsSuperGraphOf(g1 Graph, versions ...string) bool {
 	return g.IsNodesSupersetOf(g1, versions...) && g.IsEdgesSupersetOf(g1, versions...) && g.IsConditionalEdgesSupersetOf(g1, versions...)
 }
 
-var v41242 = semver.MustParse("4.12.42")
-
 func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 	if len(versions) > 0 {
 		// It is possible: arch=amd64&channel=candidate-4.2&version=4.1.1
@@ -39,29 +37,38 @@ func (g Graph) IsNodesSupersetOf(g1 Graph, versions ...string) bool {
 		return true
 	}
 	for i, n := range g1.Nodes {
-		if v41242.Equals(n.Version) {
-			logrus.WithField("image", n.Image).Info("Ignored a 4.12.42 image")
-			continue
-		}
 		if g.FindNode(n) == -1 {
 			logrus.WithField("nodeVersion", n.Version).WithField("nodeImage", n.Image).
 				WithField("index", i).Error("node is not in graph")
 			// catch the witness
-			for k, g := range []Graph{g, g1} {
-				if raw, err := json.Marshal(g); err != nil {
-					logrus.WithError(err).Error("Failed to marshal production")
-				} else {
-					f := filepath.Join("/Users/hongkliu/Downloads/prod.graph/", fmt.Sprintf("prod.graph.%d.json", k))
-					if err := os.WriteFile(f, raw, 0644); err != nil {
-						logrus.WithError(err).WithField("file", f).Error("Failed to write prod.graph.json")
-					}
+			if os.Getenv("CATCH_EVIDENCE") == "true" {
+				if err := catchEvidence(g, g1); err != nil {
+					logrus.WithError(err).Error("Failed to catch evidence")
 				}
+				logrus.Fatal("Failed to find node")
 			}
-			logrus.Fatal("Failed to find node")
 			return false
 		}
 	}
 	return true
+}
+
+func catchEvidence(g Graph, g1 Graph) error {
+	dir := "_out/graph.evidence"
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	for k, g := range []Graph{g, g1} {
+		raw, err := json.Marshal(g)
+		if err != nil {
+			return err
+		}
+		f := filepath.Join(dir, fmt.Sprintf("prod.graph.%d.json", k))
+		if err := os.WriteFile(f, raw, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (g Graph) IsEdgesSupersetOf(g1 Graph, versions ...string) bool {
@@ -242,7 +249,7 @@ func mustProduction(t *testing.T, channel, arch string) Graph {
 	params.Add("channel", channel)
 	params.Add("arch", arch)
 	query := params.Encode()
-	url, err := url.Parse("https://api.openshift.com/api/upgrades_info/graph")
+	url, err := url.Parse("https://api.stage.openshift.com/api/upgrades_info/graph")
 	if err != nil {
 		t.Fatalf("Failed to parse url: %v", err)
 	}
