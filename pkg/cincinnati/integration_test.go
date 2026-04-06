@@ -263,7 +263,6 @@ func mustProduction(t *testing.T, channel, arch string) Graph {
 }
 
 func verify(t *testing.T, channel, arch string, versions ...string) {
-	logrus.WithField("arch", arch).WithField("channel", channel).Info("Verify")
 	production := mustProduction(t, channel, arch)
 	for _, version := range versions {
 		// https://cincinnati-cincinnati-go.apps.ota-stage.q2z4.p1.openshiftapps.com/upgrades_info/v1/graph?channel=stable-4.10&arch=amd64&version=4.10.10
