@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -189,15 +188,8 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 
 		info, err := getImageInfo(job.image)
 		if err != nil {
-			var e *IsManifestListError
-			if ok := errors.As(err, &e); ok {
-				logJ.WithError(err).Debug("Failed to fetch image info (will be handled later)")
-			} else {
-				logJ.WithError(err).Warn("Failed to fetch image info")
-			}
-
+			logJ.WithError(err).Warn("Failed to fetch image info")
 			results <- result{err: fmt.Errorf("failed to get image info for tag %s and image %s: %w", job.tag, job.image, err)}
-
 			continue
 		}
 
@@ -298,7 +290,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 				continue
 			}
 
-			if info.Multi() {
+			if strings.HasSuffix(tag, multiSuffix) && info.Multi() {
 				multi = append(multi, info)
 				logrus.WithField("tag", tag).Debug("Ignored a multi tag")
 				continue
@@ -363,39 +355,23 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			received++
 
 			if result.err != nil {
-				var e *IsManifestListError
-				if ok := errors.As(result.err, &e); ok {
-					i := strings.LastIndex(e.Image, ":")
-					if i == -1 {
-						logrus.WithField("image", e.Image).Warn("Ignored an invalid multi image")
-						continue
-					}
-					tag := e.Image[i+1:]
-					// The other fields will be filled with the image info from its amd64 shard
-					info := ImageInfo{
-						Digest: e.Digest,
-						Tag:    tag,
-					}
-					multi = append(multi, info)
-					go func(dir string, info ImageInfo) {
-						saveToFile(dir, info)
-					}(r.dataDir, info)
-					logrus.WithField("tag", tag).Debug("Ignored a multi tag in a received result (will be handled later)")
-					continue
-				}
-
 				logrus.WithError(result.err).Warn("Failed to get image info and the tag is ignored")
-
 				continue
 			}
 
 			info := result.info
-			logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 
 			go func(dir string, info ImageInfo) {
 				saveToFile(dir, info)
 			}(r.dataDir, info)
 
+			if info.Multi() {
+				multi = append(multi, info)
+				logrus.WithField("tag", info.Tag).Debug("Ignored a multi tag in a received result (will be handled later)")
+				continue
+			}
+
+			logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
 			version, err := semver.Make(info.Version)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
@@ -559,15 +535,6 @@ type CincinnatiMetadata struct {
 	Metadata map[string]string `json:"metadata"`
 }
 
-type IsManifestListError struct {
-	Image  string
-	Digest string
-}
-
-func (e *IsManifestListError) Error() string {
-	return fmt.Sprintf("image %s is a manifest list", e.Image)
-}
-
 type ImageInfo struct {
 	CincinnatiMetadata
 
@@ -578,8 +545,7 @@ type ImageInfo struct {
 
 // Multi returns true if it is image info for a multi tag
 func (i ImageInfo) Multi() bool {
-	multiSuffix := string(ArchTagSuffixMULTI)
-	return strings.HasSuffix(i.Tag, multiSuffix) && i.Version == "" && i.Digest != ""
+	return i.Version == "" && i.Digest != ""
 }
 
 func getImageInfo(image string) (ImageInfo, error) {
@@ -608,11 +574,9 @@ func getImageInfo(image string) (ImageInfo, error) {
 		if !strings.HasSuffix(image, multiSuffix) {
 			return ret, fmt.Errorf("multi-arch image %s does not end with %s", image, ArchTagSuffixMULTI)
 		}
+		ret.Digest = digest
 		// The image info will be recovered with the image info from its amd64 shard
-		return ret, &IsManifestListError{
-			Image:  image,
-			Digest: digest,
-		}
+		return ret, nil
 	}
 
 	img, err := remote.Image(ref)
