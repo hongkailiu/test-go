@@ -298,7 +298,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 				continue
 			}
 
-			if strings.HasSuffix(tag, multiSuffix) && info.Version == "" && info.Digest != "" {
+			if info.Multi() {
 				multi = append(multi, info)
 				logrus.WithField("tag", tag).Debug("Ignored a multi tag")
 				continue
@@ -574,6 +574,12 @@ type ImageInfo struct {
 	Digest string
 
 	Tag string
+}
+
+// Multi returns true if it is image info for a multi tag
+func (i ImageInfo) Multi() bool {
+	multiSuffix := string(ArchTagSuffixMULTI)
+	return strings.HasSuffix(i.Tag, multiSuffix) && i.Version == "" && i.Digest != ""
 }
 
 func getImageInfo(image string) (ImageInfo, error) {
