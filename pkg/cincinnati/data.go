@@ -66,7 +66,7 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 			return nil
 		}
 
-		raw, err := os.ReadFile(filepath.Join(channelsDir, d.Name()))
+		raw, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -95,7 +95,7 @@ func LoadGraphData(dir string) (*CincinnatiGraphData, error) {
 			return nil
 		}
 
-		raw, err := os.ReadFile(filepath.Join(blockedEdgesDir, d.Name()))
+		raw, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}

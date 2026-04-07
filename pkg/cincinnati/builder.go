@@ -149,7 +149,9 @@ func (g *GraphBuilder) CacheGraphData() error {
 	}
 
 	g.cache.Set(cacheKeyCincinnatiGraphData, *gd, 10*time.Minute)
-	logrus.Info("Loaded graph data")
+	logrus.WithField("blocked", len(gd.BlockedEdges)).
+		WithField("channels", len(gd.Channels)).
+		WithField("removed", len(gd.RemovedEdges)).Info("Loaded graph data")
 	return nil
 }
 
