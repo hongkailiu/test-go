@@ -15,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
+// TODO: use graph-data whlile forming the graph, instead of adding first and removing later
+
 type BlockedEdge struct {
 	RemovedEdge
 

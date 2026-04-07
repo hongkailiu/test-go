@@ -221,6 +221,7 @@ var invalidTags = sets.New[string](
 	"4.3.20-x86_64", "4.3.20-x86_64.bad", "4.3.20-x86_64.bad2",
 )
 
+// TODO: simplify tagsToNodesAndEdges
 func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
