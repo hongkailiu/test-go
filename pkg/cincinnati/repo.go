@@ -217,13 +217,14 @@ var invalidTags = sets.New[string](
 func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, error) {
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
-		Info("Scraping the repository for nodes and edges ...")
+		Info("Building nodes and edges ...")
 
+	logrus.Info("Getting tags from registry ...")
 	tags, err := r.tags(ctx)
 	if err != nil {
 		return Graph{}, fmt.Errorf("failed to fetch tags: %w", err)
 	}
-	logrus.WithField("tags", len(tags)).Info("Got tags")
+	logrus.WithField("tags", len(tags)).Info("Got tags from registry")
 	go func(dir string, tags []string) {
 		if !r.releaseMode {
 			return
@@ -244,7 +245,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 	multiSuffix := string(ArchTagSuffixMULTI)
 	for _, tag := range tags {
 
-		if invalid%2000 == 1 {
+		if invalid%6000 == 1 {
 			logrus.WithField("tag", tag).
 				WithField("invalid", invalid).
 				WithField("tags", len(tags)).
@@ -438,13 +439,15 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Added multi nodes the repository graph")
 
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).Info("Adding edges to the graph ...")
 	for _, node := range graph.Nodes {
 		edges := node.getPrevious(graph)
 		graph = graph.EnsureEdges(edges)
 	}
+	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).Info("Added edges to the graph")
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
-		Info("Scraped the repository for nodes and edges")
+		Info("Built nodes and edges")
 
 	return graph, nil
 }

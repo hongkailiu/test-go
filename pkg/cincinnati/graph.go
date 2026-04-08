@@ -208,7 +208,7 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 		WithField("edges", len(g.Edges)).
 		WithField("conditionalEdges", len(g.ConditionalEdges)).
 		WithField("remove", len(remove)).
-		Debug("Removing nodes ...")
+		Info("Removing nodes ...")
 
 	removeVersions := sets.New[string]()
 	for _, index := range remove {
@@ -256,7 +256,7 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 		WithField("edges", len(g.Edges)).
 		WithField("conditionalEdges", len(g.ConditionalEdges)).
 		WithField("remove", len(remove)).
-		Debug("Removed nodes")
+		Info("Removed nodes")
 
 	return g
 }
