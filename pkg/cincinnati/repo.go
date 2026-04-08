@@ -296,7 +296,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 				continue
 			}
 
-			version, err := semver.Make(info.Version)
+			version, err := semver.Parse(info.Version)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
 					Warn("Failed to parse info.version for tag (ignored and will re-fetch)")
@@ -372,7 +372,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 			}
 
 			logrus.WithField("tag", info.Tag).Debug("Adding a missing tag into the graph")
-			version, err := semver.Make(info.Version)
+			version, err := semver.Parse(info.Version)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
 					Warn("Failed to parse info.version for tag (ignored)")
