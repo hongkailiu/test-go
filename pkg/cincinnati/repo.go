@@ -241,6 +241,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 	var missing []string
 	var multi []ImageInfo
 	var invalid int
+	multiSuffix := string(ArchTagSuffixMULTI)
 	for _, tag := range tags {
 
 		if invalid%2000 == 1 {
@@ -250,7 +251,6 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 				Info("Ignored invalid tags")
 		}
 
-		multiSuffix := string(ArchTagSuffixMULTI)
 		if (strings.HasPrefix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
 			strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
@@ -278,35 +278,33 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 		}
 
 		if fileExists(file) {
+			// refetch if any error occurs
 			data, err := os.ReadFile(file)
 			if err != nil {
 				logrus.WithError(err).WithField("tag", tag).WithField("file", file).
-					Warn("Failed to fetch image info from file, ignored the tag")
-				continue
+					Warn("Failed to fetch image info from file, refetching ...")
+			} else {
+				info := ImageInfo{}
+				if err := yaml.Unmarshal(data, &info); err != nil {
+					logrus.WithError(err).WithField("tag", tag).Warn("Failed to unmarshal image info, refetching ...")
+				} else {
+					if strings.HasSuffix(tag, multiSuffix) && info.Multi() {
+						multi = append(multi, info)
+						logrus.WithField("tag", tag).Debug("Ignored a multi tag, to be handled later")
+						continue
+					}
+					version, err := semver.Parse(info.Version)
+					if err != nil {
+						logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
+							Warn("Failed to parse info.version for tag, refetching ...")
+					} else {
+						graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
+						metrics.tagScraped.WithLabelValues("local").Inc()
+						logrus.WithField("tag", tag).WithField("file", file).Debug("Loaded image info from file")
+						continue
+					}
+				}
 			}
-			info := ImageInfo{}
-			if err := yaml.Unmarshal(data, &info); err != nil {
-				logrus.WithError(err).WithField("tag", tag).Warn("Failed to unmarshal image info, ignored the tag")
-				continue
-			}
-
-			if strings.HasSuffix(tag, multiSuffix) && info.Multi() {
-				multi = append(multi, info)
-				logrus.WithField("tag", tag).Debug("Ignored a multi tag")
-				continue
-			}
-
-			version, err := semver.Parse(info.Version)
-			if err != nil {
-				logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
-					Warn("Failed to parse info.version for tag (ignored and will re-fetch)")
-
-				continue
-			}
-
-			graph = graph.EnsureNode(nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info))
-			metrics.tagScraped.WithLabelValues("local").Inc()
-			continue
 		}
 
 		missing = append(missing, tag)
@@ -401,7 +399,7 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 		WithField("received", received).
 		WithField("nodes", nodes).
 		WithField("tags", len(tags)).
-		Info("Finished scraping the repository graph")
+		Info("Fetched image metadata for missing tags")
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Adding multi nodes the repository graph ...")
 	for _, info := range multi {
