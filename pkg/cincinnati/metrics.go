@@ -8,6 +8,8 @@ const (
 	MetricsPrefix = "cincinnati_go"
 )
 
+// TODO: Take more metrics from Production into account
+
 var (
 	metrics = struct {
 		tagScraped *prometheus.CounterVec
