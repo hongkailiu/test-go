@@ -124,7 +124,13 @@ func (o *Options) Run(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to parse version: %w", err)
 		}
-		for _, suffix := range []ArchTagSuffix{ArchTagSuffixAMD64, ArchTagSuffixARM64, ArchTagSuffixS390x, ArchTagSuffixPPC64LE} {
+		// For 4.13 and earlier, only check x86_64 as multi-arch support was limited
+		// For 4.14+, check all architectures
+		archSuffixes := []ArchTagSuffix{ArchTagSuffixAMD64, ArchTagSuffixARM64, ArchTagSuffixS390x, ArchTagSuffixPPC64LE}
+		if version.Major == 4 && version.Minor <= 13 {
+			archSuffixes = []ArchTagSuffix{ArchTagSuffixAMD64}
+		}
+		for _, suffix := range archSuffixes {
 			image := fmt.Sprintf("quay.io/openshift-release-dev/ocp-release:%s-%s", versionStr, string(suffix))
 			c, err := getCincinnatiMetadata(image)
 			if err != nil {
