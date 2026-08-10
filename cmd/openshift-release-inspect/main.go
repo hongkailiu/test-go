@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hongkailiu/test-go/pkg/cincinnati"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
+
+	"github.com/hongkailiu/test-go/pkg/cincinnati"
 )
 
 var (
@@ -22,6 +24,9 @@ var rootCmd = &cobra.Command{
 	Long:  "Fetches and displays Cincinnati release metadata from an OpenShift release image",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+
+		logrus.SetLevel(logrus.DebugLevel)
+
 		image := args[0]
 		result, err := inspect(image)
 		if err != nil {
@@ -55,11 +60,17 @@ func init() {
 }
 
 type Result struct {
-	ImageInfo cincinnati.ImageInfo `json:"imageInfo"`
+	cincinnati.ImageInfo `json:"imageInfo"`
 }
 
 func inspect(image string) (Result, error) {
+	logrus.WithField("image", image).Debug("Inspecting image")
 	var ret Result
+	imageInfo, err := cincinnati.GetImageInfo(image)
+	if err != nil {
+		return ret, err
+	}
+	ret.ImageInfo = imageInfo
 	return ret, nil
 }
 

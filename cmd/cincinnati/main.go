@@ -38,7 +38,6 @@ type options struct {
 	Repo               string
 	GraphDataDir       string
 
-	MockDir        string
 	DataDir        string
 	GraphFile      string
 	GracePeriod    time.Duration
@@ -67,6 +66,18 @@ var rootCmd = &cobra.Command{
 		})
 		logrus.SetReportCaller(true)
 
+		if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
+			opts.Registry = v
+		}
+
+		if v := os.Getenv("CINCINNATI_REPO"); v != "" {
+			opts.Repo = v
+		}
+
+		if opts.GraphFile == "" {
+			opts.GraphFile = filepath.Join(opts.DataDir, "graph.json.gz")
+		}
+
 		client := retryablehttp.NewClient()
 		client.HTTPClient.Timeout = 30 * time.Second
 		client.RetryMax = 3
@@ -80,11 +91,11 @@ var rootCmd = &cobra.Command{
 
 		isReleaseMode := releaseMode()
 		repo := cincinnati.NewRepo(client.StandardClient(),
-			opts.Registry, opts.Repo, opts.DataDir, opts.MockDir, opts.MaxConcurrency, isReleaseMode)
+			opts.Registry, opts.Repo, opts.DataDir, opts.MaxConcurrency, isReleaseMode)
 
 		c := cache.New(5*time.Minute, 10*time.Minute)
 
-		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, opts.MockDir, c, repo, isReleaseMode)
+		gb := cincinnati.NewGraphBuilder(opts.GraphFile, opts.GraphDataDir, c, repo, isReleaseMode)
 
 		// It gives us better control about context, e.g., stop all goroutines earlier on interruptions.
 		var g run.Group
@@ -292,13 +303,15 @@ var rootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.Flags().StringVar(&opts.Address, "address", cincinnati.DefaultPort, "Address to run the server with")
-	rootCmd.Flags().StringVar(&opts.MockDir, "mock-dir", "", "Path to the directory containing mock files")
 	rootCmd.Flags().StringVar(&opts.DataDir, "data-dir", "data", "Path to the directory containing image info files")
+
 	rootCmd.Flags().StringVar(&opts.GraphDataDir, "graph-data-dir", "/tmp/cincinnati/graph-data",
 		"Path to the directory containing graph data")
+	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "", "Graph file path")
+
 	rootCmd.Flags().StringVar(&opts.Registry, "registry", "https://quay.io", "Registry URL")
 	rootCmd.Flags().StringVar(&opts.Repo, "repo", "openshift-release-dev/ocp-release", "Repo in form of org/repo")
-	rootCmd.Flags().StringVar(&opts.GraphFile, "graph-file", "data/graph.json.gz", "Graph file path")
+
 	rootCmd.Flags().DurationVar(&opts.GracePeriod, "gracePeriod", time.Second*10, "Grace period for server shutdown")
 	rootCmd.Flags().IntVar(&opts.MaxConcurrency, "max-concurrency", cincinnati.DefaultMaxConcurrency,
 		"Maximum number of concurrent in-flight goroutines to scrape the registry")
@@ -307,22 +320,6 @@ func init() {
 	rootCmd.Flags().StringVar(&opts.ServingCertFile, "serving-cert-file", "/etc/tls/serving-cert/tls.crt", "The X.509 certificate file for serving metrics over HTTPS.  You must set both --serving-cert-file and --serving-key-file.")
 	rootCmd.Flags().StringVar(&opts.ServingKeyFile, "serving-key-file", "/etc/tls/serving-cert/tls.key", "The X.509 key file for serving metrics over HTTPS.  You must set both --serving-cert-file and --serving-key-file.")
 	rootCmd.Flags().BoolVar(&opts.MetricsTLSDisabled, "metrics-tls-disabled", false, "Use HTTP instead of HTTPS to serve the metrics endpoint if set")
-
-	if v := os.Getenv("CINCINNATI_REGISTRY"); v != "" {
-		opts.Registry = v
-	}
-
-	if v := os.Getenv("CINCINNATI_REPO"); v != "" {
-		opts.Repo = v
-	}
-
-	if v := os.Getenv("MOCK_DIR"); v != "" {
-		opts.MockDir = v
-	}
-
-	if opts.MockDir != "" {
-		opts.GraphDataDir = filepath.Join(opts.MockDir, "graph-data")
-	}
 }
 
 func main() {

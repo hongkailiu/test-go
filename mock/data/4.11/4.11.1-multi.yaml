@@ -1,6 +1,8 @@
-Digest: sha256:4f1dda03f5a09d4b05c2d1aa5a1c08440857f3410e90e28e0be72182302f1265
+Digest: sha256:a867e3848dbe7237ea3b489cea77aa896a1418b5d3b01aa2060d95073bd3d6c9
 Tag: 4.11.1-multi
-kind: ""
-metadata: null
-previous: null
-version: ""
+kind: cincinnati-metadata-v0
+metadata:
+  release.openshift.io/architecture: multi
+  url: https://access.redhat.com/errata/RHSA-2022:6103
+previous: []
+version: 4.11.1-multi

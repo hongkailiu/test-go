@@ -28,7 +28,6 @@ type Repo struct {
 	client         Client
 	registry       string
 	repo           string
-	mockDir        string
 	dataDir        string
 	maxConcurrency int
 
@@ -36,13 +35,12 @@ type Repo struct {
 }
 
 // NewRepo returns a repo.
-func NewRepo(client Client, registry, repo, dataDir, mockDir string, maxConcurrency int, releaseMode bool) *Repo {
+func NewRepo(client Client, registry, repo, dataDir string, maxConcurrency int, releaseMode bool) *Repo {
 	return &Repo{
 		client:         client,
 		registry:       registry,
 		repo:           repo,
 		dataDir:        dataDir,
-		mockDir:        mockDir,
 		maxConcurrency: maxConcurrency,
 		releaseMode:    releaseMode,
 	}
@@ -62,17 +60,16 @@ type TagsListData struct {
 }
 
 func (r *Repo) tags(ctx context.Context) ([]string, error) {
-	if r.mockDir != "" {
-		raw, err := os.ReadFile(filepath.Join(r.mockDir, "repo.tags.list.json"))
-		if err != nil {
-			return nil, err
+	if !r.releaseMode {
+		mockTagsFile := filepath.Join(filepath.Dir(r.dataDir), "repo.tags.list.json")
+		raw, err := os.ReadFile(mockTagsFile)
+		if err == nil {
+			data := TagsListData{}
+			if err := json.Unmarshal(raw, &data); err == nil {
+				logrus.WithField("mockTagsFile", mockTagsFile).WithField("tags", data.Tags).Warn("Use mock tags")
+				return data.Tags, nil
+			}
 		}
-
-		data := TagsListData{}
-		if err := json.Unmarshal(raw, &data); err != nil {
-			return nil, err
-		}
-		return data.Tags, nil
 	}
 
 	var ret []string
@@ -186,7 +183,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 		logJ := logger.WithField("image", job.image).WithField("tag", job.tag).WithField("job.index", job.i)
 		logJ.Debug("Worker processing job ...")
 
-		info, err := getImageInfo(job.image)
+		info, err := GetImageInfo(job.image)
 		if err != nil {
 			logJ.WithError(err).Warn("Failed to fetch image info")
 			results <- result{err: fmt.Errorf("failed to get image info for tag %s and image %s: %w", job.tag, job.image, err)}
@@ -222,15 +219,14 @@ func (r *Repo) tagsToNodesAndEdges(ctx context.Context, graph Graph) (Graph, err
 		return Graph{}, err
 	}
 
-	graph, multi, missing := r.processTagsFromCache(graph, tags)
+	graph, missing := r.processTagsFromCache(graph, tags)
 
 	fetchedInfos, err := r.fetchMissingTags(ctx, missing)
 	if err != nil {
 		return graph, err
 	}
 
-	graph, multi = r.processFetchedTags(graph, fetchedInfos, multi)
-	graph = r.addMultiArchNodes(graph, multi)
+	graph = r.processFetchedTags(graph, fetchedInfos)
 	graph = addEdgesToGraph(graph)
 
 	logrus.WithField("nodes", len(graph.Nodes)).WithField("edges", len(graph.Edges)).WithField("conditionalEdges", len(graph.ConditionalEdges)).
@@ -264,9 +260,8 @@ func (r *Repo) fetchAndSaveTags(ctx context.Context) ([]string, error) {
 	return tags, nil
 }
 
-func (r *Repo) processTagsFromCache(graph Graph, tags []string) (Graph, []ImageInfo, []string) {
+func (r *Repo) processTagsFromCache(graph Graph, tags []string) (Graph, []string) {
 	var missing []string
-	var multi []ImageInfo
 	var invalid int
 
 	for _, tag := range tags {
@@ -287,16 +282,11 @@ func (r *Repo) processTagsFromCache(graph Graph, tags []string) (Graph, []ImageI
 			continue
 		}
 
-		node, info, loaded := r.tryLoadNodeFromFile(tag)
+		node, loaded := r.tryLoadNodeFromFile(tag)
 		if loaded {
-			if info.Multi() {
-				multi = append(multi, info)
-				logrus.WithField("tag", tag).Debug("Ignored a multi tag, to be handled later")
-			} else {
-				graph = graph.EnsureNode(node)
-				metrics.tagScraped.WithLabelValues("local").Inc()
-				logrus.WithField("tag", tag).Debug("Loaded image info from file")
-			}
+			graph = graph.EnsureNode(node)
+			metrics.tagScraped.WithLabelValues("local").Inc()
+			logrus.WithField("tag", tag).Debug("Loaded image info from file")
 			continue
 		}
 
@@ -304,19 +294,13 @@ func (r *Repo) processTagsFromCache(graph Graph, tags []string) (Graph, []ImageI
 	}
 
 	logrus.WithField("invalid", invalid).WithField("tags", len(tags)).Info("Ignored invalid tags")
-	return graph, multi, missing
+	return graph, missing
 }
 
-func (r *Repo) processFetchedTags(graph Graph, fetchedInfos []ImageInfo, multi []ImageInfo) (Graph, []ImageInfo) {
+func (r *Repo) processFetchedTags(graph Graph, fetchedInfos []ImageInfo) Graph {
 	var nodes int
 	for _, info := range fetchedInfos {
 		go saveToFile(r.dataDir, info)
-
-		if info.Multi() {
-			multi = append(multi, info)
-			logrus.WithField("tag", info.Tag).Debug("Ignored a multi tag in a received result (will be handled later)")
-			continue
-		}
 
 		version, err := semver.Parse(info.Version)
 		if err != nil {
@@ -334,7 +318,7 @@ func (r *Repo) processFetchedTags(graph Graph, fetchedInfos []ImageInfo, multi [
 	}
 
 	logrus.WithField("nodes", nodes).Info("Processed fetched tags")
-	return graph, multi
+	return graph
 }
 
 func isValidTag(tag string) bool {
@@ -355,38 +339,34 @@ func isValidTag(tag string) bool {
 	return tagToFile("", tag) != ""
 }
 
-func (r *Repo) tryLoadNodeFromFile(tag string) (Node, ImageInfo, bool) {
+func (r *Repo) tryLoadNodeFromFile(tag string) (Node, bool) {
 	file := tagToFile(r.dataDir, tag)
 	if file == "" || !fileExists(file) {
-		return Node{}, ImageInfo{}, false
+		return Node{}, false
 	}
 
 	data, err := os.ReadFile(file)
 	if err != nil {
 		logrus.WithError(err).WithField("tag", tag).WithField("file", file).
 			Warn("Failed to fetch image info from file, refetching ...")
-		return Node{}, ImageInfo{}, false
+		return Node{}, false
 	}
 
 	var info ImageInfo
 	if err := yaml.Unmarshal(data, &info); err != nil {
 		logrus.WithError(err).WithField("tag", tag).Warn("Failed to unmarshal image info, refetching ...")
-		return Node{}, ImageInfo{}, false
-	}
-
-	if info.Multi() {
-		return Node{}, info, true
+		return Node{}, false
 	}
 
 	version, err := semver.Parse(info.Version)
 	if err != nil {
 		logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
 			Warn("Failed to parse info.version for tag, refetching ...")
-		return Node{}, ImageInfo{}, false
+		return Node{}, false
 	}
 
 	node := nodeWithImageInfo(r.registry, r.repo, info.Tag, version, info)
-	return node, info, true
+	return node, true
 }
 
 func (r *Repo) fetchMissingTags(ctx context.Context, missing []string) ([]ImageInfo, error) {
@@ -442,49 +422,6 @@ func (r *Repo) fetchMissingTags(ctx context.Context, missing []string) ([]ImageI
 
 	logrus.WithField("missing", len(missing)).WithField("received", received).Info("Fetched image metadata for missing tags")
 	return infos, nil
-}
-
-func (r *Repo) addMultiArchNodes(graph Graph, multi []ImageInfo) Graph {
-	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Adding multi nodes the repository graph ...")
-
-	for _, info := range multi {
-		tag := info.Tag
-		trimmed := strings.TrimSuffix(tag, string(ArchTagSuffixMULTI))
-		if trimmed == tag {
-			logrus.WithField("tag", tag).Warn("Ignored an invalid multi image")
-			continue
-		}
-
-		// The other fields are filled with the image info from its amd64 shard
-		// `oc adm release info` does a similar thing. By default, it takes the arch on machine where `oc` runs.
-		i := graph.Find(trimmed + string(ArchTagSuffixAMD64))
-		if i == -1 {
-			logrus.WithField("tag", tag).Warn("Failed to find the amd64 node, ignored an invalid multi image")
-			continue
-		}
-
-		node := Node{
-			Version:  graph.Nodes[i].Version,
-			Image:    tagToImage(r.registry, r.repo, info.Digest),
-			Tag:      tag,
-			Metadata: map[string]string{},
-		}
-		SetMetadata(&node, MetadataKeyArchitecture, "multi")
-
-		if graph.Nodes[i].Metadata != nil {
-			for k, v := range graph.Nodes[i].Metadata {
-				node.Metadata[k] = v
-			}
-		}
-		if graph.Nodes[i].Previous != nil {
-			node.Previous = append(node.Previous, graph.Nodes[i].Previous...)
-		}
-
-		graph = graph.EnsureNode(node)
-	}
-
-	logrus.WithField("nodes", len(graph.Nodes)).WithField("multi", len(multi)).Info("Added multi nodes the repository graph")
-	return graph
 }
 
 func addEdgesToGraph(graph Graph) Graph {
@@ -591,40 +528,12 @@ type ImageInfo struct {
 	Tag string
 }
 
-// Multi returns true if it is image info for a multi tag
-func (i ImageInfo) Multi() bool {
-	return i.Version == "" && i.Digest != ""
-}
-
-func getImageInfo(image string) (ImageInfo, error) {
+func GetImageInfo(image string) (ImageInfo, error) {
 	var ret ImageInfo
 
 	ref, err := name.ParseReference(image)
 	if err != nil {
 		return ret, fmt.Errorf("failed to parse reference of image %s: %w", image, err)
-	}
-
-	desc, err := remote.Get(ref)
-	if err != nil {
-		return ret, fmt.Errorf("failed to get descriptor for %s: %w", image, err)
-	}
-
-	digest := desc.Digest.String()
-	if digest == "" {
-		return ret, fmt.Errorf("failed to get digest for %s", image)
-	}
-
-	// Check if it's a manifest list (index)
-	if desc.MediaType.IsIndex() {
-		// A sanity check. A contract with ART that multi-arch image always with a tag with suffix "multi".
-		// If the contract breaks, Cincinnati ignores those payload images in the update graph.
-		multiSuffix := string(ArchTagSuffixMULTI)
-		if !strings.HasSuffix(image, multiSuffix) {
-			return ret, fmt.Errorf("multi-arch image %s does not end with %s", image, ArchTagSuffixMULTI)
-		}
-		ret.Digest = digest
-		// The image info will be recovered with the image info from its amd64 shard
-		return ret, nil
 	}
 
 	img, err := remote.Image(ref)
@@ -639,8 +548,8 @@ func getImageInfo(image string) (ImageInfo, error) {
 
 	target := "release-manifests/release-metadata"
 
-	for _, layer := range layers {
-		rc, err := layer.Uncompressed()
+	for i := len(layers) - 1; i >= 0; i-- {
+		rc, err := layers[i].Uncompressed()
 		if err != nil {
 			return ret, fmt.Errorf("failed to uncompress layer: %w", err)
 		}
@@ -668,7 +577,12 @@ func getImageInfo(image string) (ImageInfo, error) {
 					return ret, fmt.Errorf("failed to unmarshal image info: %w", err)
 				}
 
-				ret.Digest = digest
+				hash, err := img.Digest()
+				if err != nil {
+					return ret, fmt.Errorf("failed to get digest of image: %w", err)
+				}
+
+				ret.Digest = hash.String()
 				ret.CincinnatiMetadata = m
 
 				return ret, nil

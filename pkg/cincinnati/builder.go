@@ -26,7 +26,6 @@ type GraphHandler struct {
 type GraphBuilder struct {
 	graphFile    string
 	graphDataDir string
-	mockDir      string
 	repo         *Repo
 
 	cache Cache
@@ -185,7 +184,7 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 	)
 
 	if graphFile != "" {
-		logrus.Info("Loading OpenShift upgrade graph from file ...")
+		logrus.WithField("graphFile", graphFile).Info("Loading OpenShift upgrade graph from file ...")
 
 		raw, err := util.ReadFileMaybeGZIP(graphFile)
 		if err != nil {
@@ -197,7 +196,7 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 			if err != nil {
 				logrus.WithError(err).Warning("Failed to unmarshal openshift upgrade graph")
 			} else {
-				logrus.WithField("file", graphFile).Info("Loaded openshift upgrade graph from file")
+				logrus.WithField("graphFile", graphFile).Info("Loaded openshift upgrade graph from file")
 
 				graph = graphFromFile
 				loaded = true
@@ -235,11 +234,13 @@ func buildOpenshiftUpgradeGraph(ctx context.Context, graphFile string, handlers 
 	return graph, kerrors.NewAggregate(errs)
 }
 
-func NewGraphBuilder(file, graphDataDir, mockDir string, cache Cache, repo *Repo, releaseMode bool) *GraphBuilder {
+func NewGraphBuilder(file, graphDataDir string, cache Cache, repo *Repo, releaseMode bool) *GraphBuilder {
+	logrus.WithField("graphFile", file).
+		WithField("graphDataDir", graphDataDir).
+		Info("Create Graph Builder")
 	return &GraphBuilder{
 		graphFile:    file,
 		graphDataDir: graphDataDir,
-		mockDir:      mockDir,
 		cache:        cache,
 		repo:         repo,
 		releaseMode:  releaseMode,
