@@ -260,38 +260,13 @@
       ]
     },
     {
-      "version": "4.11.1",
-      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:4f1dda03f5a09d4b05c2d1aa5a1c08440857f3410e90e28e0be72182302f1265",
+      "version": "4.11.1-multi",
+      "payload": "quay.io/openshift-release-dev/ocp-release@sha256:a867e3848dbe7237ea3b489cea77aa896a1418b5d3b01aa2060d95073bd3d6c9",
       "metadata": {
         "release.openshift.io/architecture": "multi",
         "url": "https://access.redhat.com/errata/RHSA-2022:6103"
       },
-      "tag": "4.11.1-multi",
-      "previous": [
-        "4.10.16",
-        "4.10.17",
-        "4.10.18",
-        "4.10.20",
-        "4.10.21",
-        "4.10.22",
-        "4.10.23",
-        "4.10.24",
-        "4.10.25",
-        "4.10.26",
-        "4.10.27",
-        "4.10.28",
-        "4.11.0",
-        "4.11.0-fc.0",
-        "4.11.0-fc.3",
-        "4.11.0-rc.0",
-        "4.11.0-rc.1",
-        "4.11.0-rc.2",
-        "4.11.0-rc.3",
-        "4.11.0-rc.4",
-        "4.11.0-rc.5",
-        "4.11.0-rc.6",
-        "4.11.0-rc.7"
-      ]
+      "tag": "4.11.1-multi"
     }
   ],
   "edges": [

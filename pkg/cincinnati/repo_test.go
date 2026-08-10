@@ -112,7 +112,6 @@ func TestRepo_tagsToNodesAndEdges(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			repo := Repo{
 				client:         http.DefaultClient,
-				mockDir:        "../../mock",
 				dataDir:        "../../mock/data",
 				registry:       "https://quay.io",
 				repo:           "openshift-release-dev/ocp-release",
