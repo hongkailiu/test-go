@@ -95,7 +95,7 @@ func TestGraph_getTag(t *testing.T) {
 		name        string
 		g           Graph
 		version     string
-		suffix      ArchTagSuffix
+		arch      string
 		expectTag   string
 		expectIndex int
 	}{
@@ -105,10 +105,11 @@ func TestGraph_getTag(t *testing.T) {
 				{
 					Version: semver.MustParse("4.2.11"),
 					Tag:     "4.2.11",
+					Arch:    "amd64",
 				},
 			}},
 			version:   "4.2.11",
-			suffix:    ArchTagSuffixAMD64,
+			arch:    "amd64",
 			expectTag: "4.2.11",
 		},
 		{
@@ -117,10 +118,11 @@ func TestGraph_getTag(t *testing.T) {
 				{
 					Version: semver.MustParse("4.3.11"),
 					Tag:     "4.3.11-x86_64",
+					Arch:    "amd64",
 				},
 			}},
 			version:   "4.3.11",
-			suffix:    ArchTagSuffixAMD64,
+			arch:    "amd64",
 			expectTag: "4.3.11-x86_64",
 		},
 		{
@@ -129,10 +131,11 @@ func TestGraph_getTag(t *testing.T) {
 				{
 					Version: semver.MustParse("4.23.11"),
 					Tag:     "4.23.11-multi",
+					Arch:    "multi",
 				},
 			}},
 			version:   "4.23.11",
-			suffix:    ArchTagSuffixMULTI,
+			arch:    "multi",
 			expectTag: "4.23.11-multi",
 		},
 		{
@@ -141,16 +144,17 @@ func TestGraph_getTag(t *testing.T) {
 				{
 					Version: semver.MustParse("4.23.11"),
 					Tag:     "4.23.11-multi",
+					Arch:    "multi",
 				},
 			}},
 			version:     "4.23.11",
-			suffix:      ArchTagSuffixAMD64,
+			arch:      "amd64",
 			expectIndex: -1,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualTag, actualIndex := tt.g.getTagAndIndex(tt.version, tt.suffix)
+			actualTag, actualIndex := tt.g.getTagAndIndex(tt.version, tt.arch)
 
 			if diff := cmp.Diff(tt.expectIndex, actualIndex); diff != "" {
 				t.Errorf("index not match (-want +got):\n%s", diff)
@@ -350,13 +354,13 @@ func TestNode_validPrevious(t *testing.T) {
 			expect: fmt.Errorf("tag's previous are not always smaller: 4.20.0-ec.1-x86_64"),
 		},
 		{
-			// multi reuses x86_64's previous, we do not need to duplicate the error
 			name: "4.20.0-ec.1-multi",
 			node: Node{
 				Tag:      "4.20.0-ec.1-multi",
 				Previous: []string{"4.19.0-rc.4", "4.20.0-ec.1"},
 				Version:  semver.MustParse("4.20.0-ec.1"),
 			},
+			expect: fmt.Errorf("tag's previous are not always smaller: 4.20.0-ec.1-multi"),
 		},
 		{
 			name: "4.4.0-s390x",

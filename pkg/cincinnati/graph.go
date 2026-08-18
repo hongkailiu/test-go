@@ -22,8 +22,7 @@ import (
 // The first upgrade path is from 4.19.0-okd-scos.19 to 4.20.0-okd-scos.0
 // OKD has its own graph-data
 // https://github.com/okd-project/cincinnati-graph-data
-// TODO: We will need to fill the gap between OCP and OKD.
-// To do it, we probably need to remove ArchTagSuffix.
+
 
 type Graph struct {
 	Version          int               `json:"version"`
@@ -41,6 +40,7 @@ type Node struct {
 
 	Tag      string   `json:"tag,omitempty"`
 	Previous []string `json:"previous,omitempty"`
+	Arch     string   `json:"arch,omitempty"`
 }
 
 func SetMetadata(n *Node, k, v string) {
@@ -108,7 +108,7 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 			continue
 		}
 
-		if getArch(node.Tag) != ArchParam(p.Arch) {
+		if node.Arch != p.Arch {
 			logrus.WithField("node.version", node.Version.String()).WithField("node.tag", node.Tag).WithField("params.arch", p.Arch).
 				Debug("Ignored a version not matching arch")
 
@@ -132,36 +132,22 @@ func (p *GraphParams) shape(g Graph) (Graph, error) {
 	return p.directTargets(g), nil
 }
 
-func (g Graph) getTagAndIndex(version string, suffix ArchTagSuffix) (string, int) {
-	fromTag := fmt.Sprintf("%s-%s", version, suffix)
-	i := g.Find(fromTag)
-	if i == -1 {
-		// 4.2.1 is a legit tag
-		fromTag = version
-		i = g.Find(version)
-		if i == -1 {
-			return "", -1
+func (g Graph) getTagAndIndex(version string, arch string) (string, int) {
+
+	for _, node := range g.Nodes {
+		if node.Version.String() == version && node.Arch == arch {
+			if i := g.Find(node.Tag); i > -1 {
+				return node.Tag, i
+			}
 		}
 	}
-	return fromTag, i
+	return "", -1
 }
 
 func (p *GraphParams) directTargets(g Graph) Graph {
 	keep := sets.New[int]()
-	var suffix ArchTagSuffix
 
-	var found bool
-	for k, v := range ArchTagSuffixesMap {
-		if string(v) == p.Arch {
-			suffix = k
-			found = true
-		}
-	}
-	if !found {
-		return Graph{}
-	}
-
-	fromTag, i := g.getTagAndIndex(p.Version.String(), suffix)
+	fromTag, i := g.getTagAndIndex(p.Version.String(), p.Arch)
 	if i > -1 {
 		logrus.WithField("tag", fromTag).WithField("i", i).Debug("Keep a node")
 		keep.Insert(i)
@@ -185,7 +171,7 @@ func (p *GraphParams) directTargets(g Graph) Graph {
 	for _, edge := range g.ConditionalEdges {
 		for _, riskEdge := range edge.Edges {
 			if p.Version.String() == riskEdge.From {
-				tag, i := g.getTagAndIndex(riskEdge.To, suffix)
+				tag, i := g.getTagAndIndex(riskEdge.To, p.Arch)
 				if i > -1 {
 					logrus.WithField("tag", tag).WithField("i", i).Debug("Keep a node for conditional edge")
 					keep.Insert(i)
@@ -269,45 +255,13 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	return g
 }
 
-const (
-	Multi = "multi"
-	Unknown = "unknown"
-)
-
-type ArchParam string
-
-const (
-	ArchParamAMD64   ArchParam = "amd64"
-	ArchParamARM64   ArchParam = "arm64"
-	ArchParamS390x   ArchParam = "s390x"
-	ArchParamPPC64LE ArchParam = "ppc64le"
-	ArchParamMULTI   ArchParam = Multi
-	ArchParamUnknown ArchParam = Unknown
-)
-
-type ArchTagSuffix string
-
-const (
-	ArchTagSuffixAMD64   ArchTagSuffix = "x86_64"
-	ArchTagSuffixARM64   ArchTagSuffix = "aarch64"
-	ArchTagSuffixS390x   ArchTagSuffix = "s390x"
-	ArchTagSuffixPPC64LE ArchTagSuffix = "ppc64le"
-	ArchTagSuffixMULTI   ArchTagSuffix = Multi
-)
-
-var ArchTagSuffixes = []ArchTagSuffix{ArchTagSuffixAMD64, ArchTagSuffixARM64, ArchTagSuffixS390x, ArchTagSuffixPPC64LE, ArchTagSuffixMULTI}
-var ArchTagSuffixesMap = map[ArchTagSuffix]ArchParam{
-	ArchTagSuffixAMD64:   ArchParamAMD64,
-	ArchTagSuffixARM64:   ArchParamARM64,
-	ArchTagSuffixS390x:   ArchParamS390x,
-	ArchTagSuffixPPC64LE: ArchParamPPC64LE,
-	ArchTagSuffixMULTI:   ArchParamMULTI,
-}
+const Multi = "multi"
 
 func (g Graph) compatible() Graph {
 	for i := range g.Nodes {
 		g.Nodes[i].Tag = ""
 		g.Nodes[i].Previous = nil
+		g.Nodes[i].Arch = ""
 	}
 
 	if g.Nodes == nil {
@@ -336,28 +290,16 @@ func (g Graph) compatible() Graph {
 // getFrom return the index of the node which is with the given version and the same arch with the node in the given graph, or
 // -1 if such a node cannot be found.
 func (n Node) getFrom(version string, graph Graph) int {
-	arch := getArch(n.Tag)
-
 	for i, node := range graph.Nodes {
 		versionStr := node.Version.String()
 		if versionStr == version {
-			if arch1 := getArch(node.Tag); arch1 == arch {
+			if node.Arch == n.Arch {
 				return i
 			}
 		}
 	}
 
 	return -1
-}
-
-// getArch returns the arch for a given tag with a default value as amd64.
-func getArch(tag string) ArchParam {
-	for _, s := range ArchTagSuffixes {
-		if v, ok := ArchTagSuffixesMap[s]; ok && strings.HasSuffix(tag, "-"+string(s)) {
-			return v
-		}
-	}
-	return ArchParamAMD64
 }
 
 func (n Node) getPrevious(graph Graph) []Edge {
@@ -386,13 +328,6 @@ func (n Node) getPrevious(graph Graph) []Edge {
 }
 
 func (g Graph) EnsureNode(n Node) Graph {
-	if m := string(ArchTagSuffixMULTI); strings.Contains(n.Tag, m) {
-		v, ok := n.Metadata[MetadataKeyArchitecture]
-		if !ok || v != m {
-			logrus.WithField("tag", n.Tag).Error("Ignored an invalid multi tag")
-			return g
-		}
-	}
 	if err := n.validPrevious(); err != nil {
 		logrus.WithField("tag", n.Tag).WithError(err).Error("Ignored an invalid previous node")
 		return g
@@ -478,9 +413,7 @@ func (n Node) validPrevious() error {
 			logrus.WithField("index", i).WithField("p", p).
 				WithField("tag", n.Tag).WithField("version", n.Version.String()).
 				Error("previous is not smaller")
-			if getArch(n.Tag) != ArchParamMULTI {
-				return fmt.Errorf("tag's previous are not always smaller: %s", n.Tag)
-			}
+			return fmt.Errorf("tag's previous are not always smaller: %s", n.Tag)
 		}
 	}
 	return nil

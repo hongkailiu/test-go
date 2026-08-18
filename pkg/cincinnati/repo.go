@@ -1,7 +1,6 @@
 package cincinnati
 
 import (
-	"slices"
 	"archive/tar"
 	"context"
 	"encoding/json"
@@ -10,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -327,17 +327,16 @@ func (r *Repo) processFetchedTags(graph Graph, fetchedInfos []ImageInfo) Graph {
 }
 
 func isValidTag(tag string) bool {
-	multiSuffix := string(ArchTagSuffixMULTI)
-
 	if (strings.HasPrefix(tag, "sha256-") && strings.HasSuffix(tag, ".sig")) ||
-		strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixAMD64)) ||
-		strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixARM64)) ||
-		strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixS390x)) ||
-		strings.HasSuffix(tag, multiSuffix+"-"+string(ArchTagSuffixPPC64LE)) ||
+		strings.HasSuffix(tag, Multi+"-x86_64") ||
+		strings.HasSuffix(tag, Multi+"-aarch64") ||
+		strings.HasSuffix(tag, Multi+"-s390x") ||
+		strings.HasSuffix(tag, Multi+"-ppc64le") ||
 		strings.Contains(tag, "nightly") ||
 		strings.Contains(tag, "assembly") ||
 		invalidTags.Has(tag) ||
-		strings.HasPrefix(tag, "4.0.") { // 4.0 was never GA
+		// 4.0 was never GA
+		strings.HasPrefix(tag, "4.0.") {
 		return false
 	}
 
@@ -506,6 +505,7 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 		Image:    tagToImage(registry, repo, info.Digest),
 		Tag:      tag,
 		Previous: info.Previous,
+		Arch:     info.CincinnatArchitecture,
 	}
 	if url, ok := info.Metadata["url"]; ok {
 		SetMetadata(&node, "url", url)

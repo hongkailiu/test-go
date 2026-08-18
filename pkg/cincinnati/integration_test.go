@@ -189,6 +189,16 @@ func getGraph(url string) (Graph, error) {
 
 }
 
+type ArchParam string
+
+const (
+	ArchParamAMD64   ArchParam = "amd64"
+	ArchParamARM64   ArchParam = "arm64"
+	ArchParamS390x   ArchParam = "s390x"
+	ArchParamPPC64LE ArchParam = "ppc64le"
+	ArchParamMULTI   ArchParam = Multi
+)
+
 func TestIntegration_dummy(t *testing.T) {
 	if os.Getenv("TEST_INTEGRATION") != "1" {
 		t.Skip("integration tests skipped unless TEST_INTEGRATION=1")
