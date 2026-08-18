@@ -17,6 +17,14 @@ import (
 // condition update since 4.7?: default blocking -> conditional blocking with MatchRules
 // tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
 
+// Cincinnati starts to support OKD as well.
+// The release repo is quay.io/okd/scos-release.
+// The first upgrade path is from 4.19.0-okd-scos.19 to 4.20.0-okd-scos.0
+// OKD has its own graph-data
+// https://github.com/okd-project/cincinnati-graph-data
+// TODO: We will need to fill the gap between OCP and OKD.
+// To do it, we probably need to remove ArchTagSuffix.
+
 type Graph struct {
 	Version          int               `json:"version"`
 	Nodes            []Node            `json:"nodes"`
@@ -261,6 +269,11 @@ func (g Graph) RemoveNodes(remove ...int) Graph {
 	return g
 }
 
+const (
+	Multi = "multi"
+	Unknown = "unknown"
+)
+
 type ArchParam string
 
 const (
@@ -268,8 +281,8 @@ const (
 	ArchParamARM64   ArchParam = "arm64"
 	ArchParamS390x   ArchParam = "s390x"
 	ArchParamPPC64LE ArchParam = "ppc64le"
-	ArchParamMULTI   ArchParam = "multi"
-	ArchParamUnknown ArchParam = "unknown"
+	ArchParamMULTI   ArchParam = Multi
+	ArchParamUnknown ArchParam = Unknown
 )
 
 type ArchTagSuffix string
@@ -279,7 +292,7 @@ const (
 	ArchTagSuffixARM64   ArchTagSuffix = "aarch64"
 	ArchTagSuffixS390x   ArchTagSuffix = "s390x"
 	ArchTagSuffixPPC64LE ArchTagSuffix = "ppc64le"
-	ArchTagSuffixMULTI   ArchTagSuffix = "multi"
+	ArchTagSuffixMULTI   ArchTagSuffix = Multi
 )
 
 var ArchTagSuffixes = []ArchTagSuffix{ArchTagSuffixAMD64, ArchTagSuffixARM64, ArchTagSuffixS390x, ArchTagSuffixPPC64LE, ArchTagSuffixMULTI}

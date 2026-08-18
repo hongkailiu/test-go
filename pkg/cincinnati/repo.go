@@ -1,6 +1,7 @@
 package cincinnati
 
 import (
+	"slices"
 	"archive/tar"
 	"context"
 	"encoding/json"
@@ -192,7 +193,11 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 
 		logJ.Debug("Fetched image info successfully")
 
-		info.Tag = job.tag
+		if info.Tag != job.tag {
+			logJ.WithField("info.tag", info.Tag).WithField("job.tag", job.tag).Warn("Tag mismatch")
+			results <- result{err: fmt.Errorf("tag mismatch for tag %s and image %s", job.tag, job.image)}
+			continue
+		}
 		results <- result{info: info}
 	}
 }
@@ -516,16 +521,32 @@ func nodeWithImageInfo(registry, repo, tag string, version semver.Version, info 
 type CincinnatiMetadata struct {
 	Kind     string            `json:"kind"`
 	Version  string            `json:"version"`
-	Previous []string          `json:"previous"`
-	Metadata map[string]string `json:"metadata"`
+	Previous []string          `json:"previous,omitempty"`
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 type ImageInfo struct {
-	CincinnatiMetadata
+	// https://github.com/openshift/cincinnati/blob/master/docs/design/openshift.md#update-images-architecture
+	CincinnatArchitecture string `json:"cincinnatiArchitecture"`
 
-	Digest string
+	CincinnatiMetadata `json:"cincinnatiMetadata,inline"`
 
-	Tag string
+	Digest string `json:"digest"`
+
+	Tag string `json:"tag,omitempty"`
+
+	OS           string `json:"os"`
+	Architecture string `json:"architecture"`
+	Variant      string `json:"Variant,omitempty"`
+
+	Manifests []Manifest `json:"manifests,omitempty"`
+	IsIndex   bool       `json:"isIndex"`
+}
+
+type Manifest struct {
+	OS           string `json:"os"`
+	Architecture string `json:"architecture"`
+	Digest       string `json:"digest"`
 }
 
 func GetImageInfo(image string) (ImageInfo, error) {
@@ -536,20 +557,74 @@ func GetImageInfo(image string) (ImageInfo, error) {
 		return ret, fmt.Errorf("failed to parse reference of image %s: %w", image, err)
 	}
 
+	if tag, ok := ref.(name.Tag); ok {
+		ret.Tag = tag.TagStr()
+	} else {
+		logrus.WithField("image", image).Warn("Not a tag reference")
+	}
+
+	desc, err := remote.Get(ref)
+	if err != nil {
+		return ret, fmt.Errorf("failed to get descriptor for %s: %w", image, err)
+	}
+
+	if desc.MediaType.IsIndex() {
+		ret.IsIndex = true
+		index, err := desc.ImageIndex()
+		if err != nil {
+			logrus.WithError(err).Error("failed to fetch image index")
+		}
+
+		im, err := index.IndexManifest()
+		if err != nil {
+			logrus.WithError(err).Error("failed to fetch image index")
+		}
+
+		if len(im.Manifests) == 1 {
+			ret.CincinnatArchitecture = im.Manifests[0].Platform.Architecture
+		} else {
+			ret.CincinnatArchitecture = Multi
+		}
+
+		for _, m := range im.Manifests {
+			ret.Manifests = append(ret.Manifests, Manifest{
+				OS:           m.Platform.OS,
+				Architecture: m.Platform.Architecture,
+				Digest:       m.Digest.String(),
+			})
+		}
+	}
+
 	img, err := remote.Image(ref)
 	if err != nil {
 		return ret, fmt.Errorf("failed to fetch image %s: %w", image, err)
 	}
 
+	hash, err := img.Digest()
+	if err != nil {
+		return ret, fmt.Errorf("failed to get digest of image %q: %w", image, err)
+	}
+
+	ret.Digest = hash.String()
+
+	configFile, err := img.ConfigFile()
+	if err != nil {
+		return ret, fmt.Errorf("failed to get config file for image %q: %w", image, err)
+	}
+
+	ret.OS = configFile.OS
+	ret.Architecture = configFile.Architecture
+	ret.Variant = configFile.Variant
+
 	layers, err := img.Layers()
 	if err != nil {
-		return ret, fmt.Errorf("error getting layers for image %q: %w", image, err)
+		return ret, fmt.Errorf("failed to get layers for image %q: %w", image, err)
 	}
 
 	target := "release-manifests/release-metadata"
 
-	for i := len(layers) - 1; i >= 0; i-- {
-		rc, err := layers[i].Uncompressed()
+	for _, layer := range slices.Backward(layers) {
+		rc, err := layer.Uncompressed()
 		if err != nil {
 			return ret, fmt.Errorf("failed to uncompress layer: %w", err)
 		}
@@ -577,13 +652,14 @@ func GetImageInfo(image string) (ImageInfo, error) {
 					return ret, fmt.Errorf("failed to unmarshal image info: %w", err)
 				}
 
-				hash, err := img.Digest()
-				if err != nil {
-					return ret, fmt.Errorf("failed to get digest of image: %w", err)
-				}
-
-				ret.Digest = hash.String()
 				ret.CincinnatiMetadata = m
+
+				if !ret.IsIndex {
+					ret.CincinnatArchitecture = ret.Architecture
+					if ret.CincinnatiMetadata.Metadata[MetadataKeyArchitecture] == Multi {
+						ret.CincinnatArchitecture = Multi
+					}
+				}
 
 				return ret, nil
 			}

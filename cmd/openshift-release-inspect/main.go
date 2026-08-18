@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 		image := args[0]
 		result, err := inspect(image)
 		if err != nil {
-			return err
+			logrus.WithError(err).WithField("image", image).Fatal("Failed to inspect image")
 		}
 
 		var data []byte
@@ -60,7 +60,7 @@ func init() {
 }
 
 type Result struct {
-	cincinnati.ImageInfo `json:"imageInfo"`
+	cincinnati.ImageInfo
 }
 
 func inspect(image string) (Result, error) {
