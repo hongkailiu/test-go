@@ -653,7 +653,7 @@ func GetImageInfo(image string) (ImageInfo, error) {
 
 				if !ret.IsIndex {
 					ret.CincinnatArchitecture = ret.Architecture
-					if ret.CincinnatiMetadata.Metadata[MetadataKeyArchitecture] == Multi {
+					if ret.Metadata[MetadataKeyArchitecture] == Multi {
 						ret.CincinnatArchitecture = Multi
 					}
 				}

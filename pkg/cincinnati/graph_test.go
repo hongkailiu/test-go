@@ -95,7 +95,7 @@ func TestGraph_getTag(t *testing.T) {
 		name        string
 		g           Graph
 		version     string
-		arch      string
+		arch        string
 		expectTag   string
 		expectIndex int
 	}{
@@ -109,7 +109,7 @@ func TestGraph_getTag(t *testing.T) {
 				},
 			}},
 			version:   "4.2.11",
-			arch:    "amd64",
+			arch:      "amd64",
 			expectTag: "4.2.11",
 		},
 		{
@@ -122,7 +122,7 @@ func TestGraph_getTag(t *testing.T) {
 				},
 			}},
 			version:   "4.3.11",
-			arch:    "amd64",
+			arch:      "amd64",
 			expectTag: "4.3.11-x86_64",
 		},
 		{
@@ -135,7 +135,7 @@ func TestGraph_getTag(t *testing.T) {
 				},
 			}},
 			version:   "4.23.11",
-			arch:    "multi",
+			arch:      "multi",
 			expectTag: "4.23.11-multi",
 		},
 		{
@@ -148,7 +148,7 @@ func TestGraph_getTag(t *testing.T) {
 				},
 			}},
 			version:     "4.23.11",
-			arch:      "amd64",
+			arch:        "amd64",
 			expectIndex: -1,
 		},
 	}

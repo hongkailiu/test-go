@@ -17,12 +17,15 @@ import (
 // condition update since 4.7?: default blocking -> conditional blocking with MatchRules
 // tag could have arch suffix before 4.3 before 4.3, 4.2.11-s390x with version 4.2.11-s390x
 
-// Cincinnati starts to support OKD as well.
+// Cincinnati supports OKD as well.
 // The release repo is quay.io/okd/scos-release.
-// The first upgrade path is from 4.19.0-okd-scos.19 to 4.20.0-okd-scos.0
+// - The first tag is 4.12.0-0.okd-scos-2022-10-22-232744
+// - The first manifest tag is 4.16.0-0.okd-scos-2024-07-29-144356 which has only 1 shard for amd64
+// - The first manifest tag with more than 1 shard are 4.22.0-okd-scos.6 and 5.0.0-okd-scos.ec.4: amd64 and arm64
+// - The first upgrade path is from 4.19.0-okd-scos.19 to 4.20.0-okd-scos.0
 // OKD has its own graph-data
 // https://github.com/okd-project/cincinnati-graph-data
-
+// - It has only stable channels and starts from stable-4.20
 
 type Graph struct {
 	Version          int               `json:"version"`

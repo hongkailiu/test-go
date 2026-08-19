@@ -304,6 +304,35 @@ func TestGetImageInfo(t *testing.T) {
 			},
 		},
 		{
+			name:  "okd scos release ec.3",
+			image: "quay.io/okd/scos-release:5.0.0-okd-scos.ec.3",
+			want: ImageInfo{
+				CincinnatArchitecture: "amd64",
+				CincinnatiMetadata: CincinnatiMetadata{
+					Kind:    "cincinnati-metadata-v0",
+					Version: "5.0.0-okd-scos.ec.3",
+					Previous: []string{
+						"4.22.0-okd-scos.ec.16",
+						"5.0.0-okd-scos.ec.0",
+						"5.0.0-okd-scos.ec.1",
+						"5.0.0-okd-scos.ec.2",
+					},
+				},
+				Digest:       "sha256:a4f0bfa8834dd89d9eed50083c43298b2b1066a587734090f67458fbd067d31e",
+				Tag:          "5.0.0-okd-scos.ec.3",
+				OS:           "linux",
+				Architecture: "amd64",
+				Manifests: []Manifest{
+					{
+						OS:           "linux",
+						Architecture: "amd64",
+						Digest:       "sha256:a4f0bfa8834dd89d9eed50083c43298b2b1066a587734090f67458fbd067d31e",
+					},
+				},
+				IsIndex: true,
+			},
+		},
+		{
 			name:           "invalid reference",
 			image:          "!!!not-a-valid-reference!!!",
 			expErrContains: "failed to parse reference",
