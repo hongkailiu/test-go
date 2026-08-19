@@ -191,7 +191,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 			continue
 		}
 
-		logJ.Debug("Fetched image info successfully")
+		logJ.Info("Fetched image info successfully")
 
 		if info.Tag != job.tag {
 			logJ.WithField("info.tag", info.Tag).WithField("job.tag", job.tag).Warn("Tag mismatch")
@@ -204,9 +204,7 @@ func worker(id int, jobs <-chan job, results chan<- result, wg *sync.WaitGroup) 
 
 var invalidTags = sets.New[string](
 	// tags whose previous are not smaller
-	"4.20.0-ec.7-aarch64", "4.20.0-ec.7-ppc64le", "4.20.0-ec.7-s390x", "4.20.0-ec.7-x86_64", "4.4.0-s390x",
-	// multi-tag without the x86_64 variant
-	"4.20.0-ec.7-multi",
+	"4.20.0-ec.7-aarch64", "4.20.0-ec.7-ppc64le", "4.20.0-ec.7-s390x", "4.20.0-ec.7-x86_64", "4.4.0-s390x", "4.20.0-ec.7-multi",
 	// not semver
 	"v4.0-20180928191152", "4.11-art-latest-multi",
 	// not really multi tags
@@ -305,8 +303,6 @@ func (r *Repo) processTagsFromCache(graph Graph, tags []string) (Graph, []string
 func (r *Repo) processFetchedTags(graph Graph, fetchedInfos []ImageInfo) Graph {
 	var nodes int
 	for _, info := range fetchedInfos {
-		go saveToFile(r.dataDir, info)
-
 		version, err := semver.Parse(info.Version)
 		if err != nil {
 			logrus.WithError(err).WithField("tag", info.Tag).WithField("version", info.Version).
@@ -418,6 +414,7 @@ func (r *Repo) fetchMissingTags(ctx context.Context, missing []string) ([]ImageI
 			}
 
 			infos = append(infos, result.info)
+			go saveToFile(r.dataDir, result.info)
 		case <-ctx.Done():
 			logrus.Info("Context done")
 			return infos, ctx.Err()
@@ -469,7 +466,7 @@ func saveToFile(dir string, info ImageInfo) {
 		logger.WithError(err).WithField("file", file).Warn("Failed to write file")
 		return
 	}
-	logger.Debug("Saved to disk ...")
+	logger.Info("Saved to disk ...")
 }
 
 func tagToFile(dir, tag string) string {
